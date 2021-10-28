@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://cla7aye15i4nd.github.io</id>
+    <title>dataisland&apos;s home</title>
+    <updated>2021-10-28T13:24:36.264Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://cla7aye15i4nd.github.io"/>
+    <link rel="self" href="https://cla7aye15i4nd.github.io/atom.xml"/>
+    <subtitle>正因为生来一无所有，所以才能拥有一切，这是身为弱者的骄傲</subtitle>
+    <logo>https://cla7aye15i4nd.github.io/images/avatar.png</logo>
+    <icon>https://cla7aye15i4nd.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2021, dataisland&apos;s home</rights>
+</feed>
