@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://cla7aye15i4nd.github.io</id>
     <title>dataisland&apos;s home</title>
-    <updated>2021-10-28T15:51:29.761Z</updated>
+    <updated>2021-10-29T06:21:43.198Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://cla7aye15i4nd.github.io"/>
     <link rel="self" href="https://cla7aye15i4nd.github.io/atom.xml"/>
@@ -12,8 +12,8 @@
     <rights>All rights reserved 2021, dataisland&apos;s home</rights>
     <entry>
         <title type="html"><![CDATA[Re：从零开始的单片机生活（二）- STM32单片机程序的外设与模拟]]></title>
-        <id>https://cla7aye15i4nd.github.io/post/recong-ling-kai-shi-de-dan-pian-ji-sheng-huo-er-stm32-dan-pian-ji-cheng-xu-de-wai-she-yu-mo-ni/</id>
-        <link href="https://cla7aye15i4nd.github.io/post/recong-ling-kai-shi-de-dan-pian-ji-sheng-huo-er-stm32-dan-pian-ji-cheng-xu-de-wai-she-yu-mo-ni/">
+        <id>https://cla7aye15i4nd.github.io/post/re0-stm32-life-2/</id>
+        <link href="https://cla7aye15i4nd.github.io/post/re0-stm32-life-2/">
         </link>
         <updated>2021-10-28T15:36:28.000Z</updated>
         <content type="html"><![CDATA[<p>还没开始写</p>
@@ -68,7 +68,7 @@ arm-none-eabi-objcopy -O binary target/led.bin
 回到这两个文件，hex文件指的是<a href="https://en.wikipedia.org/wiki/Intel_HEX">Intel Hex</a>，文件内容可以认为是一个个的形如(地址，数据)的二元组，告诉st-flash根据这些二元组将数据写入到对应单片机的地址上。而bin文件则只有数据，没有地址所以如果我们想烧录bin文件需要像下面这样指定要烧录的地址：</p>
 <pre><code class="language-bash">st-flash write build/led.bin 0x8000000
 </code></pre>
-<p>了解了这两个文件后，我们可以认为烧录这一过程<strong>改变了单片的一部分内存数据</strong>。</p>
+<p>这条命令是说让bin原模原样的覆盖0x8000000开始的地址的内容。了解了这两个文件后，我们可以认为烧录这一过程<strong>改变了单片的一部分内存数据</strong>，我们还需要关注寄存器是如何变化的。</p>
 <h3 id="单片机重置reset">单片机重置(Reset)</h3>
 <p>我们在烧录过后，还点击了单片上的Reset按钮，这一步单片及内部发生了什么呢。我们可以参考官方的Cortex-M4文档，在有关寄存器的章节，这里说了会将pc的值覆盖为地址0x00000004处的值。<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434118723.png" alt="" loading="lazy"></p>
@@ -77,7 +77,7 @@ arm-none-eabi-objcopy -O binary target/led.bin
 简单来说，在通常情况下，单片机访问0x00000000 ~ 0x0007FFFF(这一段内存相当于访问Main Flash memory，而 Main Flash memory 正是在 0x8000000。因此这也意味着PC的值是0x8000004这个地址的值。</p>
 <p>这里我们可以用ghidra逆向一下生成的led.elf文件，看看0x8000004处的内容是什么。<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434743582.png" alt="" loading="lazy"><br>
-可以很清楚的看到pc会被置成Reset_Handler的地址，我们可以在我们的代码中搜索Reset_Handler可以发现这是STM32CubeMX为我们生成的代码，它的作用是执行一些全局变量的初始化工作以及跳转到main函数。</p>
+可以很清楚的看到pc会被置成Reset_Handler的地址，我们可以在我们的代码中搜索Reset_Handler可以发现这是STM32CubeMX为我们生成的代码，它的作用是执行一些全局变量的初始化工作以及跳转到main函数，如果仔细看这这个函数，还是会发现不是特别简单，但是每个单片机程序都需要它，相当于一个模板一样的东西，每次都手动编写或者复制过来很麻烦，因此STMCubeMX就是在这样的地方发挥作用，让我们不需要去写那些重复的代码。</p>
 <h3 id="led灯是如何闪烁的">LED灯是如何闪烁的</h3>
 <p>到这一步程序已经开始执行main函数，但是它到底是通过什么是LED灯闪的呢？这一部分内容我们放到下一篇文章。</p>
 ]]></content>
