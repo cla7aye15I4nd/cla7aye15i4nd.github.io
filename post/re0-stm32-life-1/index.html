@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Re：从零开始的单片机生活（一）- STM32单片机程序的开发与加载 | dataisland&#39;s home</title>
-<link rel="shortcut icon" href="https://cla7aye15i4nd.github.io/favicon.ico?v=1635488496235">
+<link rel="shortcut icon" href="https://cla7aye15i4nd.github.io/favicon.ico?v=1635582923417">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cla7aye15i4nd.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Re：从零开始的单片机生活（一）- STM32单片机程序的开发与加载 | dataisland&#39;s home - Atom Feed" href="https://cla7aye15i4nd.github.io/atom.xml">
@@ -22,7 +22,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://cla7aye15i4nd.github.io">
-  <img class="avatar" src="https://cla7aye15i4nd.github.io/images/avatar.png?v=1635488496235" alt="">
+  <img class="avatar" src="https://cla7aye15i4nd.github.io/images/avatar.png?v=1635582923417" alt="">
   </a>
   <h1 class="site-title">
     dataisland&#39;s home
@@ -130,14 +130,15 @@ arm-none-eabi-objcopy -O binary target/led.bin
 </code></pre>
 <p>这条命令是说让bin原模原样的覆盖0x8000000开始的地址的内容。了解了这两个文件后，我们可以认为烧录这一过程<strong>改变了单片的一部分内存数据</strong>，我们还需要关注寄存器是如何变化的。</p>
 <h3 id="单片机重置reset">单片机重置(Reset)</h3>
-<p>我们在烧录过后，还点击了单片上的Reset按钮，这一步单片及内部发生了什么呢。我们可以参考官方的Cortex-M4文档，在有关寄存器的章节，这里说了会将pc的值覆盖为地址0x00000004处的值。<br>
+<p>我们在烧录过后，还点击了单片上的Reset按钮，这一步单片及内部发生了什么呢。我们可以参考官方的Cortex-M4文档，在有关寄存器的章节，这里说了会将pc的值覆盖为地址0x00000004处的值，另外还提到了sp的值会被0x0处的值所覆盖。<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434118723.png" alt="" loading="lazy"></p>
 <p>但是问题是0x00000004处的值是什么呢，我们可以在STM32F411的文档中找到答案：<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434260158.png" alt="" loading="lazy"><br>
 简单来说，在通常情况下，单片机访问0x00000000 ~ 0x0007FFFF(这一段内存相当于访问Main Flash memory，而 Main Flash memory 正是在 0x8000000。因此这也意味着PC的值是0x8000004这个地址的值。</p>
 <p>这里我们可以用ghidra逆向一下生成的led.elf文件，看看0x8000004处的内容是什么。<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434743582.png" alt="" loading="lazy"><br>
-可以很清楚的看到pc会被置成Reset_Handler的地址，我们可以在我们的代码中搜索Reset_Handler可以发现这是STM32CubeMX为我们生成的代码，它的作用是执行一些全局变量的初始化工作以及跳转到main函数，如果仔细看这这个函数，还是会发现不是特别简单，但是每个单片机程序都需要它，相当于一个模板一样的东西，每次都手动编写或者复制过来很麻烦，因此STMCubeMX就是在这样的地方发挥作用，让我们不需要去写那些重复的代码。</p>
+可以很清楚的看到pc会被置成Reset_Handler的地址，我们可以在我们的代码中搜索Reset_Handler可以发现这是STM32CubeMX为我们生成的代码，它的作用是执行一些全局变量的初始化工作以及跳转到main函数，具体来说我们平常在linux上会将程序分成很多段，例如全局变量，代码，堆，栈等等，但是这里我们注意到我们是把程序一股脑的放到了0x8000000的位置，因此我们需要做一个初始化的操作将全局变量和栈恢复到正确状态，因此这个函数做了大量的复制操作去干这件事。<br>
+如果仔细看这这个函数，还是会发现它的实现不是特别简单，但是每个单片机程序都需要它，相当于一个模板一样的东西，每次都手动编写或者复制过来很麻烦，因此STMCubeMX就是在这样的地方发挥作用，让我们不需要去写那些重复的代码。</p>
 <h3 id="led灯是如何闪烁的">LED灯是如何闪烁的</h3>
 <p>到这一步程序已经开始执行main函数，但是它到底是通过什么是LED灯闪的呢？这一部分内容我们放到下一篇文章。</p>
 

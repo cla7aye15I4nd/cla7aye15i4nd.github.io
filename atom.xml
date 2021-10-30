@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://cla7aye15i4nd.github.io</id>
     <title>dataisland&apos;s home</title>
-    <updated>2021-10-29T06:21:43.198Z</updated>
+    <updated>2021-10-30T08:35:32.012Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://cla7aye15i4nd.github.io"/>
     <link rel="self" href="https://cla7aye15i4nd.github.io/atom.xml"/>
@@ -15,8 +15,110 @@
         <id>https://cla7aye15i4nd.github.io/post/re0-stm32-life-2/</id>
         <link href="https://cla7aye15i4nd.github.io/post/re0-stm32-life-2/">
         </link>
-        <updated>2021-10-28T15:36:28.000Z</updated>
-        <content type="html"><![CDATA[<p>还没开始写</p>
+        <updated>2021-10-29T15:36:28.000Z</updated>
+        <content type="html"><![CDATA[<p>上一篇文章我们讲述了单片机的固件烧录以及reset的过程，总结一下就是做了两件事：</p>
+<ul>
+<li>用生成的程序覆盖单片机的内存。</li>
+<li>单片机自动初始化<code>pc</code>,<code>sp</code>,<code>lr</code>寄存器，然后程序开始执行。</li>
+</ul>
+<p>现在我们开始关注外设，首先我们要回答一个问题，什么是外设？</p>
+<h2 id="什么是外设">什么是外设？</h2>
+<figure data-type="image" tabindex="1"><img src="https://cla7aye15i4nd.github.io/post-images/1635578496869.png" alt="" loading="lazy"></figure>
+<p>这里我先放上这样一个图（灵魂画师就是我），之后可能会反复用到这张图。我们先回忆一下上次我们写的那个简单的LED程序，我们是通过什么让指令和LED连接起来，让我们通过代码就能控制LED呢，答案是MMIO和GPIO。</p>
+<p>我们需要先有一个认识，就是单片机并不是直接控制LED灯的闪烁，单片机能控制的是一个叫GPIO的东西，然后GPIO再控制LED灯，这样一个间接的过程，就和上图最后一行那样。我们可以把GPIO和LED灯都叫做外设，但是通常来说我们更关注GPIO，因为GPIO由单片机直接控制，处于较为核心的位置。因此我们先来看看GPIO是怎样被单片机所控制的。</p>
+<h3 id="mmiomemory-mapped-io">MMIO（Memory-mapped I/O）</h3>
+<p>通常来说，控制外设我们就得用外设给我们提供的API，外设的API就是它的寄存器。但单片机所能做的就是执行指令，通过指令来修改或读取内存或是读取它自己的寄存器。但是如果单片机想控制GPIO，就等修改GPIO内部的寄存器，但是单片机不能直接访问到他们，因此MMIO就被提了出来。MMIO通过将GPIO的寄存器映射到单片机的内存上，实现了单片机对外设的直接控制。举个例子，再STM32F411上，GPIO有下面这些寄存器。</p>
+<pre><code class="language-c">typedef struct
+{
+  __IO uint32_t MODER;    /*!&lt; GPIO port mode register,               Address offset: 0x00      */
+  __IO uint32_t OTYPER;   /*!&lt; GPIO port output type register,        Address offset: 0x04      */
+  __IO uint32_t OSPEEDR;  /*!&lt; GPIO port output speed register,       Address offset: 0x08      */
+  __IO uint32_t PUPDR;    /*!&lt; GPIO port pull-up/pull-down register,  Address offset: 0x0C      */
+  __IO uint32_t IDR;      /*!&lt; GPIO port input data register,         Address offset: 0x10      */
+  __IO uint32_t ODR;      /*!&lt; GPIO port output data register,        Address offset: 0x14      */
+  __IO uint32_t BSRR;     /*!&lt; GPIO port bit set/reset register,      Address offset: 0x18      */
+  __IO uint32_t LCKR;     /*!&lt; GPIO port configuration lock register, Address offset: 0x1C      */
+  __IO uint32_t AFR[2];   /*!&lt; GPIO alternate function registers,     Address offset: 0x20-0x24 */
+} GPIO_TypeDef;
+</code></pre>
+<p>这段代码可以在上次代码中的Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f411xe.h中找到，也是STM32CubeMX的代码一部分。如果MMIO将这样一个寄存器集合映射到0x40020000这个内存地址，那么我们通过<code>*((uint32_t*) 0x40020000)</code>就能访问MODER这个寄存器，当然也能修改。除了GPIO之外，单片机还有很多外设，例如USART, I2C, SPI等等。这些外设都由单片机通过MMIO直接控制，我们把这些外设成为on-chip的外设，而不使用MMIO，单片机无法直接控制的外设，我们称为off-chip的外设。on-chip的外设通常为单片提供一些核心功能，我们之后会介绍这些功能。</p>
+<h3 id="gpio">GPIO</h3>
+<p>说完了MMIO，我们再来看看GPIO是怎么控制LED灯的，还记得我们我们再上一节中我们将PA5设置为了GPIO_OUTPUT吗，这里的PA5代表一个针脚，也就是我们看到的单片两边的刺，我们可以用杜邦线将这些针脚与LCD屏幕，GPS等设备连接，实现更加炫酷的功能，而这里的LED等，是在单片机内部已经和PA5相连了，因此我们不需要杜邦线了。关于针脚的数据，我们可以在<a href="https://os.mbed.com/platforms/ST-Nucleo-F411RE/">这里</a>看到，由图中可以看到，PA5确实和LED相连。<br>
+<img src="https://cla7aye15i4nd.github.io/post-images/1635580985201.png" alt="" loading="lazy"></p>
+<p>这里我们最后来看一下单片机究竟操作了GPIO的哪些寄存器，具体的控制方式是怎样的，要回答这个问题，我们可以通过阅读代码或者阅读文档的方式解决，但是实际上我们还有第三种方式，那就是使用<a href="https://github.com/qilingframework/qiling">qiling</a>框架，qiling框架已经支持对STM32单片机进行仿真模拟，并且可以打印出外设的访问情况，我们来看看。</p>
+<h2 id="单片机程序的模拟">单片机程序的模拟</h2>
+<p>这里建议大家不要通过pip安装qiling，直接clone麒麟的仓库，然后切换到dev分支，最新的代码都在dev分支中，然后我们可以直接使用examples下的<a href="https://github.com/qilingframework/qiling/blob/dev/examples/mcu/stm32f411_gpio_hook.py">例子</a>。<br>
+这个例子就是模拟了一个自带的LED灯程序，我们修改代码成如下：</p>
+<pre><code class="language-python">import sys
+sys.path.append(&quot;../..&quot;)
+
+from qiling.core import Qiling
+from qiling.const import QL_VERBOSE
+
+
+def test_mcu_gpio_stm32f411():
+    ql = Qiling([&quot;../../examples/rootfs/mcu/stm32f411/hello_gpioA.hex&quot;],                    
+                archtype=&quot;cortex_m&quot;, profile=&quot;stm32f411&quot;, verbose=QL_VERBOSE.DEBUG)
+
+    ql.hw.create('rcc')
+    ql.hw.create('gpioa').watch()
+    
+
+    ql.hw.gpioa.hook_set(5, lambda: print('LED light up'))
+    ql.hw.gpioa.hook_reset(5, lambda: print('LED light off'))
+
+    ql.run(count=10000)
+
+if __name__ == &quot;__main__&quot;:
+    test_mcu_gpio_stm32f411()
+</code></pre>
+<p>我们先运行一下，看看输出了什么,</p>
+<pre><code class="language-log">[+]     [GPIOA] [R] ODR  = 0x0
+[+]     [GPIOA] [W] BSRR = 0x20
+[+]     [gpioa] Set PA5
+LED light up
+[+]     [GPIOA] [R] ODR  = 0x20
+[+]     [GPIOA] [W] BSRR = 0x200000
+[+]     [gpioa] Reset PA5
+LED light off
+[+]     [GPIOA] [R] ODR  = 0x0
+[+]     [GPIOA] [W] BSRR = 0x20
+[+]     [gpioa] Set PA5
+LED light up
+[+]     [GPIOA] [R] ODR  = 0x20
+[+]     [GPIOA] [W] BSRR = 0x200000
+[+]     [gpioa] Reset PA5
+LED light off
+[+]     [GPIOA] [R] ODR  = 0x0
+[+]     [GPIOA] [W] BSRR = 0x20
+[+]     [gpioa] Set PA5
+LED light up
+[+]     [GPIOA] [R] ODR  = 0x20
+[+]     [GPIOA] [W] BSRR = 0x200000
+[+]     [gpioa] Reset PA5
+LED light off
+[+]     [GPIOA] [R] ODR  = 0x0
+</code></pre>
+<p>可以看到，单片在反复读取GPIOA的ODR寄存器以及写BSRR的寄存器，然后对应的PA5针脚的状态就会发生变化SET/RESET，然后LED灯的状态也随之改变，具体表现为不停的亮起和熄灭。这与我们实际对LED的观察一致。然后我们再来看看，这个BSRR在GPIO中是作什么用的呢，为什么每次写这个寄存器led灯的状态就会发生变化。我们回答这个问题还是用看文档的方式：<br>
+<img src="https://cla7aye15i4nd.github.io/post-images/1635582175869.png" alt="" loading="lazy"><br>
+可以看到， 这个寄存器前16位bit代表set，后16位代表reset，通过写对应的bit就可以控制对应的针脚（PIN）。比如要set针脚PA5，就应该写<code>1&lt;&lt;5=0b100000=0x20</code>，这与我们的观察一致。</p>
+<h3 id="qiling框架的简单使用">qiling框架的简单使用</h3>
+<p>我们简单讲解一下上面qiling框架的代码是怎么回事</p>
+<pre><code class="language-python">ql = Qiling([&quot;../../examples/rootfs/mcu/stm32f411/hello_gpioA.hex&quot;],                    
+                archtype=&quot;cortex_m&quot;, profile=&quot;stm32f411&quot;, verbose=QL_VERBOSE.DEBUG)
+</code></pre>
+<p>这里第一行，指定需要模拟的固件的目录，然后是arch类型，以及板子的类型。</p>
+<pre><code class="language-python">ql.hw.create('rcc')
+ql.hw.create('gpioa').watch()
+</code></pre>
+<p>这里两行创建必要的外设，为什么需要rcc我们以后会说，这里可以认为rcc是一个stm32f4系列一个必不可少的外设，而后面加上<code>.watch()</code>代表我们需要监视这个外设的访问情况。</p>
+<pre><code class="language-python">ql.hw.gpioa.hook_set(5, lambda: print('LED light up'))
+ql.hw.gpioa.hook_reset(5, lambda: print('LED light off'))
+</code></pre>
+<p>这里表示，在PA5针脚状态被设置后，我希望进行的一些操作，这里只是简单的做一些输出。</p>
+<pre><code class="language-python">ql.run(count=10000)
+</code></pre>
+<p>运行10000条指令。</p>
 ]]></content>
     </entry>
     <entry>
@@ -70,14 +172,15 @@ arm-none-eabi-objcopy -O binary target/led.bin
 </code></pre>
 <p>这条命令是说让bin原模原样的覆盖0x8000000开始的地址的内容。了解了这两个文件后，我们可以认为烧录这一过程<strong>改变了单片的一部分内存数据</strong>，我们还需要关注寄存器是如何变化的。</p>
 <h3 id="单片机重置reset">单片机重置(Reset)</h3>
-<p>我们在烧录过后，还点击了单片上的Reset按钮，这一步单片及内部发生了什么呢。我们可以参考官方的Cortex-M4文档，在有关寄存器的章节，这里说了会将pc的值覆盖为地址0x00000004处的值。<br>
+<p>我们在烧录过后，还点击了单片上的Reset按钮，这一步单片及内部发生了什么呢。我们可以参考官方的Cortex-M4文档，在有关寄存器的章节，这里说了会将pc的值覆盖为地址0x00000004处的值，另外还提到了sp的值会被0x0处的值所覆盖。<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434118723.png" alt="" loading="lazy"></p>
 <p>但是问题是0x00000004处的值是什么呢，我们可以在STM32F411的文档中找到答案：<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434260158.png" alt="" loading="lazy"><br>
 简单来说，在通常情况下，单片机访问0x00000000 ~ 0x0007FFFF(这一段内存相当于访问Main Flash memory，而 Main Flash memory 正是在 0x8000000。因此这也意味着PC的值是0x8000004这个地址的值。</p>
 <p>这里我们可以用ghidra逆向一下生成的led.elf文件，看看0x8000004处的内容是什么。<br>
 <img src="https://cla7aye15i4nd.github.io/post-images/1635434743582.png" alt="" loading="lazy"><br>
-可以很清楚的看到pc会被置成Reset_Handler的地址，我们可以在我们的代码中搜索Reset_Handler可以发现这是STM32CubeMX为我们生成的代码，它的作用是执行一些全局变量的初始化工作以及跳转到main函数，如果仔细看这这个函数，还是会发现不是特别简单，但是每个单片机程序都需要它，相当于一个模板一样的东西，每次都手动编写或者复制过来很麻烦，因此STMCubeMX就是在这样的地方发挥作用，让我们不需要去写那些重复的代码。</p>
+可以很清楚的看到pc会被置成Reset_Handler的地址，我们可以在我们的代码中搜索Reset_Handler可以发现这是STM32CubeMX为我们生成的代码，它的作用是执行一些全局变量的初始化工作以及跳转到main函数，具体来说我们平常在linux上会将程序分成很多段，例如全局变量，代码，堆，栈等等，但是这里我们注意到我们是把程序一股脑的放到了0x8000000的位置，因此我们需要做一个初始化的操作将全局变量和栈恢复到正确状态，因此这个函数做了大量的复制操作去干这件事。<br>
+如果仔细看这这个函数，还是会发现它的实现不是特别简单，但是每个单片机程序都需要它，相当于一个模板一样的东西，每次都手动编写或者复制过来很麻烦，因此STMCubeMX就是在这样的地方发挥作用，让我们不需要去写那些重复的代码。</p>
 <h3 id="led灯是如何闪烁的">LED灯是如何闪烁的</h3>
 <p>到这一步程序已经开始执行main函数，但是它到底是通过什么是LED灯闪的呢？这一部分内容我们放到下一篇文章。</p>
 ]]></content>
