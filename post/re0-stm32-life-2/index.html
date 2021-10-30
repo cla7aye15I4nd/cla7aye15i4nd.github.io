@@ -3,10 +3,10 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Re：从零开始的单片机生活（二）- STM32单片机程序的外设与模拟 | dataisland&#39;s home</title>
-<link rel="shortcut icon" href="https://cla7aye15i4nd.github.io/favicon.ico?v=1635583231274">
+<link rel="shortcut icon" href="https://www.fibxx.com/favicon.ico?v=1635583668032">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cla7aye15i4nd.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="Re：从零开始的单片机生活（二）- STM32单片机程序的外设与模拟 | dataisland&#39;s home - Atom Feed" href="https://cla7aye15i4nd.github.io/atom.xml">
+<link rel="stylesheet" href="https://www.fibxx.com/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Re：从零开始的单片机生活（二）- STM32单片机程序的外设与模拟 | dataisland&#39;s home - Atom Feed" href="https://www.fibxx.com/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
@@ -26,8 +26,8 @@
     <div class="main">
       <div class="main-content">
         <div class="site-header">
-  <a href="https://cla7aye15i4nd.github.io">
-  <img class="avatar" src="https://cla7aye15i4nd.github.io/images/avatar.png?v=1635583231274" alt="">
+  <a href="https://www.fibxx.com">
+  <img class="avatar" src="https://www.fibxx.com/images/avatar.png?v=1635583668032" alt="">
   </a>
   <h1 class="site-title">
     dataisland&#39;s home
@@ -86,7 +86,7 @@
               
             </div>
             
-              <img class="post-feature-image" src="https://cla7aye15i4nd.github.io/post-images/re0-stm32-life-2.jpg" alt="">
+              <img class="post-feature-image" src="https://www.fibxx.com/post-images/re0-stm32-life-2.jpg" alt="">
             
             <div class="post-content-wrapper">
               <div class="post-content">
@@ -97,7 +97,7 @@
 </ul>
 <p>现在我们开始关注外设，首先我们要回答一个问题，什么是外设？</p>
 <h2 id="什么是外设">什么是外设？</h2>
-<figure data-type="image" tabindex="1"><img src="https://cla7aye15i4nd.github.io/post-images/1635578496869.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://www.fibxx.com/post-images/1635578496869.png" alt="" loading="lazy"></figure>
 <p>这里我先放上这样一个图（灵魂画师就是我），之后可能会反复用到这张图。我们先回忆一下上次我们写的那个简单的LED程序，我们是通过什么让指令和LED连接起来，让我们通过代码就能控制LED呢，答案是MMIO和GPIO。</p>
 <p>我们需要先有一个认识，就是单片机并不是直接控制LED灯的闪烁，单片机能控制的是一个叫GPIO的东西，然后GPIO再控制LED灯，这样一个间接的过程，就和上图最后一行那样。我们可以把GPIO和LED灯都叫做外设，但是通常来说我们更关注GPIO，因为GPIO由单片机直接控制，处于较为核心的位置。因此我们先来看看GPIO是怎样被单片机所控制的。</p>
 <h3 id="mmiomemory-mapped-io">MMIO（Memory-mapped I/O）</h3>
@@ -118,7 +118,7 @@
 <p>这段代码可以在上次代码中的Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f411xe.h中找到，也是STM32CubeMX的代码一部分。如果MMIO将这样一个寄存器集合映射到0x40020000这个内存地址，那么我们通过<code>*((uint32_t*) 0x40020000)</code>就能访问MODER这个寄存器，当然也能修改。除了GPIO之外，单片机还有很多外设，例如USART, I2C, SPI等等。这些外设都由单片机通过MMIO直接控制，我们把这些外设成为on-chip的外设，而不使用MMIO，单片机无法直接控制的外设，我们称为off-chip的外设。on-chip的外设通常为单片提供一些核心功能，我们之后会介绍这些功能。</p>
 <h3 id="gpio">GPIO</h3>
 <p>说完了MMIO，我们再来看看GPIO是怎么控制LED灯的，还记得我们我们再上一节中我们将PA5设置为了GPIO_OUTPUT吗，这里的PA5代表一个针脚，也就是我们看到的单片两边的刺，我们可以用杜邦线将这些针脚与LCD屏幕，GPS等设备连接，实现更加炫酷的功能，而这里的LED等，是在单片机内部已经和PA5相连了，因此我们不需要杜邦线了。关于针脚的数据，我们可以在<a href="https://os.mbed.com/platforms/ST-Nucleo-F411RE/">这里</a>看到，由图中可以看到，PA5确实和LED相连。<br>
-<img src="https://cla7aye15i4nd.github.io/post-images/1635580985201.png" alt="" loading="lazy"></p>
+<img src="https://www.fibxx.com/post-images/1635580985201.png" alt="" loading="lazy"></p>
 <p>这里我们最后来看一下单片机究竟操作了GPIO的哪些寄存器，具体的控制方式是怎样的，要回答这个问题，我们可以通过阅读代码或者阅读文档的方式解决，但是实际上我们还有第三种方式，那就是使用<a href="https://github.com/qilingframework/qiling">qiling</a>框架，qiling框架已经支持对STM32单片机进行仿真模拟，并且可以打印出外设的访问情况，我们来看看。</p>
 <h2 id="单片机程序的模拟">单片机程序的模拟</h2>
 <p>这里建议大家不要通过pip安装qiling，直接clone麒麟的仓库，然后切换到dev分支，最新的代码都在dev分支中，然后我们可以直接使用examples下的<a href="https://github.com/qilingframework/qiling/blob/dev/examples/mcu/stm32f411_gpio_hook.py">例子</a>。<br>
@@ -174,7 +174,7 @@ LED light off
 [+]     [GPIOA] [R] ODR  = 0x0
 </code></pre>
 <p>可以看到，单片在反复读取GPIOA的ODR寄存器以及写BSRR的寄存器，然后对应的PA5针脚的状态就会发生变化SET/RESET，然后LED灯的状态也随之改变，具体表现为不停的亮起和熄灭。这与我们实际对LED的观察一致。然后我们再来看看，这个BSRR在GPIO中是作什么用的呢，为什么每次写这个寄存器led灯的状态就会发生变化。我们回答这个问题还是用看文档的方式：<br>
-<img src="https://cla7aye15i4nd.github.io/post-images/1635582175869.png" alt="" loading="lazy"><br>
+<img src="https://www.fibxx.com/post-images/1635582175869.png" alt="" loading="lazy"><br>
 可以看到， 这个寄存器前16位bit代表set，后16位代表reset，通过写对应的bit就可以控制对应的针脚（PIN）。比如要set针脚PA5，就应该写<code>1&lt;&lt;5=0b100000=0x20</code>，这与我们的观察一致。</p>
 <h3 id="qiling框架的简单使用">qiling框架的简单使用</h3>
 <p>我们简单讲解一下上面qiling框架的代码是怎么回事</p>
@@ -222,7 +222,7 @@ ql.hw.gpioa.hook_reset(5, lambda: print('LED light off'))
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://cla7aye15i4nd.github.io/post/re0-stm32-life-1/">
+            <a href="https://www.fibxx.com/post/re0-stm32-life-1/">
               <h3 class="post-title">
                 Re：从零开始的单片机生活（一）- STM32单片机程序的开发与加载
               </h3>
@@ -234,7 +234,7 @@ ql.hw.gpioa.hook_reset(5, lambda: print('LED light off'))
 
         <div class="site-footer">
   Maintained by~ <a href='https://github.com/cla7aye15I4nd'> dataisland</a>
-  <a class="rss" href="https://cla7aye15i4nd.github.io/atom.xml" target="_blank">
+  <a class="rss" href="https://www.fibxx.com/atom.xml" target="_blank">
     <i class="ri-rss-line"></i> RSS
   </a>
 </div>
