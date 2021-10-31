@@ -2,19 +2,20 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Re：从零开始的单片机生活（三）- 外设传输数据的三种方式 | dataisland&#39;s home</title>
+<title>友情链接 | dataisland&#39;s home</title>
 <link rel="shortcut icon" href="https://www.fibxx.com/favicon.ico?v=1635684521716">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://www.fibxx.com/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="Re：从零开始的单片机生活（三）- 外设传输数据的三种方式 | dataisland&#39;s home - Atom Feed" href="https://www.fibxx.com/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="友情链接 | dataisland&#39;s home - Atom Feed" href="https://www.fibxx.com/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
-    <meta name="description" content="这篇文章我们会写一个简单的与UART有关的程序，然后探究一些常见的UART高级用法。具体来说，UART有三种传输数据的方式，有着不同的效率和特点。
-这篇文章还没写完
-第一个UART程序
-我们还是使用STM32CubeMX，在左边选中USAR..." />
+    <meta name="description" content="
+Lazymio: https://blog.ihomura.cn/
+kabeor: https://kabeor.cn/
+
+..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -77,72 +78,33 @@
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              Re：从零开始的单片机生活（三）- 外设传输数据的三种方式
+              友情链接
             </h2>
             <div class="post-info">
               <span>
-                2021-10-30
+                2021-10-31
               </span>
               <span>
-                2 min read
+                1 min read
               </span>
               
             </div>
             
-              <img class="post-feature-image" src="https://www.fibxx.com/post-images/re0-stm32-life-3.png" alt="">
-            
             <div class="post-content-wrapper">
               <div class="post-content">
-                <p>这篇文章我们会写一个简单的与UART有关的程序，然后探究一些常见的UART高级用法。具体来说，UART有三种传输数据的方式，有着不同的效率和特点。</p>
-<h1 id="这篇文章还没写完">这篇文章还没写完</h1>
-<h2 id="第一个uart程序">第一个UART程序</h2>
-<p>我们还是使用STM32CubeMX，在左边选中USART2，然后设置为Asynchronous模式（Mode）。然后代码处写上（不清楚怎么写的请参见第一篇文章）：</p>
-<pre><code class="language-python">  while (1) {
-        HAL_UART_Transmit(&amp;huart2, &quot;Hello World\n&quot;, 12, HAL_MAX_DELAY);
-        HAL_Delay(1000);
-  }
-</code></pre>
-<p>这就是一个简单的的向串口循环输出的&quot;Hello World&quot;的程序。在ubuntu上可以选择安装<code>cutecom</code>,<code>minicom</code>对输出结果进行查看。下面是cutecom的结果。</p>
-<p>如果我们想进行printf式的输出，第一种方式是像下面这样，</p>
-<h3 id="为什么我们可以用sprintf">为什么我们可以用sprintf</h3>
-<p>此程序源码可以在 <a href="https://github.com/cla7aye15I4nd/awesome-mcu/tree/main/examples/md5-server">https://github.com/cla7aye15I4nd/awesome-mcu/tree/main/examples/md5-server</a> 处找到。</p>
-<h2 id="使用中断控制uart输出">使用中断控制UART输出</h2>
-<p>我们在UART界面下方的NVIC setting中打开USART global interrupt。<br>
-<img src="https://www.fibxx.com/post-images/1635586274410.png" alt="" loading="lazy"></p>
-<h2 id="使用dma控制uart输出">使用DMA控制UART输出</h2>
-<p>我们再上一个程序的基础上，在DMA setting中添加USART2_TX这一项。<br>
-<img src="https://www.fibxx.com/post-images/1635586314937.png" alt="" loading="lazy"></p>
+                <ul>
+<li>Lazymio: <a href="https://blog.ihomura.cn/">https://blog.ihomura.cn/</a></li>
+<li>kabeor: <a href="https://kabeor.cn/">https://kabeor.cn/</a></li>
+</ul>
 
               </div>
               <div class="toc-container">
-                <ul class="markdownIt-TOC">
-<li><a href="#%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E8%BF%98%E6%B2%A1%E5%86%99%E5%AE%8C">这篇文章还没写完</a>
-<ul>
-<li><a href="#%E7%AC%AC%E4%B8%80%E4%B8%AAuart%E7%A8%8B%E5%BA%8F">第一个UART程序</a>
-<ul>
-<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%BB%AC%E5%8F%AF%E4%BB%A5%E7%94%A8sprintf">为什么我们可以用sprintf</a></li>
-</ul>
-</li>
-<li><a href="#%E4%BD%BF%E7%94%A8%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6uart%E8%BE%93%E5%87%BA">使用中断控制UART输出</a></li>
-<li><a href="#%E4%BD%BF%E7%94%A8dma%E6%8E%A7%E5%88%B6uart%E8%BE%93%E5%87%BA">使用DMA控制UART输出</a></li>
-</ul>
-</li>
-</ul>
-
+                
               </div>
             </div>
           </article>
         </div>
 
-        
-          <div class="next-post">
-            <div class="next">下一篇</div>
-            <a href="https://www.fibxx.com/post/re0-stm32-life-2/">
-              <h3 class="post-title">
-                Re：从零开始的单片机生活（二）- STM32单片机程序的外设与模拟
-              </h3>
-            </a>
-          </div>
         
 
         

@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.fibxx.com</id>
     <title>dataisland&apos;s home</title>
-    <updated>2021-10-30T08:48:01.698Z</updated>
+    <updated>2021-10-31T12:48:53.980Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.fibxx.com"/>
     <link rel="self" href="https://www.fibxx.com/atom.xml"/>
@@ -16,7 +16,25 @@
         <link href="https://www.fibxx.com/post/re0-stm32-life-3/">
         </link>
         <updated>2021-10-30T08:37:01.000Z</updated>
-        <content type="html"><![CDATA[<p>还没开始写</p>
+        <content type="html"><![CDATA[<p>这篇文章我们会写一个简单的与UART有关的程序，然后探究一些常见的UART高级用法。具体来说，UART有三种传输数据的方式，有着不同的效率和特点。</p>
+<h1 id="这篇文章还没写完">这篇文章还没写完</h1>
+<h2 id="第一个uart程序">第一个UART程序</h2>
+<p>我们还是使用STM32CubeMX，在左边选中USART2，然后设置为Asynchronous模式（Mode）。然后代码处写上（不清楚怎么写的请参见第一篇文章）：</p>
+<pre><code class="language-python">  while (1) {
+        HAL_UART_Transmit(&amp;huart2, &quot;Hello World\n&quot;, 12, HAL_MAX_DELAY);
+        HAL_Delay(1000);
+  }
+</code></pre>
+<p>这就是一个简单的的向串口循环输出的&quot;Hello World&quot;的程序。在ubuntu上可以选择安装<code>cutecom</code>,<code>minicom</code>对输出结果进行查看。下面是cutecom的结果。</p>
+<p>如果我们想进行printf式的输出，第一种方式是像下面这样，</p>
+<h3 id="为什么我们可以用sprintf">为什么我们可以用sprintf</h3>
+<p>此程序源码可以在 <a href="https://github.com/cla7aye15I4nd/awesome-mcu/tree/main/examples/md5-server">https://github.com/cla7aye15I4nd/awesome-mcu/tree/main/examples/md5-server</a> 处找到。</p>
+<h2 id="使用中断控制uart输出">使用中断控制UART输出</h2>
+<p>我们在UART界面下方的NVIC setting中打开USART global interrupt。<br>
+<img src="https://www.fibxx.com/post-images/1635586274410.png" alt="" loading="lazy"></p>
+<h2 id="使用dma控制uart输出">使用DMA控制UART输出</h2>
+<p>我们再上一个程序的基础上，在DMA setting中添加USART2_TX这一项。<br>
+<img src="https://www.fibxx.com/post-images/1635586314937.png" alt="" loading="lazy"></p>
 ]]></content>
     </entry>
     <entry>
