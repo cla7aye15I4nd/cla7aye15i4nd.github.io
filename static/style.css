@@ -37,7 +37,7 @@ html {
 
 /* (MODIFIED) */
 body {
-  font-family: Georgia, Cambria, 'Times New Roman', Times, serif;
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
   line-height: 1.6;
 
   max-width: 88ch;
@@ -77,7 +77,7 @@ a:visited {
   text-decoration: none;
 }
 
-a:hover{
+a:hover {
   text-decoration: underline;
 }
 
@@ -120,7 +120,7 @@ article > * + * {
 code,
 pre,
 kbd {
-  font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
     monospace;
   font-size: 85%;
 }
@@ -157,11 +157,11 @@ table {
   counter-increment: caption;
 }
 /* add bottom border on column table headings  */
-table tr > th[scope='col'] {
+table tr > th[scope="col"] {
   border-bottom: 1.36px solid black;
 }
 /* add right border on row table headings  */
-table tr > th[scope='row'] {
+table tr > th[scope="row"] {
   border-right: 1.36px solid black;
 }
 table > tbody > tr:first-child > td,
@@ -190,7 +190,7 @@ caption {
 }
 
 caption::before {
-  content: 'Table ' counter(caption) '. ';
+  content: "Table " counter(caption) ". ";
   font-weight: bold;
 }
 
@@ -219,7 +219,7 @@ nav li {
   display: block;
 }
 nav li:before {
-  content: counters(item, '.') ' ';
+  content: counters(item, ".") " ";
   counter-increment: item;
   padding-right: 0.85rem;
 }
@@ -237,7 +237,7 @@ dl dd {
   font-style: italic;
 }
 .theorem::before {
-  content: 'Theorem ' counter(theorem) '. ';
+  content: "Theorem " counter(theorem) ". ";
   font-weight: bold;
   font-style: normal;
 }
@@ -250,7 +250,7 @@ dl dd {
   font-style: italic;
 }
 .lemma::before {
-  content: 'Lemma ' counter(theorem) '. ';
+  content: "Lemma " counter(theorem) ". ";
   font-weight: bold;
   font-style: normal;
 }
@@ -263,11 +263,11 @@ dl dd {
   position: relative;
 }
 .proof::before {
-  content: 'Proof.â€ƒ' attr(title);
+  content: "Proof.â€ƒ" attr(title);
   font-style: italic;
 }
 .proof:after {
-  content: 'â—¾ï¸';
+  content: "â—¾ï¸";
   position: absolute;
   right: -12px;
   bottom: -2px;
@@ -281,7 +281,7 @@ dl dd {
   font-style: normal;
 }
 .definition::before {
-  content: 'Definition ' counter(definition) '. ';
+  content: "Definition " counter(definition) ". ";
   font-weight: bold;
   font-style: normal;
 }
@@ -317,7 +317,7 @@ dl dd {
 /* (WIP) add border when a sidenote is clicked on */
 .sidenote:target {
   border: hsl(55, 55%, 70%) 1.5px solid;
-  padding: 0 .5rem;
+  padding: 0 0.5rem;
   scroll-margin-block-start: 10rem;
 }
 
@@ -342,7 +342,7 @@ dl dd {
 
 /* add number in front of the sidenote */
 .sidenote-number ~ .sidenote::before {
-  content: counter(sidenote-counter) ' ';
+  content: counter(sidenote-counter) " ";
   font-size: 0.7rem;
   top: -0.5rem;
 }
@@ -356,7 +356,6 @@ blockquote .sidenote {
   margin-right: -24vw;
   width: 18vw;
 }
-
 
 label.sidenote-toggle {
   display: inline;
@@ -500,10 +499,15 @@ h6 {
   margin-bottom: 0.8rem;
 }
 
-
 /* Customization */
 
 .info {
   margin: -1.2rem 0;
   text-align: center;
+}
+
+.two-col {
+  width: 100%;
+  display: inline-flex;
+  justify-content: space-between;
 }
