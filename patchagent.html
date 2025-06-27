@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PatchAgent - Automated Program Repair with LLMs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent: #f472b6;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(45deg, var(--bg-dark), var(--bg-darker));
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            opacity: 0.05;
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            padding: 0.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            text-align: center;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .authors-line {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.875rem 2rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px 0 rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border: 2px solid var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* Impact Badge */
+        .impact-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--warning), var(--secondary));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 4rem 2rem;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Real World Impact Section */
+        .impact-section {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1));
+            padding: 5rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .impact-section::before {
+            content: '🛡️';
+            position: absolute;
+            font-size: 20rem;
+            opacity: 0.05;
+            right: -5rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .vulnerability-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .vuln-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .vuln-card:hover {
+            transform: translateX(10px);
+            border-color: var(--secondary);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+        }
+
+        .vuln-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .vuln-project {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .vuln-project-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .stars {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .vuln-details {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .vuln-prs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .pr-link {
+            background: var(--secondary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .pr-link:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        /* Content Sections */
+        .section {
+            padding: 5rem 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+        }
+
+        /* Abstract Section */
+        .abstract-content {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+
+        /* Key Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Citation Section */
+        .citation-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .copy-btn {
+            margin-top: 1rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-darker);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+
+            .vuln-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .vuln-info {
+                width: 100%;
+            }
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .scroll-indicator svg {
+            width: 30px;
+            height: 30px;
+            fill: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <strong>PatchAgent</strong>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#impact">Real Impact</a></li>
+                <li><a href="#abstract">Abstract</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#citation">Citation</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="impact-badge">
+                🔥 Fixing Real Vulnerabilities in Production Code
+            </div>
+            <h1>PatchAgent</h1>
+            <p class="subtitle">A Practical Program Repair Agent Mimicking Human Expertise</p>
+            <p class="authors-line">
+                Zheng Yu, Ziyi Guo, Yuhang Wu, Jiahao Yu, Meng Xu, Dongliang Mu, Yan Chen, Xinyu Xing
+            </p>
+            <p style="color: var(--text-muted); margin-bottom: 3rem;">
+                USENIX Security 2025 · Northwestern University & University of Waterloo
+            </p>
+            <div class="hero-buttons">
+                <a href="/paper/patchagent.pdf" class="btn btn-primary">Read Paper</a>
+                <a href="https://github.com/cla7aye15I4nd/PatchAgent" class="btn btn-secondary">View on GitHub</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <svg viewBox="0 0 24 24">
+                <path d="M7 10l5 5 5-5"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Real World Impact Section -->
+    <section id="impact" class="impact-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Real-World Impact</h2>
+                <p class="section-subtitle">Fixing critical vulnerabilities in popular open-source projects</p>
+            </div>
+            <div class="vulnerability-grid">
+                <div class="vuln-card">
+                    <div class="vuln-info">
+                        <div class="vuln-project">
+                            <span class="vuln-project-name">assimp</span>
+                            <span class="stars">⭐ 11.4k</span>
+                        </div>
+                        <div class="vuln-details">3D model loading library - Fixed heap overflow & null dereference vulnerabilities</div>
+                    </div>
+                    <div class="vuln-prs">
+                        <a href="https://github.com/assimp/assimp/pull/5763" class="pr-link">#5763</a>
+                        <a href="https://github.com/assimp/assimp/pull/5764" class="pr-link">#5764</a>
+                        <a href="https://github.com/assimp/assimp/pull/5765" class="pr-link">#5765</a>
+                    </div>
+                </div>
+
+                <div class="vuln-card">
+                    <div class="vuln-info">
+                        <div class="vuln-project">
+                            <span class="vuln-project-name">libssh2</span>
+                            <span class="stars">⭐ 1.4k</span>
+                        </div>
+                        <div class="vuln-details">SSH2 client library - Fixed critical security vulnerability</div>
+                    </div>
+                    <div class="vuln-prs">
+                        <a href="https://github.com/libssh2/libssh2/pull/1508" class="pr-link">#1508</a>
+                    </div>
+                </div>
+
+                <div class="vuln-card">
+                    <div class="vuln-info">
+                        <div class="vuln-project">
+                            <span class="vuln-project-name">PcapPlusPlus</span>
+                            <span class="stars">⭐ 2.8k</span>
+                        </div>
+                        <div class="vuln-details">Network packet parsing library - Fixed multiple heap overflow vulnerabilities</div>
+                    </div>
+                    <div class="vuln-prs">
+                        <a href="https://github.com/seladb/PcapPlusPlus/pull/1678" class="pr-link">#1678</a>
+                        <a href="https://github.com/seladb/PcapPlusPlus/pull/1680" class="pr-link">#1680</a>
+                        <a href="https://github.com/seladb/PcapPlusPlus/pull/1699" class="pr-link">#1699</a>
+                    </div>
+                </div>
+
+                <div class="vuln-card">
+                    <div class="vuln-info">
+                        <div class="vuln-project">
+                            <span class="vuln-project-name">libredwg</span>
+                            <span class="stars">⭐ 1.0k</span>
+                        </div>
+                        <div class="vuln-details">AutoCAD DWG file library - Fixed use-after-free vulnerability</div>
+                    </div>
+                    <div class="vuln-prs">
+                        <a href="https://github.com/LibreDWG/libredwg/pull/1061" class="pr-link">#1061</a>
+                    </div>
+                </div>
+
+                <div class="vuln-card">
+                    <div class="vuln-info">
+                        <div class="vuln-project">
+                            <span class="vuln-project-name">HDF5</span>
+                            <span class="stars">⭐ 0.6k</span>
+                        </div>
+                        <div class="vuln-details">High-performance data format - Fixed heap overflow vulnerabilities</div>
+                    </div>
+                    <div class="vuln-prs">
+                        <a href="https://github.com/HDFGroup/hdf5/pull/5201" class="pr-link">#5201</a>
+                        <a href="https://github.com/HDFGroup/hdf5/pull/5210" class="pr-link">#5210</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number">92.13%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">178</div>
+                <div class="stat-label">Real-world Vulnerabilities</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">9</div>
+                <div class="stat-label">Bug Types Supported</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">30</div>
+                <div class="stat-label">Programs Tested</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Abstract Section -->
+    <section id="abstract" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Abstract</h2>
+            </div>
+            <div class="abstract-content">
+                <p>
+                    Automated program repair (APR) techniques aim to triage and fix software bugs autonomously. 
+                    Recent advancements in large language models (LLMs) have shown promising results when applied to APR, 
+                    especially on patch generation. However, without effective fault localization and patch validation, 
+                    APR tools specialized in patching alone cannot handle a more practical end-to-end setting.
+                </p>
+                <br>
+                <p>
+                    We introduce PATCHAGENT, a novel LLM-based APR tool that seamlessly integrates fault localization, 
+                    patch generation, and validation within a single autonomous agent. PATCHAGENT employs a language server, 
+                    a patch verifier, and interaction optimization techniques to mimic human-like reasoning during vulnerability repair.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features Section -->
+    <section id="features" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Key Features</h2>
+                <p class="section-subtitle">How PatchAgent mimics human expertise</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Fault Localization</h3>
+                    <p>Uses Language Server Protocol for accurate code navigation and identifying buggy code snippets</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛠️</div>
+                    <h3>Patch Generation</h3>
+                    <p>Leverages LLMs to generate context-aware patches that fix vulnerabilities without breaking functionality</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>Patch Validation</h3>
+                    <p>Automated verification ensures patches resolve issues without introducing new bugs</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Human-like Reasoning</h3>
+                    <p>Four optimization techniques to elevate LLM capabilities to expert-level performance</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Iterative Refinement</h3>
+                    <p>Learns from failed attempts and improves patches through counterexample feedback</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Production Ready</h3>
+                    <p>Successfully deployed to fix vulnerabilities in popular open-source projects</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Citation Section -->
+    <section id="citation" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Citation</h2>
+                <p class="section-subtitle">To cite PatchAgent in your research</p>
+            </div>
+            <div class="citation-box">
+                <pre>@article{PatchAgent,
+  title     = {PatchAgent: A Practical Program Repair Agent Mimicking Human Expertise},
+  author    = {Yu, Zheng and Guo, Ziyi and Wu, Yuhang and Yu, Jiahao and 
+               Xu, Meng and Mu, Dongliang and Chen, Yan and Xing, Xinyu},
+  booktitle = {34rd USENIX Security Symposium (USENIX Security 25)},
+  year      = {2025}
+}</pre>
+                <button class="copy-btn" onclick="copyBibtex()">Copy BibTeX</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 PatchAgent Team · Northwestern University & University of Waterloo</p>
+        <p>Licensed under Apache License 2.0</p>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Copy BibTeX function
+        function copyBibtex() {
+            const bibtex = `@article{PatchAgent,
+  title     = {PatchAgent: A Practical Program Repair Agent Mimicking Human Expertise},
+  author    = {Yu, Zheng and Guo, Ziyi and Wu, Yuhang and Yu, Jiahao and 
+               Xu, Meng and Mu, Dongliang and Chen, Yan and Xing, Xinyu},
+  booktitle = {34rd USENIX Security Symposium (USENIX Security 25)},
+  year      = {2025}
+}`;
+            navigator.clipboard.writeText(bibtex);
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => {
+                btn.textContent = 'Copy BibTeX';
+            }, 2000);
+        }
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.8s ease forwards';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
