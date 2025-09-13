@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -8,7 +9,42 @@
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
-    gtag('config', 'G-VQB5JBZ3B6');
+    gtag('config', 'G-VQB5JBZ3B6', {
+      enhanced_measurement: true,
+      send_page_view: true
+    });
+
+    function trackLinkClick(linkText, linkUrl, linkType) {
+      gtag('event', 'click', {
+        event_category: 'Link',
+        event_label: linkText,
+        link_url: linkUrl,
+        link_type: linkType,
+        custom_parameter: 'link_click'
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const links = document.querySelectorAll('a[href]');
+
+      links.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          const linkText = this.innerText || this.textContent || 'No text';
+          const linkUrl = this.href;
+          const isExternal = linkUrl.includes('http') && !linkUrl.includes(window.location.hostname);
+          const linkType = isExternal ? 'external' : 'internal';
+
+          trackLinkClick(linkText, linkUrl, linkType);
+
+          if (isExternal && this.target !== '_blank') {
+            e.preventDefault();
+            setTimeout(function () {
+              window.location.href = linkUrl;
+            }, 100);
+          }
+        });
+      });
+    });
   </script>
 
   <meta charset="UTF-8" />
