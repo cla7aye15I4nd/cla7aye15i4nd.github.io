@@ -1,650 +1,872 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VQB5JBZ3B6"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Zheng Yu - PhD candidate at Northwestern University specializing in System Security and AI Security" />
+  <meta property="og:title" content="Zheng Yu - Security Researcher" />
+  <meta property="og:description" content="PhD candidate at Northwestern University | System Security & AI Security" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <title>Zheng Yu - Security Researcher</title>
 
-    gtag('config', 'G-VQB5JBZ3B6', {
-      enhanced_measurement: true,
-      send_page_view: true
-    });
-
-    function trackLinkClick(linkText, linkUrl, linkType) {
-      gtag('event', 'click', {
-        event_category: 'Link',
-        event_label: linkText,
-        link_url: linkUrl,
-        link_type: linkType,
-        custom_parameter: 'link_click'
-      });
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --bg-light: #f9fafb;
+      --bg-white: #ffffff;
+      --border-color: #e5e7eb;
+      --accent-color: #10b981;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const links = document.querySelectorAll('a[href]');
+    .dark-mode {
+      --text-dark: #f9fafb;
+      --text-light: #d1d5db;
+      --bg-light: #111827;
+      --bg-white: #1f2937;
+      --border-color: #374151;
+    }
 
-      links.forEach(function (link) {
-        link.addEventListener('click', function (e) {
-          const linkText = this.innerText || this.textContent || 'No text';
-          const linkUrl = this.href;
-          const isExternal = linkUrl.includes('http') && !linkUrl.includes(window.location.hostname);
-          const linkType = isExternal ? 'external' : 'internal';
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-          trackLinkClick(linkText, linkUrl, linkType);
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background-color: var(--bg-light);
+      transition: background-color 0.3s ease;
+    }
 
-          if (isExternal && this.target !== '_blank') {
-            e.preventDefault();
-            setTimeout(function () {
-              window.location.href = linkUrl;
-            }, 100);
+    /* Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+      z-index: 1000;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    nav.scrolled {
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-color);
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--bg-light);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 3rem 0;
+      background: var(--bg-white);
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-dark);
+    }
+
+    h1 small {
+      font-size: 1.5rem;
+      color: var(--text-light);
+      font-weight: 400;
+    }
+
+    .quote {
+      font-style: italic;
+      color: var(--text-light);
+      max-width: 600px;
+      margin: 1rem auto;
+      font-size: 0.95rem;
+    }
+
+    .social-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+
+    .social-links a {
+      color: var(--primary-color);
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      background: var(--bg-light);
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .social-links a:hover {
+      background: var(--primary-color);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* About Section */
+    .about {
+      background: var(--bg-white);
+      padding: 2rem;
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Research Highlights */
+    .highlights {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .highlight-card {
+      background: var(--bg-white);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: var(--shadow-md);
+      border-left: 4px solid var(--primary-color);
+      transition: all 0.3s ease;
+    }
+
+    .highlight-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .highlight-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .highlight-card h4 {
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Sections */
+    section {
+      background: var(--bg-white);
+      padding: 2rem;
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    h2,
+    h3 {
+      color: var(--text-dark);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    /* Badge System */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin: 0.25rem;
+    }
+
+    .badge-award {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-competition {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-conference {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-highlight {
+      background: #fce7f3;
+      color: #9f1239;
+    }
+
+    /* Publications */
+    .publication-item {
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .publication-item:hover {
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-md);
+      transform: translateX(4px);
+    }
+
+    .publication-title {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .publication-authors {
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .publication-venue {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .publication-links {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .publication-links a {
+      color: var(--primary-color);
+      text-decoration: none;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--primary-color);
+      border-radius: 0.25rem;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .publication-links a:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    /* News Items */
+    .news-item {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 3px solid var(--primary-color);
+      background: var(--bg-light);
+      border-radius: 0.25rem;
+      transition: all 0.2s ease;
+    }
+
+    .news-item:hover {
+      background: var(--border-color);
+      transform: translateX(4px);
+    }
+
+    .news-date {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 0.25rem;
+    }
+
+    .news-item.hidden {
+      display: none;
+    }
+
+    .show-more-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .show-more-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Filter System */
+    .filter-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--border-color);
+      background: var(--bg-white);
+      color: var(--text-dark);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    /* Back to Top */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary-color);
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .back-to-top:hover {
+      background: var(--primary-hover);
+      transform: translateY(-4px);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+      border-top: 1px solid var(--border-color);
+      margin-top: 2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links {
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+
+      .highlights {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav id="navbar">
+    <div class="nav-container">
+      <strong>Zheng Yu</strong>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#news">News</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <h1>Zheng Yu <small>(于峥)</small></h1>
+      <p class="quote">
+        Daily immersion in evil leads to withering; the diligent pursuit of goodness leads to flourishing.
+      </p>
+      <div class="social-links">
+        <a href="mailto:zheng.yu@northwestern.edu">📧 Email</a>
+        <a href="https://github.com/cla7aye15I4nd" target="_blank">💻 Github</a>
+        <a href="https://scholar.google.com/citations?user=Ih4TEO8AAAAJ" target="_blank">🎓 Scholar</a>
+        <a href="https://dataisland.org" target="_blank">📝 Blog</a>
+        <a href="https://gallery.dataisland.org" target="_blank">🎨 Gallery</a>
+        <a href="/archive.html" target="_blank">📂 Archive</a>
+        <a href="/paper/main.pdf" target="_blank">📄 CV</a>
+      </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+      <h2>About Me</h2>
+      <p style="margin-bottom: 1rem;">
+        I am a PhD candidate in Computer Science at <a href="https://www.northwestern.edu/" target="_blank"
+          style="color: var(--primary-color); text-decoration: none;">Northwestern University</a>, advised by <a
+          href="http://xinyuxing.org/" target="_blank" style="color: var(--primary-color); text-decoration: none;">Prof.
+          Xinyu Xing</a>. My research focuses on <strong>System Security</strong> and <strong>AI Security</strong>, with
+        the goal of enhancing program security with minimal human intervention.
+      </p>
+      <p style="margin-bottom: 1rem;">
+        I received my bachelor's degree from the <a href="https://acm.sjtu.edu.cn/home" target="_blank"
+          style="color: var(--primary-color); text-decoration: none;">ACM Honor Class</a> at <a
+          href="https://www.sjtu.edu.cn/" target="_blank"
+          style="color: var(--primary-color); text-decoration: none;">Shanghai Jiao Tong University</a>, where I was
+        advised by <a href="https://www.cs.sjtu.edu.cn/~lichao/cn/index-cn.html" target="_blank"
+          style="color: var(--primary-color); text-decoration: none;">Prof. Chao Li</a>. I also had the privilege of
+        working with <a href="https://cs.uwaterloo.ca/~m285xu/" target="_blank"
+          style="color: var(--primary-color); text-decoration: none;">Prof. Meng Xu</a> at the University of Waterloo.
+      </p>
+      <p>
+        Beyond research, I have a passion for <strong>algorithm design</strong>, competitive programming (former OIer
+        from <a href="https://en.wikipedia.org/wiki/Yali_High_School" target="_blank"
+          style="color: var(--primary-color); text-decoration: none;">Yali High School</a>), and <strong>CTF
+          competitions</strong> (Nu1L, StrawHat). I also enjoy traveling, watercolor painting, and sketching.
+      </p>
+    </section>
+
+    <!-- News Section -->
+    <section id="news">
+      <h2>🎯 Latest News</h2>
+      <div id="newsContainer">
+        <div class="news-item">
+          <div class="news-date">[2025.10]</div>
+          <p>Passed PhD proposal exam! Thanks to committee: Prof. Xinyu Xing, Prof. Peter Dinda, Prof. Yan Chen, and
+            Prof. Kexin Pei. <a href="/paper/proposal.pdf" target="_blank" style="color: var(--primary-color);">View
+              slides</a></p>
+        </div>
+        <div class="news-item">
+          <div class="news-date">[2025.10]</div>
+          <p><strong>PatchAgent</strong> accepted to <a href="https://mlab.cyber.nyu.edu/csaw/finalists/#finalists"
+              target="_blank" style="color: var(--primary-color);">CSAW Applied Research Competition (ARC) 2025</a>! 🎉
+          </p>
+        </div>
+        <div class="news-item">
+          <div class="news-date">[2025.09]</div>
+          <p><strong>PortGPT</strong> accepted to <strong>S&P 2026</strong>! Automated backporting using LLMs. 📄</p>
+        </div>
+        <div class="news-item">
+          <div class="news-date">[2025.08]</div>
+          <p>Team <a href="https://b3yond.org/" target="_blank" style="color: var(--primary-color);">42-b3yond-6ug</a>
+            won rank 6 at AIxCC Finals! 🏆</p>
+        </div>
+        <div class="news-item">
+          <div class="news-date">[2025.06]</div>
+          <p>Awarded Student Grant from USENIX Security 2025! 💰</p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2025.01]</div>
+          <p><strong>PatchAgent</strong> accepted to <strong>USENIX Security 2025</strong> (Long Presentation)! 🎊</p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2024.12]</div>
+          <p>Received Master of Science degree in Computer Science from Northwestern University! 🎓</p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2024.10]</div>
+          <p>Passed PhD qualifying exam! Committee: Prof. Xinyu Xing, Prof. Peter Dinda, Prof. Yan Chen. <a
+              href="/paper/qual.pdf" target="_blank" style="color: var(--primary-color);">View slides</a></p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2024.09]</div>
+          <p>Awarded Student Grant from ACM CCS 2024! 💰</p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2024.08]</div>
+          <p>Team 42-b3yond-6ug won AIxCC Semi-Finals with $2M award! Designed the program repair system. 🚀</p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2024.07]</div>
+          <p>Awarded Student Grant from USENIX Security 2024! 💰</p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2024.06]</div>
+          <p><strong>LLM-Fuzzer</strong> accepted to USENIX Security 2024!</p>
+        </div>
+        <div class="news-item hidden">
+          <div class="news-date">[2024.05]</div>
+          <p><strong>ShadowBound</strong> accepted to USENIX Security 2024!</p>
+        </div>
+      </div>
+      <button class="show-more-btn" id="showMoreNews">Show More News</button>
+    </section>
+
+    <!-- Publications -->
+    <section id="publications">
+      <h2>📚 Publications</h2>
+      <p style="margin-bottom: 1.5rem; color: var(--text-light);"><small><b>*</b> indicates equal contribution</small>
+      </p>
+
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="2026">2026</button>
+        <button class="filter-btn" data-filter="2025">2025</button>
+        <button class="filter-btn" data-filter="2024">2024</button>
+        <button class="filter-btn" data-filter="2023">2023</button>
+      </div>
+
+      <div id="publicationsContainer">
+        <div class="publication-item" data-year="2026">
+          <div class="publication-title">PortGPT: Towards Automated Backporting Using Large Language Models</div>
+          <div class="publication-authors">
+            <small><strong>Zheng Yu*</strong>, Zhaoyang Li*, Jingyi Song, Meng Xu, Yuxuan Luo, Dongliang Mu</small>
+          </div>
+          <div class="publication-venue">IEEE Symposium on Security and Privacy (S&P) 2026</div>
+          <div>
+            <span class="badge badge-highlight">Patch Merged into Linux 6.1</span>
+          </div>
+          <div class="publication-links">
+            <a href="/paper/portgpt.pdf" target="_blank">📄 Paper</a>
+          </div>
+        </div>
+
+        <div class="publication-item" data-year="2025">
+          <div class="publication-title">PatchAgent: A Practical Program Repair Agent Mimicking Human Expertise</div>
+          <div class="publication-authors">
+            <small><strong>Zheng Yu</strong>, Ziyi Guo, Yuhang Wu, Jiahao Yu, Meng Xu, Dongliang Mu, Yan Chen, Xinyu
+              Xing</small>
+          </div>
+          <div class="publication-venue">USENIX Security Symposium 2025 (Long Presentation)</div>
+          <div>
+            <span class="badge badge-award">🏆 DARPA AIxCC Finalist</span>
+            <span class="badge badge-award">🏆 CSAW 25 ARC Finalist</span>
+            <span class="badge badge-highlight">Used in Production</span>
+          </div>
+          <div class="publication-links">
+            <a href="https://www.usenix.org/system/files/usenixsecurity25-yu-zheng.pdf" target="_blank">📄 Paper</a>
+            <a href="/paper/slides-patchagent.pdf" target="_blank">📊 Slides</a>
+            <a href="https://github.com/cla7aye15I4nd/patchagent" target="_blank">💻 Code</a>
+            <a href="/patchagent.html" target="_blank">🎮 Demo</a>
+            <a href="/paper/poster-patchagent.pdf" target="_blank">📋 Poster</a>
+          </div>
+        </div>
+
+        <div class="publication-item" data-year="2024">
+          <div class="publication-title">ShadowBound: Efficient Heap Memory Protection Through Advanced Metadata
+            Management</div>
+          <div class="publication-authors">
+            <small><strong>Zheng Yu</strong>, Ganxiang Yang, Xinyu Xing</small>
+          </div>
+          <div class="publication-venue">USENIX Security Symposium 2024</div>
+          <div class="publication-links">
+            <a href="https://www.usenix.org/system/files/usenixsecurity24-yu-zheng.pdf" target="_blank">📄 Paper</a>
+            <a href="https://github.com/cla7aye15I4nd/shadowbound" target="_blank">💻 Code</a>
+            <a href="/paper/slides-shadowbound.pdf" target="_blank">📊 Slides</a>
+          </div>
+        </div>
+
+        <div class="publication-item" data-year="2024">
+          <div class="publication-title">LLM-Fuzzer: Scaling Assessment of Large Language Model Jailbreaks</div>
+          <div class="publication-authors">
+            <small>Jiahao Yu, Xingwei Lin, <strong>Zheng Yu</strong>, Xinyu Xing</small>
+          </div>
+          <div class="publication-venue">USENIX Security Symposium 2024</div>
+          <div>
+            <span class="badge badge-award">🏆 Geekcon 2023 Breakthrough Award</span>
+            <span class="badge badge-highlight">Integrated into Microsoft Azure PyRIT</span>
+          </div>
+          <div class="publication-links">
+            <a href="https://www.usenix.org/system/files/usenixsecurity24-yu-jiahao.pdf" target="_blank">📄 Paper</a>
+            <a href="https://github.com/sherdencooper/GPTFuzz" target="_blank">💻 Code</a>
+            <a href="https://www.usenix.org/system/files/usenixsecurity24_slides-yu-jiahao.pdf" target="_blank">📊
+              Slides</a>
+          </div>
+        </div>
+
+        <div class="publication-item" data-year="2024">
+          <div class="publication-title">CAMP: Compiler and Allocator-based Heap Memory Protection</div>
+          <div class="publication-authors">
+            <small>Zhenpeng Lin, <strong>Zheng Yu</strong>, Ziyi Guo, Simone Campanoni, Peter Dinda, Xinyu Xing</small>
+          </div>
+          <div class="publication-venue">USENIX Security Symposium 2024</div>
+          <div class="publication-links">
+            <a href="https://www.usenix.org/system/files/usenixsecurity24-lin-zhenpeng.pdf" target="_blank">📄 Paper</a>
+            <a href="https://github.com/cla7aye15I4nd/CAMP" target="_blank">💻 Code</a>
+            <a href="paper/slides-CAMP.pdf" target="_blank">📊 Slides</a>
+          </div>
+        </div>
+
+        <div class="publication-item" data-year="2023">
+          <div class="publication-title">FIRST: Exploiting Multi-Dimensional Attributes of Functions for Power-Aware
+            Serverless Computing</div>
+          <div class="publication-authors">
+            <small>Lu Zhang, Chao Li, Xinkai Wang, Weiqi Feng, <strong>Zheng Yu</strong>, Quan Chen, Jingwen Leng, Minyi
+              Guo, Pu Yang, Shang Yue</small>
+          </div>
+          <div class="publication-venue">IEEE International Parallel & Distributed Processing Symposium (IPDPS) 2023
+          </div>
+          <div class="publication-links">
+            <a href="paper/first.pdf" target="_blank">📄 Paper</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Academic Services -->
+    <section id="services">
+      <h2>🤝 Academic Services</h2>
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">Program Committee Member</h4>
+        <p style="line-height: 2;">
+          <span class="badge badge-conference">ICLR 2026</span>
+          <span class="badge badge-conference">NeurIPS 2025</span>
+          <span class="badge badge-conference">ICML 2025</span>
+          <span class="badge badge-conference">ICLR 2025</span>
+          <span class="badge badge-conference">AISTATS 2025</span>
+          <span class="badge badge-conference">AAAI-UC 2025</span>
+          <span class="badge badge-conference">NeurIPS 2024</span>
+          <span class="badge badge-conference">ICECI 2024</span>
+        </p>
+      </div>
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">Artifact Committee Member</h4>
+        <p style="line-height: 2;">
+          <span class="badge badge-conference">CCS 2025</span>
+          <span class="badge badge-conference">NDSS 2025</span>
+          <span class="badge badge-conference">USENIX Security 2025</span>
+          <span class="badge badge-conference">ATC 2024</span>
+          <span class="badge badge-conference">OSDI 2024</span>
+          <span class="badge badge-conference">ISSTA 2024</span>
+          <span class="badge badge-conference">USENIX Security 2024</span>
+          <span class="badge badge-conference">CCS 2024</span>
+          <span class="badge badge-conference">CCS 2023</span>
+        </p>
+      </div>
+      <div>
+        <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">Journal Reviewer</h4>
+        <p style="line-height: 2;">
+          <span class="badge badge-conference">IEEE TDSC</span>
+          <span class="badge badge-conference">PeerJ CS</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Contact & Experience -->
+    <section id="contact">
+      <h2>📬 Get in Touch</h2>
+      <p style="margin-bottom: 1rem;">
+        I'm always happy to discuss research collaborations, security topics, or potential opportunities. Feel free to
+        reach out!
+      </p>
+      <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 0.5rem;">
+        <p><strong>Email:</strong> <a href="mailto:zheng.yu@northwestern.edu"
+            style="color: var(--primary-color);">zheng.yu@northwestern.edu</a></p>
+        <p><strong>Location:</strong> Northwestern University, Evanston, IL</p>
+      </div>
+
+      <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Recent Experience</h3>
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+          <strong>Visiting Researcher</strong>
+          <small style="color: var(--text-light);">June 2025 – Sept 2025</small>
+        </div>
+        <p style="color: var(--text-light); margin-left: 1rem;">University of Waterloo | Advisor: Prof. Meng Xu</p>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+          <strong>Teaching Assistant - Introduction to Computer Security</strong>
+          <small style="color: var(--text-light);">Sept 2024 – Dec 2024</small>
+        </div>
+        <p style="color: var(--text-light); margin-left: 1rem;">Northwestern University | COMP_SCI 350</p>
+      </div>
+
+      <h3 style="margin-top: 2rem; margin-bottom: 1rem;">CVE Contributions</h3>
+      <p style="line-height: 2;">
+        <a href="https://www.cve.org/CVERecord?id=CVE-2023-43338" target="_blank"
+          class="badge badge-highlight">CVE-2023-43338</a>
+        <a href="https://www.cve.org/CVERecord?id=CVE-2024-46632" target="_blank"
+          class="badge badge-highlight">CVE-2024-46632</a>
+        <a href="https://www.cve.org/CVERecord?id=CVE-2024-48423" target="_blank"
+          class="badge badge-highlight">CVE-2024-48423</a>
+        <a href="https://www.cve.org/CVERecord?id=CVE-2024-48424" target="_blank"
+          class="badge badge-highlight">CVE-2024-48424</a>
+        <a href="https://www.cve.org/CVERecord?id=CVE-2024-48425" target="_blank"
+          class="badge badge-highlight">CVE-2024-48425</a>
+        <a href="https://www.cve.org/CVERecord?id=CVE-2024-48426" target="_blank"
+          class="badge badge-highlight">CVE-2024-48426</a>
+        <a href="https://www.cve.org/CVERecord?id=CVE-2024-53427" target="_blank"
+          class="badge badge-highlight">CVE-2024-53427</a>
+        <a href="https://www.cve.org/CVERecord?id=CVE-2024-53432" target="_blank"
+          class="badge badge-highlight">CVE-2024-53432</a>
+      </p>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      <small>
+        Zheng Yu © 1999 -
+        <script>document.write(new Date().getFullYear());</script>. All rights reserved.
+      </small>
+    </p>
+    <p style="margin-top: 0.5rem;">
+      <small style="color: var(--text-light);">
+        Built with care • Last updated October 2025
+      </small>
+    </p>
+  </footer>
+
+  <!-- Back to Top Button -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
+  <script>
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    let isDark = false;
+
+    themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      body.classList.toggle('dark-mode');
+      themeToggle.textContent = isDark ? '☀️' : '🌙';
+    });
+
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+
+    // Back to top button
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTop.classList.add('visible');
+      } else {
+        backToTop.classList.remove('visible');
+      }
+    });
+
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Show more news
+    const showMoreBtn = document.getElementById('showMoreNews');
+    const newsItems = document.querySelectorAll('.news-item.hidden');
+    let newsExpanded = false;
+
+    showMoreBtn.addEventListener('click', () => {
+      newsExpanded = !newsExpanded;
+      newsItems.forEach(item => {
+        item.classList.toggle('hidden');
+      });
+      showMoreBtn.textContent = newsExpanded ? 'Show Less' : 'Show More News';
+    });
+
+    // Publication filter
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const publications = document.querySelectorAll('.publication-item');
+
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const filter = button.getAttribute('data-filter');
+
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        publications.forEach(pub => {
+          if (filter === 'all' || pub.getAttribute('data-year') === filter) {
+            pub.style.display = 'block';
+          } else {
+            pub.style.display = 'none';
           }
         });
       });
     });
+
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
   </script>
-
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="static/style.css">
-  <title>Zheng Yu</title>
-
-</head>
-
-<body id="top">
-  <header>
-    <h1>Zheng Yu <small> (于峥)</small></h1>
-    <p class="info">
-      <small>
-        <i>
-          Daily immersion in evil leads to withering;
-          the diligent pursuit of goodness leads to flourishing.
-        </i>
-        <br />
-        <br />
-      </small>
-    </p>
-    <p class="info">
-      <a href="mailto:zheng.yu@northwestern.edu" target="_blank">Email</a> /
-      <a href="https://github.com/cla7aye15I4nd" target="_blank">Github</a> /
-      <a href="https://scholar.google.com/citations?user=Ih4TEO8AAAAJ" target="_blank"> Google Scholar </a> /
-      <a href="https://dblp.org/pid/28/4466-3.html" target="_blank"> DBLP </a> /
-      <a href="https://dataisland.org" target="_blank"> Blog </a> /
-      <a href="https://orcid.org/my-orcid?orcid=0009-0000-1134-8115" target="_blank"> ORCID </a> /
-      <a href="https://gallery.dataisland.org" target="_blank"> Gallery </a> /
-      <a href="https://x.com/dataisland99" target="_blank"> X </a> /
-      <a href="https://www.xiaohongshu.com/user/profile/629f471400000000210202ab" target="_blank"> Red </a> /
-      <a href="https://www.linkedin.com/in/zheng-yu-446b46250/" target="_blank"> Linkedin </a>
-    </p>
-
-
-    <div class="abstract">
-      <h3> About Me (<a href="/paper/main.pdf" target="_blank">CV</a>)</h3>
-      <p>
-        My name is Zheng Yu. I am a PhD candidate in the Computer Science department at
-        <a href="https://www.northwestern.edu/" target="_blank">Northwestern University</a>,
-        advised by
-        <a href="http://xinyuxing.org/" target="_blank">Prof. Xinyu Xing</a>.
-        My research interests include <b>System Security</b> and <b>AI Security</b>. My goal is to enhance the security
-        of programs with minimal human intervention.
-      </p>
-      <br />
-      <p>
-        I obtained my bachelor's degree from the
-        <a href="https://acm.sjtu.edu.cn/home" target="_blank">ACM Honor Class</a> at
-        <a href="https://www.sjtu.edu.cn/" target="_blank">Shanghai Jiao Tong University</a>,
-        majoring in Computer Science. My advisor was
-        <a href="https://www.cs.sjtu.edu.cn/~lichao/cn/index-cn.html" target="_blank">Prof.
-          Chao Li</a>.
-        Additionally, I was also very fortunate to be advised by
-        <a href="https://cs.uwaterloo.ca/~m285xu/" target="_blank">Prof. Meng Xu</a> at the University of Waterloo
-        during my research visits.
-      </p>
-      <br />
-      <p>
-        Besides, I am very interested in and good at <b>algorithm</b> design. I
-        was an OIer when I was studying at <a href="https://en.wikipedia.org/wiki/Yali_High_School"
-          target="_blank">Yali</a>. I am
-        also a <b>CTF</b>
-        player; I used to play CTF with
-        <a href="https://www.nu1l.com/" target="_blank">Nu1L</a> and
-        <a href="https://strawhat.team/" target="_blank">StrawHat</a>.
-      </p>
-      <br />
-      <p>
-        Outside of research, I enjoy traveling and painting, including watercolor and sketching. Here is a <a
-          href="https://gallery.dataisland.org" target="_blank">gallery</a> that is still under construction.
-      </p>
-    </div>
-
-    <main>
-      <article>
-        <h3 id="news">
-          News
-        </h3>
-        <ul>
-          <li>
-            <p>
-              [2025.10] I passed the PhD proposal exam at Northwestern University!
-              Thanks to my committee members:
-              <a href="http://xinyuxing.org/" target="_blank">Prof. Xinyu Xing</a>,
-              <a href="http://pdinda.org/" target="_blank">Prof. Peter Dinda</a>,
-              <a href="https://users.cs.northwestern.edu/~ychen/" target="_blank">Prof. Yan Chen</a> and
-              <a href="https://sites.google.com/site/kexinpeisite/" target="_blank">Prof. Kexin Pei</a>.
-              Here is my <a href="/paper/proposal.pdf" target="_blank">slides</a>.
-            </p>
-          </li>
-          <li>
-            <p>
-              [2025.10]
-              <a href="https://www.usenix.org/conference/usenixsecurity25/presentation/yu-zheng" target="_blank">
-                PatchAgent
-              </a>
-              is accepted to
-              <a href="https://mlab.cyber.nyu.edu/csaw/finalists/#finalists" target="_blank">
-                CSAW Applied Research Competition (ARC) 2025!
-              </a>
-            </p>
-          </li>
-          <li>
-            <p>
-              [2025.09]
-              <a href="paper/portgpt.pdf" target="_blank">
-                PortGPT
-              </a>
-              is accepted to S&P 2026!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2025.08] Our team, <a href="https://b3yond.org/" target="_blank">42-b3yond-6ug</a>, won rank 6 at
-              AIxCC Finals!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2025.06] Awarded Student Grant from USENIX Security 2025!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2025.01]
-              <a href="https://www.usenix.org/conference/usenixsecurity25/presentation/yu-zheng" target="_blank">
-                PatchAgent
-              </a>
-              is accepted to USENIX Security 2025!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.12] I got the Master of Science degree in Computer Science from Northwestern University!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.10] I passed the PhD qualifying exam at Northwestern University!
-              Thanks to my committee members:
-              <a href="http://xinyuxing.org/" target="_blank">Prof. Xinyu Xing</a>,
-              <a href="http://pdinda.org/" target="_blank">Prof. Peter Dinda</a>, and
-              <a href="https://users.cs.northwestern.edu/~ychen/" target="_blank">Prof. Yan Chen</a>.
-              Here is my
-              <a href="/paper/qual.pdf" target="_blank">slides</a>.
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.09] Awarded Student Grant from ACM CCS 2024!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.08] Our team,
-              <a href="https://b3yond.org/" target="_blank">42-b3yond-6ug</a>,
-              won the AIxCC Semi-Finals and was awarded $2 million. I had the honor
-              of designing the program repair system for the competition.
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.07] Awarded Student Grant from USENIX Security 2024!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.06]
-              <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/yu-jiahao" target="_blank">
-                LLM-Fuzzer
-              </a>
-              is accepted to USENIX Security 2024!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.05]
-              <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/yu-zheng" target="_blank">
-                ShadowBound
-              </a>
-              is accepted to USENIX Security 2024!
-            </p>
-          </li>
-          <li>
-            <p>
-              [2024.02] Our team, <a href="https://b3yond.org/" target="_blank">42-b3yond-6ug</a>, received funding of
-              $1 million from AIxCC.
-            </p>
-          </li>
-          <li>
-            <p>
-              [2023.09]
-              <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/lin" target="_blank">
-                CAMP
-              </a>
-              is accepted to USENIX Security 2024!
-            </p>
-          </li>
-        </ul>
-
-        <h3 id="publications">
-          Publications
-        </h3>
-        <div>
-          <small>
-            <b>*</b> indicates equal contribution.
-          </small>
-        </div>
-        <ul>
-          <li>
-            <p>
-            <p>
-              <a href="#" target="_blank"><b>PortGPT: Towards Automated Backporting Using Large Language Models
-                </b>
-              </a>
-              <a href="/paper/portgpt.pdf" target="_blank">[Paper] </a>
-            </p>
-            <em>
-              <small>
-                <b>Zheng Yu*,</b>
-                Zhaoyang Li*,
-                Jingyi Song,
-                Meng Xu,
-                Yuxuan Luo,
-                Dongliang Mu
-              </small>
-            </em>
-            <br />
-            IEEE Symposium on Security and Privacy (S&P) 2026
-            <br />
-            <small>
-              <b> Generated Patch Have been Merged into Linux 6.1. </b>
-            </small>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p>
-              <a href="https://www.usenix.org/conference/usenixsecurity25/presentation/yu-zheng"
-                target="_blank"><b>PatchAgent: A Practical Program Repair Agent Mimicking Human Expertise
-                </b>
-              </a>
-              <a href="https://www.usenix.org/system/files/usenixsecurity25-yu-zheng.pdf" target="_blank">[Paper] </a>
-              <a href="/paper/slides-patchagent.pdf" target="_blank">[Slides] </a>
-              <a href="https://github.com/cla7aye15I4nd/patchagent" target="_blank">[Code] </a>
-              <a href="/patchagent.html" target="_blank">[Demo] </a>
-              <a href="/paper/poster-patchagent.pdf" target="_blank">[Poster] </a>
-            </p>
-            <em>
-              <small>
-                <b>Zheng Yu,</b>
-                Ziyi Guo,
-                Yuhang Wu,
-                Jiahao Yu,
-                Meng Xu,
-                Dongliang Mu,
-                Yan Chen,
-                Xinyu Xing
-              </small></em>
-            <br />
-            USENIX Security Symposium 2025 (Long Presentation)
-            <br />
-            <small>
-              <b> DARPA AIxCC Finalist / CSAW 25 ARC Finalist / Generated Patch Have been Used in Production. </b>
-            </small>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p>
-              <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/yu-zheng"
-                target="_blank"><b>ShadowBound: Efficient Heap Memory
-                  Protection Through Advanced Metadata Management and Customized Compiler Optimization
-                </b>
-              </a>
-              <a href="https://www.usenix.org/system/files/usenixsecurity24-yu-zheng.pdf" target="_blank">[Paper] </a>
-              <a href="https://github.com/cla7aye15I4nd/shadowbound" target="_blank">[Code] </a>
-              <a href="/paper/slides-shadowbound.pdf" target="_blank">[Slides] </a>
-            </p>
-            <em>
-              <small>
-                <b>Zheng Yu,</b>
-                Ganxiang Yang,
-                Xinyu Xing
-              </small></em>
-            <br>
-            USENIX Security Symposium 2024
-            </p>
-          </li>
-          <li>
-            <p>
-            <p>
-              <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/yu-jiahao" target="_blank"><b>
-                  LLM-Fuzzer: Scaling Assessment of Large
-                  Language Model Jailbreaks
-                </b></a>
-              <a href="https://www.usenix.org/system/files/usenixsecurity24-yu-jiahao.pdf" target="_blank">[Paper] </a>
-              <a href="https://github.com/sherdencooper/GPTFuzz" target="_blank">[Code] </a>
-              <a href="https://www.usenix.org/system/files/usenixsecurity24_slides-yu-jiahao.pdf"
-                target="_blank">[Slides] </a>
-            </p>
-            <em>
-
-              <small>
-                Jiahao Yu,
-                Xingwei Lin,
-                <b>Zheng Yu,</b>
-                Xinyu Xing
-              </small></em>
-            <br />
-            USENIX Security Symposium 2024
-            <br />
-            <small>
-              <b>
-                Geekcon 2023 Annual Breakthrough Awards / Integrated into Microsoft Azure PyRIT
-              </b>
-            </small>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p>
-              <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/lin" target="_blank"><b>CAMP:
-                  Compiler and Allocator-based Heap Memory Protection
-                </b></a>
-              <a href="https://www.usenix.org/system/files/usenixsecurity24-lin-zhenpeng.pdf" target="_blank">[Paper]
-              </a>
-              <a href="https://github.com/cla7aye15I4nd/CAMP" target="_blank">[Code] </a>
-              <a href="paper/slides-CAMP.pdf" target="_blank">[Slides] </a>
-            </p>
-            <em>
-              <small>
-                Zhenpeng Lin;
-                <b>Zheng Yu,</b>
-                Ziyi Guo;
-                Simone Campanoni;
-                Peter Dinda;
-                Xinyu Xing
-              </small></em>
-            <br>
-            USENIX Security Symposium 2024
-            </p>
-          </li>
-          <li>
-            <p>
-            <p>
-              <a href="https://ieeexplore.ieee.org/document/10177391" target="_blank"><b>FIRST: Exploiting the
-                  Multi-Dimensional Attributes of Functions for Power-Aware Serverless Computing
-                </b></a>
-              <a href="paper/first.pdf" target="_blank">[Paper] </a>
-            </p>
-            <em><small>
-                Lu Zhang, Chao Li, Xinkai Wang, Weiqi Feng,
-                <b>Zheng Yu,</b> Quan Chen, Jingwen Leng, Minyi Guo, Pu Yang, Shang Yue </small></em>
-            <br>
-            IEEE International Parallel & Distributed Processing Symposium (IPDPS) 2023
-            </p>
-          </li>
-        </ul>
-
-        <h3 id="talks">
-          Talks
-        </h3>
-        <ul>
-          <li>
-            <p>
-            <p>
-              <a href="https://www.blackhat.com/eu-22/arsenal/schedule/index.html#reversing-mcu-with-firmware-emulation-29553"
-                target="_blank"><b>Reversing
-                  MCU with Firmware Emulation
-                </b></a>
-              <a href="https://github.com/qilingframework/qiling" target="_blank">[Code] </a>
-            </p>
-
-            BlackHat Europe 2022
-            </p>
-          </li>
-        </ul>
-
-        <h3 id="projects">
-          Media Coverage
-        </h3>
-        <ul>
-          <li>
-            <a href="https://www.mccormick.northwestern.edu/computer-science/news-events/news/articles/2024/safeguarding-critical-software-infrastructure-through-novel-ai-systems.html"
-              target="_blank">
-              Safeguarding Critical Software Infrastructure through Novel AI Systems - Northwestern University
-            </a>
-          </li>
-          <li>
-            <a href="https://uwaterloo.ca/computer-science/news/waterloo-cs-student-and-professor-international-team-winning"
-              target="_blank">
-              42-b3yond-6ug team winning $2 million in DARPA's AixCC - University of Waterloo
-            </a>
-          </li>
-          <li>
-            <a href="https://www.mccormick.northwestern.edu/computer-science/news-events/news/articles/2024/advancing-compiler-technology.html"
-              target="_blank"> Advancing Compiler Technology - Northwestern University </a>
-          </li>
-          <li>
-            <a href="https://www.mccormick.northwestern.edu/computer-science/news-events/news/articles/2022/exploiting-security-vulnerabilities.html"
-              target="_blank"> Exploiting Security Vulnerabilities - Northwestern University </a>
-          </li>
-          <li>
-            <a href="https://mp.weixin.qq.com/s/MmTce9eEG3PihXvlhIwH_A" target="_blank">
-              Paper Share | GPTFuzzer - SECGEEK </a>
-            </a>
-          </li>
-          <li>
-            <a href="https://mp.weixin.qq.com/s/iw4EQ0nj15esEX5dKX7dEA" target="_blank">
-              Paper Share | ShadowBound - GoSSIP Security Group </a>
-          </li>
-          <li>
-            <a href="https://mp.weixin.qq.com/s/xD-Ev4VlRQdalPfS0W7sDQ" target="_blank">
-              Paper Share | CAMP - COMPASS Lab </a>
-          </li>
-          <li>
-            <a href="https://mp.weixin.qq.com/s/5qNlQhrDGq9pF6iJ6jfsZQ" target="_blank">
-              Paper Share | ShadowBound - COMPASS Lab </a>
-          </li>
-          <li>
-            <a href="https://mp.weixin.qq.com/s/XL7Z5xikeuyPonAKKxLkYQ" target="_blank">
-              Paper Share | PatchAgent - GoSSIP Security Group </a>
-          </li>
-        </ul>
-
-        <article>
-          <h3 id="projects">
-            Academic Services
-          </h3>
-          <ul>
-            <li>
-              <b> Program Committee Member: </b>
-              <a href="https://iclr.cc/Conferences/2026/ProgramCommittee" target="_blank"> ICLR 2026 </a>
-              ,<a href="https://neurips.cc/Conferences/2025/ProgramCommittee" target="_blank"> NeurIPS 2025 </a>
-              ,<a href="https://icml.cc/Conferences/2025/Reviewers" target="_blank"> ICML 2025 </a>
-              ,<a href="https://iclr.cc/Conferences/2025/ProgramCommittee" target="_blank"> ICLR 2025 </a>
-              ,<a href="https://aistats.org/aistats2025/committee.html" target="_blank"> AISTATS 2025 </a>
-              ,<a href="https://aaai.org/conference/aaai/aaai-25/aaai-25-uc-call/" target="_blank"> AAAI-UC 2025 </a>
-              ,<a href="https://neurips.cc/Conferences/2024/ProgramCommittee" target="_blank"> NeurIPS 2024 </a>
-              ,<a href="https://iceci-conference.eai-conferences.org/2024/committees/" target="_blank"> ICECI 2024 </a>
-            </li>
-            <li>
-              <b> Artifact Committee Member: </b>
-              <a href="https://www.sigsac.org/ccs/CCS2025/artifact-evaluation-committee/" target="_blank"> CCS 2025
-              </a>
-              ,
-              <a href="https://www.ndss-symposium.org/ndss2025/submissions/call-for-artifacts" target="_blank"> NDSS
-                2025
-              </a>
-              ,<a href="https://www.usenix.org/conference/usenixsecurity25/call-for-artifacts" target="_blank"> USENIX
-                Security 2025 </a>
-              ,<a href="https://www.usenix.org/conference/atc24/call-for-artifacts" target="_blank"> ATC 2024 </a>
-              ,<a href="https://www.usenix.org/conference/osdi24/call-for-artifacts" target="_blank"> OSDI 2024 </a>
-              ,<a href="https://2024.issta.org/committee/issta-2024-artifact-evaluation-artifact-evaluation-committee"
-                target="_blank"> ISSTA 2024 </a>
-              ,<a href="https://www.usenix.org/conference/usenixsecurity24/call-for-artifacts" target="_blank"> USENIX
-                Security 2024 </a>
-              ,<a href="https://www.sigsac.org/ccs/CCS2024/organization/ae-committee.html" target="_blank"> CCS 2024
-              </a>
-              ,<a href="https://www.sigsac.org/ccs/CCS2023/orgs-artifact.html" target="_blank"> CCS 2023 </a>
-            </li>
-            <li>
-              <b> Journal Reviewer: </b>
-              <a href="https://www.computer.org/csdl/journal/tq" target="_blank"> IEEE TDSC </a>
-              , <a href="https://peerj.com/computer-science/" target="_blank"> PeerJ CS </a>
-
-            </li>
-          </ul>
-        </article>
-
-        <h3 id="experiences">
-          Work & Teaching Experience
-        </h3>
-        <ul>
-          <li>
-            <p>
-            <p class="two-col">
-              <a href="https://uwaterloo.ca/" target="_blank"><b>Visiting Researcher</b></a>
-              <small>June. 2025 – Sept. 2025</small>
-            </p>
-            <br>
-            <em class="two-col">
-              <small> Advisor: Meng Xu </small>
-              <small> University of Waterloo </small>
-            </em>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p class="two-col">
-              <a href="https://www.northwestern.edu/" target="_blank"><b>Teaching Assistant</b></a>
-              <small>Sep. 2024 – Dec. 2024</small>
-            </p>
-            <br>
-            <em class="two-col">
-              <small> Introduction to Computer Security (COMP_SCI 350) </small>
-              <small> Northwestern University </small>
-            </em>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p class="two-col">
-              <a href="https://www.honeynet.org/gsoc/gsoc-2022/google-summer-of-code-2022-project-ideas/#5---qiling-improvements"
-                target="_blank"><b>GSOC Project Mentor</b></a>
-              <small>Apr. 2022 – Oct. 2022</small>
-            </p>
-            <br>
-            <em class="two-col">
-              <small> Bridging Qiling and Static Analysis </small>
-              <small> Google Summer of Code 2022 </small>
-            </em>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p class="two-col">
-              <a href="https://qiling.io/" target="_blank"><b>Security Engineer</b></a>
-              <small>Jun. 2021 – Jun. 2022</small>
-            </p>
-            <br>
-            <em class="two-col">
-              <small>
-                Firmware Emulation
-              </small>
-              <small>
-                JD.COM.
-              </small>
-            </em>
-            <br>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p class="two-col">
-              <a href="https://acm.sjtu.edu.cn/" target="_blank"><b>Website Operation</b></a>
-              <small>June. 2019 – Sept. 2019</small>
-            </p>
-            <br>
-            <em class="two-col">
-              <small>
-                Development and Maintenance of ACM SJTU Website & SJTU Online Judge
-              </small>
-              <small>
-                Shanghai Jiao Tong University
-              </small>
-            </em>
-            </p>
-          </li>
-          <li>
-            <p>
-            <p class="two-col">
-              <a href="https://acm.sjtu.edu.cn/" target="_blank"><b>Teaching Assistant</b></a>
-              <small>June. 2019 – Sept. 2019</small>
-            </p>
-            <br>
-            <em class="two-col">
-              <small>
-                Programming Design Course (CS151)
-              </small>
-              <small>
-                Shanghai Jiao Tong University
-              </small>
-            </em>
-            </p>
-          </li>
-        </ul>
-      </article>
-
-      <article>
-        <h3 id="projects">
-          CVE List
-        </h3>
-        <a href="https://www.cve.org/CVERecord?id=CVE-2023-43338" target="_blank"> CVE-2023-43338 </a>
-        , <a href="https://www.cve.org/CVERecord?id=CVE-2024-46632" target="_blank"> CVE-2024-46632 </a>
-        , <a href="https://www.cve.org/CVERecord?id=CVE-2024-48423" target="_blank"> CVE-2024-48423 </a>
-        , <a href="https://www.cve.org/CVERecord?id=CVE-2024-48424" target="_blank"> CVE-2024-48424 </a>
-        , <a href="https://www.cve.org/CVERecord?id=CVE-2024-48425" target="_blank"> CVE-2024-48425 </a>
-        , <a href="https://www.cve.org/CVERecord?id=CVE-2024-48426" target="_blank"> CVE-2024-48426 </a>
-        , <a href="https://www.cve.org/CVERecord?id=CVE-2024-53427" target="_blank"> CVE-2024-53427 </a>
-        , <a href="https://www.cve.org/CVERecord?id=CVE-2024-53432" target="_blank"> CVE-2024-53432 </a>
-      </article>
-
-      <!-- add a Copyriight in the centor bottom -->
-      <footer>
-        <hr />
-        <p style="text-align: center;">
-          <small>
-            Zheng Yu &copy; 1999 -
-            <script>document.write(new Date().getFullYear());</script>. All rights reserved.
-          </small>
-        </p>
-      </footer>
-
-    </main>
-  </header>
-
 </body>
 
 </html>
