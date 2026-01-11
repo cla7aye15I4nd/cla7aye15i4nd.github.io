@@ -65,6 +65,27 @@ p {
   margin-top: 1rem;
 }
 
+/* Blockquote styling */
+blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 4px solid hsl(210, 28%, 75%);
+  background-color: hsl(210, 28%, 93%);
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 0.5rem 0;
+}
+
+blockquote p:first-child {
+  margin-top: 0;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
 /* A elements that don't have a class get default styles */
 a:not([class]) {
   text-decoration-skip-ink: auto;

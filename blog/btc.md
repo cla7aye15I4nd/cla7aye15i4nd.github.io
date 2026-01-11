@@ -199,7 +199,7 @@ If you take the Bitcoin source code and start a brand-new chain from scratch (a 
 > 
 > 
 > * **Scenario B: The "Hard Fork" (Shared History)**
-> This happens when you take the existing Bitcoin ledger but change the rules moving forward. This is what happened with > **Bitcoin Cash (BCH)** and **Bitcoin SV (BSV)**.
+> This happens when you take the existing Bitcoin ledger but change the rules moving forward. This is what happened with **Bitcoin Cash (BCH)** and **Bitcoin SV (BSV)**.
 > * **The "Free Money" Effect:** Because the history is shared, anyone who held **1 BTC** on the original chain at the moment of the split suddenly finds they also own **1 BCH** on the new chain.
 > 
 > ##### 2. The Impact on Price: "Code is Cheap, Consensus is Expensive"
