@@ -145,17 +145,31 @@ kbd {
     monospace;
   font-size: 85%;
 }
+
+/* Inline code - add background */
+code {
+  background: hsl(210, 28%, 93%);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+}
+
 pre {
   padding: 1rem 1.4rem;
   max-width: 100%;
   overflow: auto;
   border-radius: 4px;
   background: hsl(210, 28%, 93%);
+  tab-size: 4;
+  -moz-tab-size: 4;
 }
+
 pre code {
   font-size: 95%;
   position: relative;
+  background: none;
+  padding: 0;
 }
+
 kbd {
   background: hsl(210, 5%, 100%);
   border: 1px solid hsl(210, 5%, 70%);

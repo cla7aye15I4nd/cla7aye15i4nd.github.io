@@ -157,9 +157,9 @@ As you can see, the old Merkle root is still part of the new Merkle tree, which 
 ### What is Proof-of-Work?
 
 The proof-of-work process involves finding a nonce such that the hash of the block header is less than the difficulty target. The formula is:
-```
-Sha256(Sha256(BlockHeader)) < DifficultyTarget
-```
+$$
+\text{Sha256}(\text{Sha256}(\text{BlockHeader})) < \text{DifficultyTarget}
+$$
 The miner will increment the nonce and recalculate the hash until it finds a valid nonce. Once a valid nonce is found, the miner will broadcast the new block to the network. Other nodes will verify the block by checking the proof-of-work, validating all transactions in the block, and ensuring that the block follows the consensus rules. If the block is valid, it will be added to the blockchain, and the miner will receive the block reward (newly minted Bitcoin) and transaction fees from all transactions included in the block.
 
 ### What is the structure of Coinbase Transaction?

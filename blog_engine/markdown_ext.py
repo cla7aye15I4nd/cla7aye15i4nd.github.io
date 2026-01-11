@@ -20,8 +20,20 @@ def normalize_list_indentation(markdown_text: str) -> str:
     """
     lines = markdown_text.split('\n')
     result = []
+    in_code_block = False
 
     for line in lines:
+        # Track if we're inside a code block
+        if line.strip().startswith('```'):
+            in_code_block = not in_code_block
+            result.append(line)
+            continue
+
+        # Don't process lines inside code blocks
+        if in_code_block:
+            result.append(line)
+            continue
+
         # Count leading spaces
         stripped = line.lstrip(' ')
 
@@ -91,7 +103,37 @@ def add_blank_lines_before_lists(markdown_text: str) -> str:
     Returns:
         Markdown content with blank lines before lists
     """
-    return re.sub(r'([^\n])\n([-*+]|\d+\.)\s+', r'\1\n\n\2 ', markdown_text)
+    lines = markdown_text.split('\n')
+    result = []
+    in_code_block = False
+    prev_line = ''
+
+    for line in lines:
+        # Track if we're inside a code block
+        if line.strip().startswith('```'):
+            in_code_block = not in_code_block
+            result.append(line)
+            prev_line = line
+            continue
+
+        # Don't process lines inside code blocks
+        if in_code_block:
+            result.append(line)
+            prev_line = line
+            continue
+
+        # Check if this line starts a list and previous line was non-empty text
+        stripped = line.lstrip()
+        if prev_line and not prev_line.strip().startswith(('```', '-', '*', '+', '#')):
+            if stripped and (stripped.startswith(('-', '*', '+')) or
+                           (stripped[0].isdigit() and '.' in stripped[:4])):
+                # Add blank line before list
+                result.append('')
+
+        result.append(line)
+        prev_line = line
+
+    return '\n'.join(result)
 
 
 def preprocess_markdown(markdown_text: str) -> str:

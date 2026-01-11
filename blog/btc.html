@@ -20,6 +20,22 @@
   
   <link rel="stylesheet" href="../static/style.css">
   <title>Understanding Bitcoin: A Top-Down Approach - Zheng Yu</title>
+
+  <!-- MathJax for math formula rendering -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body id="top">
@@ -56,38 +72,22 @@ However, it is also possible someone find it is very helpful, because if someone
 </div>
 <p>Bitcoin is running on a peer-to-peer network. Hence, each node stored (almost) the same data, these data include:</p>
 <ul>
-<li>
-<p><strong>All transactions ever happened</strong>: start from 2009-01-03 when the genesis block was mined. It is stored in a data structure called blockchain.</p>
-</li>
-<li>
-<p><strong>Unspent Transaction Outputs (UTXOs)</strong>: these are the outputs of transactions that have not been spent yet. They represent the amount of Bitcoin that a user can spend.</p>
-</li>
-<li>
-<p><strong>Mempool</strong>: this is a collection of unconfirmed transactions that are waiting to be included in a block.</p>
-</li>
-<li>
-<p><strong>Network related data</strong>: since it is a P2P network, each node also needs to store information about its peers, such as their IP addresses and port numbers.</p>
-</li>
+<li><strong>All transactions ever happened</strong>: start from 2009-01-03 when the genesis block was mined. It is stored in a data structure called blockchain.</li>
+<li><strong>Unspent Transaction Outputs (UTXOs)</strong>: these are the outputs of transactions that have not been spent yet. They represent the amount of Bitcoin that a user can spend.</li>
+<li><strong>Mempool</strong>: this is a collection of unconfirmed transactions that are waiting to be included in a block.</li>
+<li><strong>Network related data</strong>: since it is a P2P network, each node also needs to store information about its peers, such as their IP addresses and port numbers.</li>
 </ul>
 <h2>What is UTXOs?</h2>
 <p>A natural question is what is UTXOs? Why we need it? Unspent Transaction Outputs actually are another form of all transactions. UTXOs are a set of UTXO, each UTXO is contains:</p>
 <ul>
-<li>
-<p><strong>Value</strong>: the amount of Bitcoin that can be spent.</p>
-</li>
-<li>
-<p><strong>ScriptPubKey</strong>: a locking script that defines the conditions under which the UTXO can be spent.</p>
-</li>
+<li><strong>Value</strong>: the amount of Bitcoin that can be spent.</li>
+<li><strong>ScriptPubKey</strong>: a locking script that defines the conditions under which the UTXO can be spent.</li>
 </ul>
 <h2>What is Transaction?</h2>
 <p>A transaction is a data structure that represents the transfer of Bitcoin from one or more inputs to one or more outputs. Each transaction contains:</p>
 <ul>
-<li>
-<p><strong>Inputs</strong>: references to UTXOs that are being spent and unlocking scripts (<strong>ScriptSig</strong>) that satisfy the conditions defined in the corresponding ScriptPubKey.</p>
-</li>
-<li>
-<p><strong>Outputs</strong>: new UTXOs that are created as a result of the transaction.</p>
-</li>
+<li><strong>Inputs</strong>: references to UTXOs that are being spent and unlocking scripts (<strong>ScriptSig</strong>) that satisfy the conditions defined in the corresponding ScriptPubKey.</li>
+<li><strong>Outputs</strong>: new UTXOs that are created as a result of the transaction.</li>
 </ul>
 <blockquote>
 <p>Both concept of UTXOs and Transactions are anti intuitive, my first question is why not just use account balance like traditional banking system? The answer is that UTXO model has several advantages over account-based model.</p>
@@ -104,7 +104,7 @@ ScriptPubKey:
 </code></pre>
 <p>If user A wants to transfer 0.3 BTC to user B, user A need to specify one input and two outputs in the transaction, the input include a reference to the UTXO and a ScriptSig that can unlock the UTXO.</p>
 <pre><code class="language-yaml">Inputs:
-        - PreviousOutput: &lt;TxID_of_UTXO_of_user_A&gt;
+    - PreviousOutput: &lt;TxID_of_UTXO_of_user_A&gt;
       ScriptSig:
           &lt;Input_Signature_A&gt;
           &lt;Input_PubKey_A&gt;
@@ -156,14 +156,14 @@ ScriptPubKey:
 </div>
 <p>The outputs of the transaction will create two new UTXOs, one for user B with value 0.3 BTC, and another for user A with value 0.7 BTC (the change). Since the ownership of the UTXOs is defined by ScriptPubKey, the outputs should also manufacture the ScriptPubKey accordingly.</p>
 <pre><code class="language-yaml">Outputs:
-        - Value: 0.3 BTC
+    - Value: 0.3 BTC
         ScriptPubKey:
             OP_DUP 
             OP_HASH160 
             &lt;PubKeyHash_B&gt; 
             OP_EQUALVERIFY
             OP_CHECKSIG
-        - Value: 0.7 BTC
+    - Value: 0.7 BTC
         ScriptPubKey:
             OP_DUP 
             OP_HASH160 
@@ -179,9 +179,7 @@ ScriptPubKey:
 <p>If you want to send some BTC to someone, you need to create a transaction and broadcast it to the network. The transaction will be propagated to all nodes and be added to their mempool.</p>
 <p>Miners will select transactions from their mempool by <strong>using their own strategy</strong> (usually based on transaction fees). Each block can have multiple transactions, but the total size of the block must not exceed 4 MB (since SegWit upgrade).  A block contains the following fields:</p>
 <ul>
-<li>
-<p><strong>Block Header</strong>: contains metadata about the block, includes:</p>
-<ul>
+<li><strong>Block Header</strong>: contains metadata about the block, includes:<ul>
 <li><strong>Version</strong>: 4 bits, indicates the version of the block.</li>
 <li><strong>Previous Block Hash</strong>: 32 bytes, the hash of the previous block in the blockchain, that is why it is called blockchain.</li>
 <li><strong>Merkle Root</strong>: 32 bytes, the root hash of the Merkle tree of all transactions included in the block.</li>
@@ -190,9 +188,7 @@ ScriptPubKey:
 <li><strong>Nonce</strong>: 4 bytes, a counter used for the proof-of-work algorithm.</li>
 </ul>
 </li>
-<li>
-<p><strong>Block Body</strong>: contains a list of transactions included in the block.</p>
-<ul>
+<li><strong>Block Body</strong>: contains a list of transactions included in the block.<ul>
 <li><strong>Transaction Count</strong>: a variable-length integer indicating the number of transactions in the block.</li>
 <li><strong>Transactions</strong>: a list of transactions included in the block.<ul>
 <li><strong>Coinbase Transaction</strong>: a special transaction that rewards the miner for creating the block.</li>
@@ -201,9 +197,7 @@ ScriptPubKey:
 </li>
 </ul>
 </li>
-<li>
-<p><strong>SegWit Data</strong> (if applicable): contains witness data for SegWit transactions.</p>
-</li>
+<li><strong>SegWit Data</strong> (if applicable): contains witness data for SegWit transactions.</li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">NOTE</p>
@@ -229,19 +223,16 @@ Hash1 Hash2 Hash3 Hash4
 </code></pre>
 <p>As you can see, the old Merkle root is still part of the new Merkle tree, which means that all transactions in the previous block are still included in the new block. The structure of the Merkle tree allows for efficient verification of transaction inclusion, as only a small number of hashes need to be checked to verify that a transaction is included in the block.</p>
 <h3>What is Proof-of-Work?</h3>
-<p>The proof-of-work process involves finding a nonce such that the hash of the block header is less than the difficulty target. The formula is:</p>
-<pre><code>Sha256(Sha256(BlockHeader)) &lt; DifficultyTarget
-</code></pre>
-<p>The miner will increment the nonce and recalculate the hash until it finds a valid nonce. Once a valid nonce is found, the miner will broadcast the new block to the network. Other nodes will verify the block by checking the proof-of-work, validating all transactions in the block, and ensuring that the block follows the consensus rules. If the block is valid, it will be added to the blockchain, and the miner will receive the block reward (newly minted Bitcoin) and transaction fees from all transactions included in the block.</p>
+<p>The proof-of-work process involves finding a nonce such that the hash of the block header is less than the difficulty target. The formula is:
+$$
+\text{Sha256}(\text{Sha256}(\text{BlockHeader})) &lt; \text{DifficultyTarget}
+$$
+The miner will increment the nonce and recalculate the hash until it finds a valid nonce. Once a valid nonce is found, the miner will broadcast the new block to the network. Other nodes will verify the block by checking the proof-of-work, validating all transactions in the block, and ensuring that the block follows the consensus rules. If the block is valid, it will be added to the blockchain, and the miner will receive the block reward (newly minted Bitcoin) and transaction fees from all transactions included in the block.</p>
 <h3>What is the structure of Coinbase Transaction?</h3>
 <p>Coinbase transaction is a special type of transaction that is created by miners to claim the block reward and transaction fees for mining a new block. It is the first transaction in a block and has no inputs. It does not have UTXO inputs, or we can assume that its input are all rest of the transactions in the block. The structure of a coinbase transaction includes:</p>
 <ul>
-<li>
-<p><strong>Inputs</strong>: contains a single input with a special script called the coinbase script.</p>
-</li>
-<li>
-<p><strong>Outputs</strong>: contains one or more outputs that specify the amount of Bitcoin being rewarded to the miner and any transaction fees collected from other transactions in the block.</p>
-</li>
+<li><strong>Inputs</strong>: contains a single input with a special script called the coinbase script.</li>
+<li><strong>Outputs</strong>: contains one or more outputs that specify the amount of Bitcoin being rewarded to the miner and any transaction fees collected from other transactions in the block.</li>
 </ul>
 <p>The reward amount have two parts:</p>
 <ol>
@@ -308,28 +299,16 @@ This happens when you take the existing Bitcoin ledger but change the rules movi
 <h2>How to write the custom locking script?</h2>
 <p>Although the script itself allow very flexible logic, in practice, most transactions use a few standard script templates for security and compatibility reasons. The non-standard scripts may not be relayed or mined by all nodes, which can lead to transaction delays or failures. The most common standard script types are:</p>
 <ul>
-<li>
-<p><strong>Pay-to-PubKey-Hash (P2PKH)</strong>: the most common type, which we discussed earlier.</p>
-</li>
-<li>
-<p><strong>Pay-to-Script-Hash (P2SH)</strong>: allows for more complex scripts by hashing the script and using the hash in the ScriptPubKey.</p>
-</li>
-<li>
-<p><strong>Multi-Signature Scripts</strong>: require multiple signatures to spend the UTXO, often used in P2SH or P2WSH.</p>
-</li>
-<li>
-<p><strong>Null Data (OP_RETURN)</strong>: allows for storing arbitrary data in the blockchain, often used for non-financial purposes.</p>
-</li>
-<li>
-<p><strong>Witness （SegWit） Scripts</strong>: used in SegWit transactions to separate witness data from transaction data.</p>
-<ul>
+<li><strong>Pay-to-PubKey-Hash (P2PKH)</strong>: the most common type, which we discussed earlier.</li>
+<li><strong>Pay-to-Script-Hash (P2SH)</strong>: allows for more complex scripts by hashing the script and using the hash in the ScriptPubKey.</li>
+<li><strong>Multi-Signature Scripts</strong>: require multiple signatures to spend the UTXO, often used in P2SH or P2WSH.</li>
+<li><strong>Null Data (OP_RETURN)</strong>: allows for storing arbitrary data in the blockchain, often used for non-financial purposes.</li>
+<li><strong>Witness （SegWit） Scripts</strong>: used in SegWit transactions to separate witness data from transaction data.<ul>
 <li><strong>Pay-to-Witness-PubKey-Hash (P2WPKH)</strong>: used in SegWit transactions to separate witness data from transaction data.</li>
 <li><strong>Pay-to-Witness-Script-Hash (P2WSH)</strong>: similar to P2SH but used in SegWit transactions.</li>
 </ul>
 </li>
-<li>
-<p><strong>Pay-to-Taproot (P2TR)</strong>: used in Taproot transactions, which is an upgrade that enhances privacy and flexibility.</p>
-</li>
+<li><strong>Pay-to-Taproot (P2TR)</strong>: used in Taproot transactions, which is an upgrade that enhances privacy and flexibility.</li>
 </ul>
 <p>If you want to create a custom locking script, you can use P2SH to bypass, let me use a example to illustrate how it works.</p>
 <ol>
@@ -368,15 +347,9 @@ OP_EQUAL
 <h2>Bitcoin Upgrades</h2>
 <p>Currently, Bitcoin still have many shortcomings, the most notable one is scalability. The original design of Bitcoin can only handle about 7 transactions per second, which is far below the requirements of a global payment system. To address this issue, several upgrades have been proposed and implemented over the years, including:</p>
 <ul>
-<li>
-<p><strong>Segregated Witness (SegWit)</strong>: implemented in 2017, SegWit separates the witness data (signatures) from the transaction data, allowing for more transactions to fit in a block. It also fixes the transaction malleability issue, which is important for second-layer solutions like the Lightning Network.</p>
-</li>
-<li>
-<p><strong>Taproot</strong>: implemented in 2021, Taproot enhances privacy and flexibility by allowing complex scripts to appear as simple transactions on the blockchain. It also improves the efficiency of multi-signature transactions.</p>
-</li>
-<li>
-<p><strong>Lightning Network</strong>: a second-layer (L2) solution that enables fast and low-cost transactions by creating off-chain payment channels between users. It leverages the security of the Bitcoin blockchain while allowing for instant transactions.</p>
-</li>
+<li><strong>Segregated Witness (SegWit)</strong>: implemented in 2017, SegWit separates the witness data (signatures) from the transaction data, allowing for more transactions to fit in a block. It also fixes the transaction malleability issue, which is important for second-layer solutions like the Lightning Network.</li>
+<li><strong>Taproot</strong>: implemented in 2021, Taproot enhances privacy and flexibility by allowing complex scripts to appear as simple transactions on the blockchain. It also improves the efficiency of multi-signature transactions.</li>
+<li><strong>Lightning Network</strong>: a second-layer (L2) solution that enables fast and low-cost transactions by creating off-chain payment channels between users. It leverages the security of the Bitcoin blockchain while allowing for instant transactions.</li>
 </ul>
 <p>Before moving on, I want to discuss why upgrade is possible in a decentralized network? Because it seems we need majority of the nodes to agree on the upgrade, otherwise, it may cause a hard fork.</p>
 

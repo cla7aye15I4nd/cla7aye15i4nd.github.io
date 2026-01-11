@@ -57,6 +57,7 @@ class MarkdownParser:
         """Initialize markdown parser with extensions."""
         self.md = markdown.Markdown(extensions=[
             'pymdownx.superfences',      # Better code blocks
+            'pymdownx.arithmatex',        # Math formula support
             'pymdownx.magiclink',         # Auto-link URLs
             'pymdownx.betterem',          # Better emphasis handling
             'pymdownx.tasklist',          # Task lists
@@ -75,6 +76,9 @@ class MarkdownParser:
             },
             'pymdownx.superfences': {
                 'custom_fences': []
+            },
+            'pymdownx.arithmatex': {
+                'generic': True  # Use generic mode for MathJax
             }
         })
 
