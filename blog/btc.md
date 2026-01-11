@@ -1,3 +1,7 @@
+---
+date: 2026-01-10
+---
+
 # Understanding Bitcoin: A Top-Down Approach
 
 > [!WARNING] 
