@@ -511,3 +511,85 @@ h6 {
   display: inline-flex;
   justify-content: space-between;
 }
+
+/* GitHub-style admonitions/callouts */
+.admonition {
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border: 1px solid;
+  border-radius: 6px;
+  background-color: hsl(210, 28%, 93%);
+  border-color: hsl(210, 28%, 80%);
+}
+
+.admonition.note {
+  border-color: #0969da;
+  background-color: #ddf4ff;
+}
+
+.admonition.warning {
+  border-color: #d4a72c;
+  background-color: #fff8c5;
+}
+
+.admonition.important {
+  border-color: #8250df;
+  background-color: #fbf0ff;
+}
+
+.admonition.tip {
+  border-color: #1a7f37;
+  background-color: #dafbe1;
+}
+
+.admonition.caution,
+.admonition.danger {
+  border-color: #cf222e;
+  background-color: #ffebe9;
+}
+
+.admonition > .admonition-title {
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Add emoji/icon indicators */
+.admonition.note > .admonition-title::before {
+  content: "ℹ️ ";
+  margin-right: 0.5rem;
+}
+
+.admonition.warning > .admonition-title::before {
+  content: "⚠️ ";
+  margin-right: 0.5rem;
+}
+
+.admonition.important > .admonition-title::before {
+  content: "❗ ";
+  margin-right: 0.5rem;
+}
+
+.admonition.tip > .admonition-title::before {
+  content: "💡 ";
+  margin-right: 0.5rem;
+}
+
+.admonition.caution > .admonition-title::before,
+.admonition.danger > .admonition-title::before {
+  content: "🚫 ";
+  margin-right: 0.5rem;
+}
+
+.admonition p {
+  margin: 0.5rem 0;
+}
+
+.admonition p:first-of-type {
+  margin-top: 0;
+}
+
+.admonition p:last-child {
+  margin-bottom: 0;
+}

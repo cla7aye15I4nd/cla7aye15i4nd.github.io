@@ -1,5 +1,7 @@
 ---
 date: 2026-01-10
+tags: [bitcoin, blockchain, cryptocurrency, cryptography]
+description: A comprehensive exploration of Bitcoin fundamentals, transaction mechanics, and blockchain architecture from a top-down perspective.
 ---
 
 # Understanding Bitcoin: A Top-Down Approach

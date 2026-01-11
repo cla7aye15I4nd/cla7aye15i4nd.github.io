@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../static/style.css">
+  <title>Blog Archive - Zheng Yu</title>
+</head>
+
+<body id="top">
+  <header>
+    <h1>Blog Archive</h1>
+    <p class="info">
+      <a href="../index.html">← Back to Home</a>
+    </p>
+  </header>
+
+  <main>
+    <article>
+      <h2>All Posts</h2>
+      <ul>
+        {%- for article in articles %}
+        <li>
+          <p class="two-col">
+            <a href="{{ article.html_filename }}"><b>{{ article.title }}</b></a>
+            <small>{{ article.date }}</small>
+          </p>
+          {% if article.description %}
+          <p><small>{{ article.description }}</small></p>
+          {% endif %}
+        </li>
+        {%- endfor %}
+      </ul>
+
+      {% if articles_by_tag %}
+      <h2>Posts by Tag</h2>
+      {% for tag, tag_articles in articles_by_tag.items() %}
+      <h3 id="tag-{{ tag }}">{{ tag }}</h3>
+      <ul>
+        {%- for article in tag_articles %}
+        <li>
+          <p class="two-col">
+            <a href="{{ article.html_filename }}">{{ article.title }}</a>
+            <small>{{ article.date }}</small>
+          </p>
+        </li>
+        {%- endfor %}
+      </ul>
+      {% endfor %}
+      {% endif %}
+    </article>
+
+    <footer>
+      <hr />
+      <p style="text-align: center;">
+        <small>
+          Zheng Yu &copy; 1999 -
+          <script>document.write(new Date().getFullYear());</script>. All rights reserved.
+        </small>
+      </p>
+    </footer>
+  </main>
+</body>
+
+</html>
