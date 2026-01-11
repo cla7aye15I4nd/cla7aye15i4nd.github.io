@@ -68,21 +68,30 @@ class MarkdownParser:
             'sane_lists',                 # Better list handling
             'attr_list',                  # Attribute lists
             'def_list',                   # Definition lists
-            'admonition'                  # Admonitions (for callouts)
+            'admonition',                 # Admonitions (for callouts)
+            'toc'                         # Table of contents
         ], extension_configs={
             'pymdownx.highlight': {
                 'css_class': 'highlight',
-                'use_pygments': False  # Use CSS classes instead of inline styles
+                'use_pygments': True,  # Use Pygments for syntax highlighting
+                'pygments_style': 'github-dark',  # GitHub-style syntax colors
+                'linenums': False
             },
             'pymdownx.superfences': {
                 'custom_fences': []
             },
             'pymdownx.arithmatex': {
                 'generic': True  # Use generic mode for MathJax
+            },
+            'toc': {
+                'permalink': True,   # Add permalink anchors to headings
+                'toc_depth': 3,      # Include h1-h3 in TOC
+                'baselevel': 1,      # Start from h1 to preserve nesting
+                'title': ''          # No title in TOC (we add it in template)
             }
         })
 
-    def convert(self, content: str) -> str:
+    def convert(self, content: str) -> tuple[str, str]:
         """
         Convert markdown content to HTML.
 
@@ -90,13 +99,18 @@ class MarkdownParser:
             content: Markdown text
 
         Returns:
-            HTML string
+            Tuple of (HTML string, TOC HTML string)
         """
         # Reset parser state
         self.md.reset()
 
         # Convert to HTML
-        return self.md.convert(content)
+        html = self.md.convert(content)
+
+        # Get TOC from the extension
+        toc = self.md.toc if hasattr(self.md, 'toc') else ''
+
+        return html, toc
 
     def extract_title(self, markdown_content: str) -> str:
         """

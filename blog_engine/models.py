@@ -47,6 +47,7 @@ class Article:
     source_path: Path
     markdown_content: str
     html_content: str = ""
+    toc_html: str = ""
 
     @property
     def filename(self) -> str:

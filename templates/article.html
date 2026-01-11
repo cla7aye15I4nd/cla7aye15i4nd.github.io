@@ -41,15 +41,21 @@
 </head>
 
 <body id="top">
-  <header>
-    <p class="info">
-      <a href="../index.html">Home</a> /
-      <a href="index.html">Blog Archive</a>
-    </p>
-  </header>
+  <main class="article-container">
+    {% if toc %}
+    <aside class="toc-sidebar">
+      <nav class="toc">
+        <h3>Table of Contents</h3>
+        {{ toc | safe }}
+      </nav>
+    </aside>
+    {% endif %}
 
-  <main>
     <article>
+      <nav class="breadcrumb">
+        <a href="../index.html">Home</a> / <a href="index.html">Blog Archive</a>
+      </nav>
+
       <p class="author">
         <small>{{ date }}</small>
         {% if tags %}
@@ -65,17 +71,17 @@
       {{ content | safe }}
 
     </article>
-
-    <footer>
-      <hr />
-      <p style="text-align: center;">
-        <small>
-          Zheng Yu &copy; 1999 -
-          <script>document.write(new Date().getFullYear());</script>. All rights reserved.
-        </small>
-      </p>
-    </footer>
   </main>
+
+  <footer>
+    <hr />
+    <p style="text-align: center;">
+      <small>
+        Zheng Yu &copy; 1999 -
+        <script>document.write(new Date().getFullYear());</script>. All rights reserved.
+      </small>
+    </p>
+  </footer>
 </body>
 
 </html>

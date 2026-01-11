@@ -39,15 +39,41 @@
 </head>
 
 <body id="top">
-  <header>
-    <p class="info">
-      <a href="../index.html">Home</a> /
-      <a href="index.html">Blog Archive</a>
-    </p>
-  </header>
+  <main class="article-container">
+    
+    <aside class="toc-sidebar">
+      <nav class="toc">
+        <h3>Table of Contents</h3>
+        <div class="toc">
+<ul>
+<li><a href="#understanding-bitcoin-a-top-down-approach">Understanding Bitcoin: A Top-Down Approach</a><ul>
+<li><a href="#what-is-utxos">What is UTXOs?</a></li>
+<li><a href="#what-is-transaction">What is Transaction?</a></li>
+<li><a href="#where-is-the-account">Where is the Account?</a></li>
+<li><a href="#how-transactions-are-added-to-the-blockchain">How Transactions are Added to the Blockchain?</a><ul>
+<li><a href="#what-is-merkle-tree">What is Merkle Tree ?</a></li>
+<li><a href="#what-is-proof-of-work">What is Proof-of-Work?</a></li>
+<li><a href="#what-is-the-structure-of-coinbase-transaction">What is the structure of Coinbase Transaction?</a></li>
+</ul>
+</li>
+<li><a href="#rethinking-point-1">Rethinking Point 1</a></li>
+<li><a href="#who-decides-the-difficulty-target">Who decides the difficulty target?</a></li>
+<li><a href="#how-to-write-the-custom-locking-script">How to write the custom locking script?</a></li>
+<li><a href="#bitcoin-upgrades">Bitcoin Upgrades</a></li>
+</ul>
+</li>
+</ul>
+</div>
 
-  <main>
+      </nav>
+    </aside>
+    
+
     <article>
+      <nav class="breadcrumb">
+        <a href="../index.html">Home</a> / <a href="index.html">Blog Archive</a>
+      </nav>
+
       <p class="author">
         <small>2026-01-10</small>
         
@@ -60,11 +86,11 @@
         
       </p>
 
-      <h1>Understanding Bitcoin: A Top-Down Approach</h1>
+      <h1 id="understanding-bitcoin-a-top-down-approach">Understanding Bitcoin: A Top-Down Approach<a class="headerlink" href="#understanding-bitcoin-a-top-down-approach" title="Permanent link">&para;</a></h1>
 <div class="admonition warning">
 <p class="admonition-title">WARNING</p>
 <p>This article reflects my personal notes and may not resonate with everyone. In fact, I suspect most readers won't find it appealing—it's simply the way that feels most natural for me to understand Bitcoin, even though many of my friends have found my approach unconventional.
-However, it is also possible someone find it is very helpful, because if someone try to organize the knowledge in a way differ from their own thinking pattern, it may cause they add some defensive descrition to prevent reader to understand how they think. Hence, I also share the converstion history with Gemini AI [here]</p>
+However, it is also possible someone find it is very helpful, because if someone try to organize the knowledge in a way differ from their own thinking pattern, it may cause they add some defensive descrition to prevent reader to understand how they think. Hence, I also share the converstion history with Gemini AI <a href="https://gemini.google.com/share/52dfd8912f38">here</a>.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Abstract</p>
@@ -77,13 +103,13 @@ However, it is also possible someone find it is very helpful, because if someone
 <li><strong>Mempool</strong>: this is a collection of unconfirmed transactions that are waiting to be included in a block.</li>
 <li><strong>Network related data</strong>: since it is a P2P network, each node also needs to store information about its peers, such as their IP addresses and port numbers.</li>
 </ul>
-<h2>What is UTXOs?</h2>
+<h2 id="what-is-utxos">What is UTXOs?<a class="headerlink" href="#what-is-utxos" title="Permanent link">&para;</a></h2>
 <p>A natural question is what is UTXOs? Why we need it? Unspent Transaction Outputs actually are another form of all transactions. UTXOs are a set of UTXO, each UTXO is contains:</p>
 <ul>
 <li><strong>Value</strong>: the amount of Bitcoin that can be spent.</li>
 <li><strong>ScriptPubKey</strong>: a locking script that defines the conditions under which the UTXO can be spent.</li>
 </ul>
-<h2>What is Transaction?</h2>
+<h2 id="what-is-transaction">What is Transaction?<a class="headerlink" href="#what-is-transaction" title="Permanent link">&para;</a></h2>
 <p>A transaction is a data structure that represents the transfer of Bitcoin from one or more inputs to one or more outputs. Each transaction contains:</p>
 <ul>
 <li><strong>Inputs</strong>: references to UTXOs that are being spent and unlocking scripts (<strong>ScriptSig</strong>) that satisfy the conditions defined in the corresponding ScriptPubKey.</li>
@@ -172,9 +198,9 @@ ScriptPubKey:
             OP_CHECKSIG
 </code></pre>
 <p>In this example, we do not discuss mutiply inputs and mutiply outputs, but the concept is similar. The total value of inputs must be equal to or greater than the total value of outputs, if it is greater, the difference is considered as transaction fee and will be collected by miners (the way how miners collect transaction fee is also interesting, I will discuss it later). The sender need to provide unlocking scripts (ScriptSig) for each input to prove that they have the right to spend the UTXOs. The miner will verify the transaction by executing the concatenated ScriptSig and ScriptPubKey for each input. If all inputs are valid, the transaction is considered valid.</p>
-<h2>Where is the Account?</h2>
+<h2 id="where-is-the-account">Where is the Account?<a class="headerlink" href="#where-is-the-account" title="Permanent link">&para;</a></h2>
 <p>You many notice that in the above example, there is no concept of account or balance. This is because Bitcoin uses UTXO model instead of account-based model. The UTXO is like a locked check, you can only spend it if you have the right to unlock it. Imagine you want to create an new "account", you just do everything offline: generate a new private key, derive the public key, then hash the public key to get the PubKeyHash. The PubKeyHash is like your "acount number", but because the account balance is zero, so the blockchain do not need to store anything for you. When someone want to send you some BTC, they will create a transaction with an output that has a ScriptPubKey containing your PubKeyHash. </p>
-<h2>How Transactions are Added to the Blockchain?</h2>
+<h2 id="how-transactions-are-added-to-the-blockchain">How Transactions are Added to the Blockchain?<a class="headerlink" href="#how-transactions-are-added-to-the-blockchain" title="Permanent link">&para;</a></h2>
 <p>We just discussed how transactions work in principle, but how these transactions are added to the blockchain? This is where miners come in. Each miner is a node in the Bitcoin network, it maintains a mempool of unconfirmed transactions. </p>
 <p>If you want to send some BTC to someone, you need to create a transaction and broadcast it to the network. The transaction will be propagated to all nodes and be added to their mempool.</p>
 <p>Miners will select transactions from their mempool by <strong>using their own strategy</strong> (usually based on transaction fees). Each block can have multiple transactions, but the total size of the block must not exceed 4 MB (since SegWit upgrade).  A block contains the following fields:</p>
@@ -204,7 +230,7 @@ ScriptPubKey:
 <p>SegWit (Segregated Witness) is an upgrade to the Bitcoin protocol that separates the witness data (signatures) from the transaction data. It is also a very interesting concept, because it is hard to upgrade a running blockchain system in institution level. I will discuss it later.</p>
 </div>
 <p>When a miner want to create a new block, it will first select transactions from its mempool, then construct the block body. Next, it will create the block header, create the Merkle tree from the transactions to get the Merkle root, set the previous block hash to the hash of the latest block in the blockchain, set the timestamp to the current time, set the difficulty target based on the network difficulty, and start the proof-of-work process. </p>
-<h3>What is Merkle Tree ?</h3>
+<h3 id="what-is-merkle-tree">What is Merkle Tree ?<a class="headerlink" href="#what-is-merkle-tree" title="Permanent link">&para;</a></h3>
 <p>The merkle tree is a binary tree where each leaf node is the hash of a transaction, and each non-leaf node is the hash of the concatenation of its two child nodes. The Merkle root is the topmost node of the tree, it provides a compact representation of all transactions in the block and allows for efficient verification of transaction inclusion. For example, if we have four transactions: Tx1, Tx2, Tx3, and Tx4, the Merkle tree would be constructed as follows:</p>
 <pre><code>        Merkle Root
         /          \
@@ -222,13 +248,13 @@ Hash1  Hash2  Hash3   Hash4
 Hash1 Hash2 Hash3 Hash4
 </code></pre>
 <p>As you can see, the old Merkle root is still part of the new Merkle tree, which means that all transactions in the previous block are still included in the new block. The structure of the Merkle tree allows for efficient verification of transaction inclusion, as only a small number of hashes need to be checked to verify that a transaction is included in the block.</p>
-<h3>What is Proof-of-Work?</h3>
+<h3 id="what-is-proof-of-work">What is Proof-of-Work?<a class="headerlink" href="#what-is-proof-of-work" title="Permanent link">&para;</a></h3>
 <p>The proof-of-work process involves finding a nonce such that the hash of the block header is less than the difficulty target. The formula is:
 $$
 \text{Sha256}(\text{Sha256}(\text{BlockHeader})) &lt; \text{DifficultyTarget}
 $$
 The miner will increment the nonce and recalculate the hash until it finds a valid nonce. Once a valid nonce is found, the miner will broadcast the new block to the network. Other nodes will verify the block by checking the proof-of-work, validating all transactions in the block, and ensuring that the block follows the consensus rules. If the block is valid, it will be added to the blockchain, and the miner will receive the block reward (newly minted Bitcoin) and transaction fees from all transactions included in the block.</p>
-<h3>What is the structure of Coinbase Transaction?</h3>
+<h3 id="what-is-the-structure-of-coinbase-transaction">What is the structure of Coinbase Transaction?<a class="headerlink" href="#what-is-the-structure-of-coinbase-transaction" title="Permanent link">&para;</a></h3>
 <p>Coinbase transaction is a special type of transaction that is created by miners to claim the block reward and transaction fees for mining a new block. It is the first transaction in a block and has no inputs. It does not have UTXO inputs, or we can assume that its input are all rest of the transactions in the block. The structure of a coinbase transaction includes:</p>
 <ul>
 <li><strong>Inputs</strong>: contains a single input with a special script called the coinbase script.</li>
@@ -244,22 +270,22 @@ The miner will increment the nonce and recalculate the hash until it finds a val
 </li>
 </ol>
 <p>As you can see, the transaction fee is defined by the sender of the transaction, and miners have the incentive to include transactions with higher fees in their blocks to maximize their rewards.</p>
-<h2>Rethinking Point 1</h2>
+<h2 id="rethinking-point-1">Rethinking Point 1<a class="headerlink" href="#rethinking-point-1" title="Permanent link">&para;</a></h2>
 <p>At that point, I already know many basic concepts of Bitcoin, I also leave some contents for later discussion, like SegWit upgrade, how scripts can be used to create multi-signature wallets and time-lock transactions, etc. But before moving on, I want to rethink some questions to ensure I really understand these concepts.</p>
-<h4>Q: If Miner decides which transactions to include in the block, it is possible every miner have different mempool, and thus create different blocks? How the network reach consensus in this case?</h4>
+<h4 id="q-if-miner-decides-which-transactions-to-include-in-the-block-it-is-possible-every-miner-have-different-mempool-and-thus-create-different-blocks-how-the-network-reach-consensus-in-this-case">Q: If Miner decides which transactions to include in the block, it is possible every miner have different mempool, and thus create different blocks? How the network reach consensus in this case?<a class="headerlink" href="#q-if-miner-decides-which-transactions-to-include-in-the-block-it-is-possible-every-miner-have-different-mempool-and-thus-create-different-blocks-how-the-network-reach-consensus-in-this-case" title="Permanent link">&para;</a></h4>
 <blockquote>
 <p>A: Yes, it is possible that different miners have different mempools and thus create different blocks. However, the Bitcoin network uses a consensus mechanism called Nakamoto Consensus to ensure that all nodes agree on the state of the blockchain. When a miner creates a new block, it broadcasts the block to the network. Other nodes will verify the block and add it to their local copy of the blockchain if it is valid. If two miners create different blocks at the same time (a fork), nodes will temporarily have different versions of the blockchain. However, as more blocks are added to the chain, one branch will become longer than the other, and nodes will switch to the longest valid chain. This process ensures that all nodes eventually agree on a single version of the blockchain.</p>
 <p>On the other hand, find the valid nonce is a hard problem, every ten minutes on average only one miner can find the valid nonce, this make the forking event very rare. Hence, the network can almost always reach consensus. The answer can also used to exlpain how to prevent the evil miner to create invalid blocks, because the evil miner need to redo the proof-of-work for the invalid block, which is computationally expensive.</p>
 </blockquote>
-<h4>Q: What if over 50% of the mining power is controlled by evil miners? Can they create invalid blocks and double spend?</h4>
+<h4 id="q-what-if-over-50-of-the-mining-power-is-controlled-by-evil-miners-can-they-create-invalid-blocks-and-double-spend">Q: What if over 50% of the mining power is controlled by evil miners? Can they create invalid blocks and double spend?<a class="headerlink" href="#q-what-if-over-50-of-the-mining-power-is-controlled-by-evil-miners-can-they-create-invalid-blocks-and-double-spend" title="Permanent link">&para;</a></h4>
 <blockquote>
 <p>A: If over 50% of the mining power is controlled by evil miners, they can potentially create invalid blocks and double spend. This is known as a 51% attack. In such an attack, the evil miners can create a longer chain of blocks that includes their double-spent transactions. However, it may also make the price of Bitcoin drop significantly, which is not in the interest of the evil miners themselves. </p>
 <p>These attacker owns a large portion of the mining power, they also have a significant investment in the Bitcoin network. If they attack the network and cause the price of Bitcoin to drop, they may suffer significant financial losses. Therefore, while a 51% attack is theoretically possible, it is not necessarily in the best interest of the attackers to carry it out.</p>
 </blockquote>
-<h4>Q: If we create a isolated Bitcoin network, will it cause there are two different Bitcoin networks? How does it effect the price of Bitcoin?</h4>
+<h4 id="q-if-we-create-a-isolated-bitcoin-network-will-it-cause-there-are-two-different-bitcoin-networks-how-does-it-effect-the-price-of-bitcoin">Q: If we create a isolated Bitcoin network, will it cause there are two different Bitcoin networks? How does it effect the price of Bitcoin?<a class="headerlink" href="#q-if-we-create-a-isolated-bitcoin-network-will-it-cause-there-are-two-different-bitcoin-networks-how-does-it-effect-the-price-of-bitcoin" title="Permanent link">&para;</a></h4>
 <blockquote>
 <p>A: Yes, if we create an isolated Bitcoin network that is not connected to the main Bitcoin network, it will result in two separate Bitcoin networks. It is actually happened before, for example, Bitcoin Cash and Bitcoin SV are two separate networks that were created as a result of hard forks from the main Bitcoin network. Every user own 1 BTC in the main network will also own 1 BCH or 1 BSV in the new networks.</p>
-<h5>1. Two Ways to Create a Network</h5>
+<h5 id="1-two-ways-to-create-a-network">1. Two Ways to Create a Network<a class="headerlink" href="#1-two-ways-to-create-a-network" title="Permanent link">&para;</a></h5>
 <ul>
 <li><strong>Scenario A: The "Clone" (Independent Network)</strong>
 If you take the Bitcoin source code and start a brand-new chain from scratch (a new "Genesis Block"), you have created a new cryptocurrency (like Litecoin).</li>
@@ -272,7 +298,7 @@ This happens when you take the existing Bitcoin ledger but change the rules movi
 </li>
 <li><strong>The "Free Money" Effect:</strong> Because the history is shared, anyone who held <strong>1 BTC</strong> on the original chain at the moment of the split suddenly finds they also own <strong>1 BCH</strong> on the new chain.</li>
 </ul>
-<h5>2. The Impact on Price: "Code is Cheap, Consensus is Expensive"</h5>
+<h5 id="2-the-impact-on-price-code-is-cheap-consensus-is-expensive">2. The Impact on Price: "Code is Cheap, Consensus is Expensive"<a class="headerlink" href="#2-the-impact-on-price-code-is-cheap-consensus-is-expensive" title="Permanent link">&para;</a></h5>
 <p>While you can easily copy the <strong>code</strong>, you cannot easily copy the <strong>Social Consensus</strong>. This is why the price of the original Bitcoin usually remains dominant:</p>
 <ul>
 <li><strong>Network Effects:</strong> The value of Bitcoin comes from the millions of users, merchants, and developers using it. A new, isolated network starts with zero users, making its tokens worth very little.</li>
@@ -280,23 +306,23 @@ This happens when you take the existing Bitcoin ledger but change the rules movi
 <li><strong>Market Dilution:</strong> In 2017, many feared that forks would dilute the 21-million-cap. However, the market quickly realized that "Bitcoin" is a brand tied to the most secure chain. The price of forks usually trends downward relative to BTC over time.</li>
 </ul>
 </blockquote>
-<h4>The creator of a transaction need to indicate the input UTXOs, but how they provide the information of UTXOs to the miner? Do they need provide the ID of UTXOs? If so, how the miner can find the UTXOs from the ID?</h4>
+<h4 id="the-creator-of-a-transaction-need-to-indicate-the-input-utxos-but-how-they-provide-the-information-of-utxos-to-the-miner-do-they-need-provide-the-id-of-utxos-if-so-how-the-miner-can-find-the-utxos-from-the-id">The creator of a transaction need to indicate the input UTXOs, but how they provide the information of UTXOs to the miner? Do they need provide the ID of UTXOs? If so, how the miner can find the UTXOs from the ID?<a class="headerlink" href="#the-creator-of-a-transaction-need-to-indicate-the-input-utxos-but-how-they-provide-the-information-of-utxos-to-the-miner-do-they-need-provide-the-id-of-utxos-if-so-how-the-miner-can-find-the-utxos-from-the-id" title="Permanent link">&para;</a></h4>
 <blockquote>
 <p>A: Yes, the creator of a transaction needs to specify the input UTXOs by providing the transaction ID (TxID) and the output index of each UTXO being spent. The TxID is a unique identifier for each transaction, which is calculated by hashing the serialized transaction data. The output index indicates which output of the transaction is being spent (since a transaction can have multiple outputs).</p>
 <p>When a miner receives a transaction, it can look up the UTXOs in its local copy of the blockchain. Each node maintains a database of all UTXOs, which is updated whenever a new block is added to the blockchain. The miner can use the TxID and output index provided in the transaction to find the corresponding UTXO in its database. If the UTXO exists and is unspent, the miner can then verify the transaction by executing the unlocking script (ScriptSig) against the locking script (ScriptPubKey) of the UTXO.</p>
 </blockquote>
-<h4>How TxID stored in the Blockchain?</h4>
+<h4 id="how-txid-stored-in-the-blockchain">How TxID stored in the Blockchain?<a class="headerlink" href="#how-txid-stored-in-the-blockchain" title="Permanent link">&para;</a></h4>
 <blockquote>
 <p>The TxID is not explicitly stored in the blockchain; instead, it is derived from the transaction data itself. When a transaction is created, it is serialized into a byte format, and then a double SHA-256 hash of this serialized data is computed to produce the TxID. This means that the TxID is a unique fingerprint of the transaction.</p>
 </blockquote>
-<h4>What will happen if two different transactions have the same TxID?</h4>
+<h4 id="what-will-happen-if-two-different-transactions-have-the-same-txid">What will happen if two different transactions have the same TxID?<a class="headerlink" href="#what-will-happen-if-two-different-transactions-have-the-same-txid" title="Permanent link">&para;</a></h4>
 <blockquote>
 <p>In 2012, two coinbase transactions were found to have the same TxID due to a bug in the Bitcoin software. One miner receive same reward to same address twice. This event is known as a <a href="https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki">BIP-34</a>. The Bitcoin network fix it by requiring that the block height be included in the coinbase transaction, which ensures that each coinbase transaction has a unique TxID.</p>
 </blockquote>
-<h2>Who decides the difficulty target?</h2>
+<h2 id="who-decides-the-difficulty-target">Who decides the difficulty target?<a class="headerlink" href="#who-decides-the-difficulty-target" title="Permanent link">&para;</a></h2>
 <p>The difficulty target is adjusted every 2016 blocks (approximately every two weeks) to ensure that blocks are mined at an average rate of one block every 10 minutes. The adjustment is based on the time it took to mine the previous 2016 blocks. If the blocks were mined faster than the target time, the difficulty will increase; if they were mined slower, the difficulty will decrease. This mechanism ensures that the Bitcoin network maintains a consistent block time despite changes in the total mining power of the network.</p>
 <p>But who controls it in a decentralized network? The answer is that it is controlled by the consensus rules of the Bitcoin protocol. All nodes in the network follow the same rules for adjusting the difficulty target, and miners must adhere to these rules when creating new blocks. If a miner attempts to create a block with an invalid easier or harder difficulty target, other nodes will reject the block. This ensures that the difficulty target is consistently applied across the entire network.</p>
-<h2>How to write the custom locking script?</h2>
+<h2 id="how-to-write-the-custom-locking-script">How to write the custom locking script?<a class="headerlink" href="#how-to-write-the-custom-locking-script" title="Permanent link">&para;</a></h2>
 <p>Although the script itself allow very flexible logic, in practice, most transactions use a few standard script templates for security and compatibility reasons. The non-standard scripts may not be relayed or mined by all nodes, which can lead to transaction delays or failures. The most common standard script types are:</p>
 <ul>
 <li><strong>Pay-to-PubKey-Hash (P2PKH)</strong>: the most common type, which we discussed earlier.</li>
@@ -344,7 +370,7 @@ OP_EQUAL
 <ol start="5">
 <li>The miner will concatenate the ScriptSig and ScriptPubKey, then execute the script to verify the transaction.</li>
 </ol>
-<h2>Bitcoin Upgrades</h2>
+<h2 id="bitcoin-upgrades">Bitcoin Upgrades<a class="headerlink" href="#bitcoin-upgrades" title="Permanent link">&para;</a></h2>
 <p>Currently, Bitcoin still have many shortcomings, the most notable one is scalability. The original design of Bitcoin can only handle about 7 transactions per second, which is far below the requirements of a global payment system. To address this issue, several upgrades have been proposed and implemented over the years, including:</p>
 <ul>
 <li><strong>Segregated Witness (SegWit)</strong>: implemented in 2017, SegWit separates the witness data (signatures) from the transaction data, allowing for more transactions to fit in a block. It also fixes the transaction malleability issue, which is important for second-layer solutions like the Lightning Network.</li>
@@ -354,17 +380,17 @@ OP_EQUAL
 <p>Before moving on, I want to discuss why upgrade is possible in a decentralized network? Because it seems we need majority of the nodes to agree on the upgrade, otherwise, it may cause a hard fork.</p>
 
     </article>
-
-    <footer>
-      <hr />
-      <p style="text-align: center;">
-        <small>
-          Zheng Yu &copy; 1999 -
-          <script>document.write(new Date().getFullYear());</script>. All rights reserved.
-        </small>
-      </p>
-    </footer>
   </main>
+
+  <footer>
+    <hr />
+    <p style="text-align: center;">
+      <small>
+        Zheng Yu &copy; 1999 -
+        <script>document.write(new Date().getFullYear());</script>. All rights reserved.
+      </small>
+    </p>
+  </footer>
 </body>
 
 </html>

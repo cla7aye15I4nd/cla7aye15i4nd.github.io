@@ -118,14 +118,15 @@ class BlogBuilder:
         processed_markdown = preprocess_markdown(markdown_content)
 
         # Convert to HTML
-        html_content = self.markdown_parser.convert(processed_markdown)
+        html_content, toc_html = self.markdown_parser.convert(processed_markdown)
 
         # Create article object
         article = Article(
             metadata=metadata,
             source_path=md_file,
             markdown_content=markdown_content,
-            html_content=html_content
+            html_content=html_content,
+            toc_html=toc_html
         )
 
         return article

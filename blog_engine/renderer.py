@@ -39,7 +39,8 @@ class BlogRenderer:
             date=article.date,
             tags=article.tags,
             description=article.description,
-            content=article.html_content
+            content=article.html_content,
+            toc=article.toc_html
         )
 
     def render_archive(self, articles: List[Article]) -> str:

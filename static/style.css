@@ -628,3 +628,122 @@ h6 {
 .admonition p:last-child {
   margin-bottom: 0;
 }
+
+/* Table of Contents Sidebar */
+body:has(.article-container) {
+  max-width: 120ch;
+}
+
+.article-container {
+  display: flex;
+  gap: 2rem;
+  position: relative;
+  width: 100%;
+}
+
+.article-container > article {
+  flex: 1;
+  min-width: 0;
+  max-width: 88ch;
+  order: 1;
+}
+
+.toc-sidebar {
+  position: sticky;
+  top: 2rem;
+  align-self: flex-start;
+  width: 18rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  flex-shrink: 0;
+  order: 2;
+}
+
+.toc {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.toc h3 {
+  font-size: 0.875rem;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.toc ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.toc ul ul {
+  padding-left: 1rem;
+  margin-top: 0.25rem;
+}
+
+.toc li {
+  margin: 0.25rem 0;
+}
+
+.toc li::before {
+  content: none;
+  counter-increment: none;
+  padding-right: 0;
+}
+
+.toc a {
+  color: #a00;
+  text-decoration: none;
+  display: block;
+  padding: 0.125rem 0;
+  transition: color 0.2s;
+}
+
+.toc a:hover {
+  color: #a00;
+  text-decoration: underline;
+}
+
+/* Permalink icons */
+.headerlink {
+  color: hsl(0, 5%, 60%);
+  text-decoration: none;
+  margin-left: 0.5rem;
+  font-size: 0.8em;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+h1:hover .headerlink,
+h2:hover .headerlink,
+h3:hover .headerlink,
+h4:hover .headerlink {
+  opacity: 1;
+}
+
+/* Mobile responsive */
+@media (max-width: 1200px) {
+  .toc-sidebar {
+    display: none;
+  }
+
+  .article-container {
+    display: block;
+  }
+}
+
+/* Breadcrumb navigation */
+.breadcrumb {
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  color: hsl(0, 5%, 40%);
+}
+
+.breadcrumb a {
+  color: #a00;
+}
+
+.breadcrumb a:hover {
+  color: #a00;
+}

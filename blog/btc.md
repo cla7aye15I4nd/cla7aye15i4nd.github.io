@@ -8,7 +8,7 @@ tags: [blockchain]
 > [!WARNING] 
 > This article reflects my personal notes and may not resonate with everyone. In fact, I suspect most readers won't find it appealing—it's simply the way that feels most natural for me to understand Bitcoin, even though many of my friends have found my approach unconventional.
 >
-> However, it is also possible someone find it is very helpful, because if someone try to organize the knowledge in a way differ from their own thinking pattern, it may cause they add some defensive descrition to prevent reader to understand how they think. Hence, I also share the converstion history with Gemini AI [here]
+> However, it is also possible someone find it is very helpful, because if someone try to organize the knowledge in a way differ from their own thinking pattern, it may cause they add some defensive descrition to prevent reader to understand how they think. Hence, I also share the converstion history with Gemini AI [here](https://gemini.google.com/share/52dfd8912f38).
 
 > [!NOTE] Abstract
 > Bitcoin is an interesting thing. Even though today we have many fancy concepts for blockchain, like smart contracts, ZK, PoS, etc., Bitcoin doesn't apply any of these. It seems this is due to security considerations, which makes Bitcoin like digital gold: old but stable, it also make Bitcoin very suitable for learning the fundamental concepts of blockchain. I personally also tend to learn those things that exist in the real world, rather than some theoretical concepts that may never be implemented.
