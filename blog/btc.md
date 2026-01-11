@@ -178,17 +178,17 @@ As you can see, the transaction fee is defined by the sender of the transaction,
 
 At that point, I already know many basic concepts of Bitcoin, I also leave some contents for later discussion, like SegWit upgrade, how scripts can be used to create multi-signature wallets and time-lock transactions, etc. But before moving on, I want to rethink some questions to ensure I really understand these concepts.
 
-#### Q: If Miner decides which transactions to include in the block, it is possible every miner have different mempool, and thus create different blocks? How the network reach consensus in this case?
+#### Q1: If Miner decides which transactions to include in the block, it is possible every miner have different mempool, and thus create different blocks? How the network reach consensus in this case?
 > A: Yes, it is possible that different miners have different mempools and thus create different blocks. However, the Bitcoin network uses a consensus mechanism called Nakamoto Consensus to ensure that all nodes agree on the state of the blockchain. When a miner creates a new block, it broadcasts the block to the network. Other nodes will verify the block and add it to their local copy of the blockchain if it is valid. If two miners create different blocks at the same time (a fork), nodes will temporarily have different versions of the blockchain. However, as more blocks are added to the chain, one branch will become longer than the other, and nodes will switch to the longest valid chain. This process ensures that all nodes eventually agree on a single version of the blockchain.
 >
 > On the other hand, find the valid nonce is a hard problem, every ten minutes on average only one miner can find the valid nonce, this make the forking event very rare. Hence, the network can almost always reach consensus. The answer can also used to exlpain how to prevent the evil miner to create invalid blocks, because the evil miner need to redo the proof-of-work for the invalid block, which is computationally expensive.
 
-#### Q: What if over 50% of the mining power is controlled by evil miners? Can they create invalid blocks and double spend?
+#### Q2: What if over 50% of the mining power is controlled by evil miners? Can they create invalid blocks and double spend?
 > A: If over 50% of the mining power is controlled by evil miners, they can potentially create invalid blocks and double spend. This is known as a 51% attack. In such an attack, the evil miners can create a longer chain of blocks that includes their double-spent transactions. However, it may also make the price of Bitcoin drop significantly, which is not in the interest of the evil miners themselves. 
 >
 > These attacker owns a large portion of the mining power, they also have a significant investment in the Bitcoin network. If they attack the network and cause the price of Bitcoin to drop, they may suffer significant financial losses. Therefore, while a 51% attack is theoretically possible, it is not necessarily in the best interest of the attackers to carry it out.
 
-#### Q: If we create a isolated Bitcoin network, will it cause there are two different Bitcoin networks? How does it effect the price of Bitcoin?
+#### Q3: If we create a isolated Bitcoin network, will it cause there are two different Bitcoin networks? How does it effect the price of Bitcoin?
 > A: Yes, if we create an isolated Bitcoin network that is not connected to the main Bitcoin network, it will result in two separate Bitcoin networks. It is actually happened before, for example, Bitcoin Cash and Bitcoin SV are two separate networks that were created as a result of hard forks from the main Bitcoin network. Every user own 1 BTC in the main network will also own 1 BCH or 1 BSV in the new networks.
 
 > ##### 1. Two Ways to Create a Network
@@ -210,15 +210,15 @@ If you take the Bitcoin source code and start a brand-new chain from scratch (a 
 > * **Security (Hash Power):** Miners follow the profit. Since the original Bitcoin has the highest price, it attracts the most computing power, making it the most secure. An isolated network with low hash power is vulnerable to **51% attacks**.
 > * **Market Dilution:** In 2017, many feared that forks would dilute the 21-million-cap. However, the market quickly realized that "Bitcoin" is a brand tied to the most secure chain. The price of forks usually trends downward relative to BTC over time.
 
-#### The creator of a transaction need to indicate the input UTXOs, but how they provide the information of UTXOs to the miner? Do they need provide the ID of UTXOs? If so, how the miner can find the UTXOs from the ID?
+#### Q4. The creator of a transaction need to indicate the input UTXOs, but how they provide the information of UTXOs to the miner? Do they need provide the ID of UTXOs? If so, how the miner can find the UTXOs from the ID?
 > A: Yes, the creator of a transaction needs to specify the input UTXOs by providing the transaction ID (TxID) and the output index of each UTXO being spent. The TxID is a unique identifier for each transaction, which is calculated by hashing the serialized transaction data. The output index indicates which output of the transaction is being spent (since a transaction can have multiple outputs).
 >
 > When a miner receives a transaction, it can look up the UTXOs in its local copy of the blockchain. Each node maintains a database of all UTXOs, which is updated whenever a new block is added to the blockchain. The miner can use the TxID and output index provided in the transaction to find the corresponding UTXO in its database. If the UTXO exists and is unspent, the miner can then verify the transaction by executing the unlocking script (ScriptSig) against the locking script (ScriptPubKey) of the UTXO.
 
-#### How TxID stored in the Blockchain?
+#### Q5. How TxID stored in the Blockchain?
 > The TxID is not explicitly stored in the blockchain; instead, it is derived from the transaction data itself. When a transaction is created, it is serialized into a byte format, and then a double SHA-256 hash of this serialized data is computed to produce the TxID. This means that the TxID is a unique fingerprint of the transaction.
 
-#### What will happen if two different transactions have the same TxID?
+#### Q6. What will happen if two different transactions have the same TxID?
 > In 2012, two coinbase transactions were found to have the same TxID due to a bug in the Bitcoin software. One miner receive same reward to same address twice. This event is known as a [BIP-34](https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki). The Bitcoin network fix it by requiring that the block height be included in the coinbase transaction, which ensures that each coinbase transaction has a unique TxID.
 
 ## Who decides the difficulty target?

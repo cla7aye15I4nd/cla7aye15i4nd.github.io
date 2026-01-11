@@ -85,8 +85,8 @@ class MarkdownParser:
             },
             'toc': {
                 'permalink': True,   # Add permalink anchors to headings
-                'toc_depth': 3,      # Include h1-h3 in TOC
-                'baselevel': 1,      # Start from h1 to preserve nesting
+                'toc_depth': 5,      # Include h1-h4 in TOC
+                'baselevel': 2,      # Start from h2 to preserve nesting
                 'title': ''          # No title in TOC (we add it in template)
             }
         })
