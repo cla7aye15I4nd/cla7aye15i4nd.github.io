@@ -5,7 +5,7 @@ tags: [blockchain]
 
 # Understanding Bitcoin: A Top-Down Approach
 
-> [!WARNING] 
+> [!TIP] 
 > This article reflects my personal notes and may not resonate with everyone. In fact, I suspect most readers won't find it appealing—it's simply the way that feels most natural for me to understand Bitcoin, even though many of my friends have found my approach unconventional.
 >
 > However, it is also possible someone find it is very helpful, because if someone try to organize the knowledge in a way differ from their own thinking pattern, it may cause they add some defensive descrition to prevent reader to understand how they think. Hence, I also share the converstion history with Gemini AI [here](https://gemini.google.com/share/52dfd8912f38).
@@ -361,3 +361,67 @@ To resolve this multi-signature transaction privacy issue, Taproot introduces Sc
 >
 > I have another question when I leaned the Schnorr signature, which is why the privacy is so important? The answer is because Bitcoin is pseudonymous, meaning that while transactions are public, the identities of the users behind those transactions are not directly linked to their Bitcoin addresses. However, with enough analysis, it is possible to link addresses to real-world identities, especially when users reuse addresses or interact with centralized services like exchanges. Enhancing privacy helps protect users from such analysis and potential targeting.
 
+The another feature of Taproot is to allow complex scripts to be hidden unless they are needed. For example, if a UTXO can be spent by any one of conditions is met, these cnditions may be:
+- A single signature from Alice.
+- If Alice is unavailable for a certain period, then two signatures from Bob and Charlie.
+- If the transaction is not spent within a certain time frame, then a signature from Dave.
+
+Please note that all these conditions are represented as scripts, if we have 5 scripts, we can combine them into a Merkle tree, the Merkle tree can be represented as follows in any forms, here are some examples:
+```
+          Root                         Root          Root
+         /    \                       /    \        /    \
+     Hash12   Hash345          Hash1234    S5     S1    Hash2345
+      /  \     /  \             /  \                     /  \
+   S1    S2  S3   Hash45    Hash12  Hash34             S2   Hash345
+                  /   \      /  \    /  \                   /   \
+                S4     S5   S1  S2  S3  S4                 S3   Hash45
+                                                                 /   \
+                                                               S4     S5
+```
+Then we need to show what will happen if someone want to use condition S3 to spend the UTXO. The UTXO will only store a:
+$$
+P_{\text{tweaked}}=P_{\text{internal}}+H(P_{internal||Root})G
+$$
+it is a formula related to eclipse curve, to avoid to understand too many cryptographic concepts, we can care about how to use it. First, the UTXO only store `P_tweaked`, which is exactly same as a normal UTXO storing a public key. If some one want to spend the UTXO, there are two ways to do it.
+
+#### Key Path Spending
+Provide a signature of the transaction using the private key corresponding to `P_tweaked`. The signature may be a Schnorr signature of mutiple parties if `P_tweaked` is derived from multiple public keys.
+
+> [!NOTE]
+> You may confuse why the path even need to exist, our original plan is to use the UTXO when one of the scripts is satisfied, but now we can use the public key to spend it directly? It looks like we construct a backdoor to bypass all scripts. The answer is also privacy, such design we can make the UTXO exactly same as normal before we use it in Script Path Spending (will discuss later). However, if we hope to ban the Key Path Spending, we can provide a `P_internal` that no one know the corresponding private key, then the only way to spend the UTXO is through Script Path Spending.
+
+#### Script Path Spending
+Provide:
+- $P_{\text{internal}}$
+- The Merkle proof from the root to the script S3, which will be like follows if we use the first Merkle tree structure above:
+```
+        Root
+        /  \
+   Hash12  Hash345
+            /   \
+        S3    Hash45
+```
+As you can say, we only provide a subset of the Merkle tree, so that others even can not know the number of scripts in the Merkle tree. They can only infer that there are at least three scripts.
+
+> [!NOTE]
+> In practice, we can organize the tree in Huffman coding way to minimize the size of Merkle proof. For example, if S3 is used more frequently than S4 and S5, we can make S3 closer to the root.
+
+Now the miner need to verify the spending request, it will first compute:
+1. Compute $P_{\text{tweaked}}$ using the provided $P_{\text{internal}}$ and the Merkle root.
+2. Verify the signature using $P_{\text{tweaked}}$.
+3. Verify the provided script S3 by executing it with the transaction data.
+4. Verify the Merkle proof to ensure that S3 is indeed part of the Merkle tree represented by the root.
+
+## Rethinking Point 2
+
+##### Q: In the Script Path Spending of Taproot, we may find we can remove the $P_{\text{internal}}$ and only keep the Merkle root in the UTXO, but why the design still keep $P_{\text{internal}}$?
+> A: The reason to keep $P_{\text{internal}}$ is to allow for Key Path Spending, which provides an additional way to spend the UTXO. By including $P_{\text{internal}}$, the UTXO can be spent directly using a signature corresponding to $P_{\text{tweaked}}$, without needing to reveal any scripts or Merkle proofs. This enhances privacy, as the UTXO can appear identical to a standard single-signature transaction on the blockchain.
+>
+> To be honest, I am not very understand this part. I believe the main reason is I do not fully understand why such kind of privacy is important. I will try to learn more about it later. But it definitely make the design more elegant because it is compatible with the original UTXO design.
+
+## Summary
+
+In this article, I do not discuss the detail of:
+- Proof of why concensus can be reached in a decentralized network, I tend to understand them through intuitive way.
+- Details of Cryptographic algorithms, like ECDSA and Schnorr signature. Actually, I think most cryptographic algorithms follows the same "API" of RSA design, I do not need consider too much about the implementation of API. The API can have mutiply backends, but we also need to notice the difference of security level of different algorithms.
+- Details of L2 solutions, like Lightning Network. I think it is better to discuss them when we use Ethereum, because Ethereum have more flexible smart contract design.
