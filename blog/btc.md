@@ -414,7 +414,7 @@ Now the miner need to verify the spending request, it will first compute:
 
 ## Rethinking Point 2
 
-##### Q: In the Script Path Spending of Taproot, we may find we can remove the $P_{\text{internal}}$ and only keep the Merkle root in the UTXO, but why the design still keep $P_{\text{internal}}$?
+#### Q: In the Script Path Spending of Taproot, we may find we can remove the $P_{\text{internal}}$ and only keep the Merkle root in the UTXO, but why the design still keep $P_{\text{internal}}$?
 > A: The reason to keep $P_{\text{internal}}$ is to allow for Key Path Spending, which provides an additional way to spend the UTXO. By including $P_{\text{internal}}$, the UTXO can be spent directly using a signature corresponding to $P_{\text{tweaked}}$, without needing to reveal any scripts or Merkle proofs. This enhances privacy, as the UTXO can appear identical to a standard single-signature transaction on the blockchain.
 >
 > To be honest, I am not very understand this part. I believe the main reason is I do not fully understand why such kind of privacy is important. I will try to learn more about it later. But it definitely make the design more elegant because it is compatible with the original UTXO design.

@@ -79,7 +79,10 @@
 <li><a href="#script-path-spending">Script Path Spending</a></li>
 </ul>
 </li>
-<li><a href="#rethinking-point-2">Rethinking Point 2</a></li>
+<li><a href="#rethinking-point-2">Rethinking Point 2</a><ul>
+<li><a href="#q-in-the-script-path-spending-of-taproot-we-may-find-we-can-remove-the-p_textinternal-and-only-keep-the-merkle-root-in-the-utxo-but-why-the-design-still-keep-p_textinternal">Q: In the Script Path Spending of Taproot, we may find we can remove the \(P_{\text{internal}}\) and only keep the Merkle root in the UTXO, but why the design still keep \(P_{\text{internal}}\)?</a></li>
+</ul>
+</li>
 <li><a href="#summary">Summary</a></li>
 </ul>
 </li>
@@ -582,7 +585,7 @@ it is a formula related to eclipse curve, to avoid to understand too many crypto
 </li>
 </ol>
 <h3 id="rethinking-point-2">Rethinking Point 2<a class="headerlink" href="#rethinking-point-2" title="Permanent link">&para;</a></h3>
-<h6 id="q-in-the-script-path-spending-of-taproot-we-may-find-we-can-remove-the-p_textinternal-and-only-keep-the-merkle-root-in-the-utxo-but-why-the-design-still-keep-p_textinternal">Q: In the Script Path Spending of Taproot, we may find we can remove the <span class="arithmatex">\(P_{\text{internal}}\)</span> and only keep the Merkle root in the UTXO, but why the design still keep <span class="arithmatex">\(P_{\text{internal}}\)</span>?<a class="headerlink" href="#q-in-the-script-path-spending-of-taproot-we-may-find-we-can-remove-the-p_textinternal-and-only-keep-the-merkle-root-in-the-utxo-but-why-the-design-still-keep-p_textinternal" title="Permanent link">&para;</a></h6>
+<h5 id="q-in-the-script-path-spending-of-taproot-we-may-find-we-can-remove-the-p_textinternal-and-only-keep-the-merkle-root-in-the-utxo-but-why-the-design-still-keep-p_textinternal">Q: In the Script Path Spending of Taproot, we may find we can remove the <span class="arithmatex">\(P_{\text{internal}}\)</span> and only keep the Merkle root in the UTXO, but why the design still keep <span class="arithmatex">\(P_{\text{internal}}\)</span>?<a class="headerlink" href="#q-in-the-script-path-spending-of-taproot-we-may-find-we-can-remove-the-p_textinternal-and-only-keep-the-merkle-root-in-the-utxo-but-why-the-design-still-keep-p_textinternal" title="Permanent link">&para;</a></h5>
 <blockquote>
 <p>A: The reason to keep <span class="arithmatex">\(P_{\text{internal}}\)</span> is to allow for Key Path Spending, which provides an additional way to spend the UTXO. By including <span class="arithmatex">\(P_{\text{internal}}\)</span>, the UTXO can be spent directly using a signature corresponding to <span class="arithmatex">\(P_{\text{tweaked}}\)</span>, without needing to reveal any scripts or Merkle proofs. This enhances privacy, as the UTXO can appear identical to a standard single-signature transaction on the blockchain.</p>
 <p>To be honest, I am not very understand this part. I believe the main reason is I do not fully understand why such kind of privacy is important. I will try to learn more about it later. But it definitely make the design more elegant because it is compatible with the original UTXO design.</p>
