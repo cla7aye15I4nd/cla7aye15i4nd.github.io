@@ -68,10 +68,23 @@ p {
 /* Blockquote styling */
 blockquote {
   margin: 1rem 0;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem 0.5rem 3rem;
   border-left: 4px solid hsl(210, 28%, 75%);
   background-color: hsl(210, 28%, 93%);
   font-style: italic;
+  position: relative;
+}
+
+blockquote::before {
+  content: "\201C";
+  font-size: 3rem;
+  font-weight: bold;
+  color: hsl(210, 28%, 65%);
+  position: absolute;
+  left: 0.5rem;
+  top: -0.25rem;
+  line-height: 1;
+  font-style: normal;
 }
 
 blockquote p {
@@ -166,8 +179,13 @@ pre {
 pre code {
   font-size: 95%;
   position: relative;
-  background: none;
+  background: none !important;
   padding: 0;
+}
+
+/* Override Highlight.js backgrounds to prevent nested appearance */
+pre code.hljs {
+  background: none !important;
 }
 
 kbd {
@@ -584,37 +602,65 @@ h6 {
 }
 
 .admonition > .admonition-title {
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 0.5rem 0;
   display: flex;
   align-items: center;
+  font-size: 0.95rem;
 }
 
-/* Add emoji/icon indicators */
+/* Add colored titles matching GitHub style */
+.admonition.note > .admonition-title {
+  color: #0969da;
+}
+
+.admonition.warning > .admonition-title {
+  color: #9a6700;
+}
+
+.admonition.important > .admonition-title {
+  color: #8250df;
+}
+
+.admonition.tip > .admonition-title {
+  color: #1a7f37;
+}
+
+.admonition.caution > .admonition-title,
+.admonition.danger > .admonition-title {
+  color: #cf222e;
+}
+
+/* Add icon indicators with better styling */
 .admonition.note > .admonition-title::before {
-  content: "ℹ️ ";
+  content: "\1F4D8";
   margin-right: 0.5rem;
+  font-style: normal;
 }
 
 .admonition.warning > .admonition-title::before {
-  content: "⚠️ ";
+  content: "\26A0\FE0F";
   margin-right: 0.5rem;
+  font-style: normal;
 }
 
 .admonition.important > .admonition-title::before {
-  content: "❗ ";
+  content: "\1F4E2";
   margin-right: 0.5rem;
+  font-style: normal;
 }
 
 .admonition.tip > .admonition-title::before {
-  content: "💡 ";
+  content: "\1F4A1";
   margin-right: 0.5rem;
+  font-style: normal;
 }
 
 .admonition.caution > .admonition-title::before,
 .admonition.danger > .admonition-title::before {
-  content: "🚫 ";
+  content: "\1F6AB";
   margin-right: 0.5rem;
+  font-style: normal;
 }
 
 .admonition p {

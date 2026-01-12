@@ -36,6 +36,11 @@
     };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
 </head>
 
 <body id="top">
@@ -68,6 +73,8 @@
 <li><a href="#who-decides-the-difficulty-target">Who decides the difficulty target?</a></li>
 <li><a href="#how-to-write-the-custom-locking-script">How to write the custom locking script?</a></li>
 <li><a href="#bitcoin-upgrades">Bitcoin Upgrades</a></li>
+<li><a href="#segwit-upgrade">SegWit Upgrade</a></li>
+<li><a href="#taproot-upgrade">Taproot Upgrade</a></li>
 </ul>
 </li>
 </ul>
@@ -128,7 +135,7 @@ However, it is also possible someone find it is very helpful, because if someone
 </blockquote>
 <p>Each UTXO can be assumed as a coin, the coin have a locking script (ScriptPubKey), to spend the coin, you need to provide an unlocking script (ScriptSig) that satisfies the locking script. The script system is stack-based language, it is not Turing complete for security considerations (e.g., to prevent infinite loops). If you want to express the coin that have value 1 BTC belong to user A, and now you want to transfer 0.3 BTC to user B.</p>
 <p>The UTXO of user A can be represented as:</p>
-<pre><code class="language-yaml">Value: 1 BTC,
+<pre><code>Value: 1 BTC,
 ScriptPubKey: 
     OP_DUP 
     OP_HASH160 
@@ -144,7 +151,7 @@ ScriptPubKey:
           &lt;Input_PubKey_A&gt;
 </code></pre>
 <p>The ScriptSig is used to show that user A has the right to spend the UTXO, the verification process is to concatenate the ScriptSig and ScriptPubKey, then execute the script. If the result is true, the UTXO can be spent. In this case, if we concatenate the ScriptSig and ScriptPubKey, we get:</p>
-<pre><code class="language-basic">    &lt;Input_Signature_A&gt;
+<pre><code>    &lt;Input_Signature_A&gt;
     &lt;Input_PubKey_A&gt;
     OP_DUP 
     OP_HASH160 
@@ -348,7 +355,7 @@ This happens when you take the existing Bitcoin ledger but change the rules movi
 <ol>
 <li>First, you need to write your custom script, for example, a multi-signature script that requires two out of three signatures to spend the UTXO.</li>
 </ol>
-<pre><code class="language-yaml">OP_2
+<pre><code>OP_2
 &lt;PubKey1&gt;
 &lt;PubKey2&gt;
 &lt;PubKey3&gt;
@@ -363,14 +370,14 @@ OP_CHECKMULTISIG
 <p>Then, you create a P2SH ScriptPubKey using the script hash.</p>
 </li>
 </ol>
-<pre><code class="language-yaml">OP_HASH160
+<pre><code>OP_HASH160
 &lt;ScriptHash&gt;
 OP_EQUAL
 </code></pre>
 <ol start="4">
 <li>When you want to spend the UTXO, you need to provide the original script and the required signatures in the ScriptSig.</li>
 </ol>
-<pre><code class="language-yaml">&lt;Empty&gt;  # Due to a bug in OP_CHECKMULTISIG, an extra item is needed
+<pre><code>&lt;Empty&gt;  # Due to a bug in OP_CHECKMULTISIG, an extra item is needed
 &lt;Signature1&gt;
 &lt;Signature2&gt;
 &lt;OriginalScript&gt;
@@ -386,6 +393,128 @@ OP_EQUAL
 <li><strong>Lightning Network</strong>: a second-layer (L2) solution that enables fast and low-cost transactions by creating off-chain payment channels between users. It leverages the security of the Bitcoin blockchain while allowing for instant transactions.</li>
 </ul>
 <p>Before moving on, I want to discuss why upgrade is possible in a decentralized network? Because it seems we need majority of the nodes to agree on the upgrade, otherwise, it may cause a hard fork.</p>
+<p>Briefly, the upgraude happens through social and technical consensus, which meams everyone believe the upgrade is beneficial to the network. The upgrade process usually involves several steps:</p>
+<ol>
+<li>
+<p><strong>Proposal</strong>: a Bitcoin Improvement Proposal (BIP) is created to outline the details of the upgrade.</p>
+</li>
+<li>
+<p><strong>Discussion</strong>: the proposal is discussed within the Bitcoin community, including developers, miners, and users.</p>
+</li>
+<li>
+<p><strong>Implementation</strong>: the upgrade is implemented in the Bitcoin software.</p>
+</li>
+<li>
+<p><strong>Activation</strong>: the upgrade is activated through a signaling mechanism, where miners signal their support for the upgrade by including a specific bit in the block header. Once a certain threshold of blocks signal support, the upgrade is activated.</p>
+</li>
+</ol>
+<p>To better understand the consensus mechanism, we can revise a famous battle which is "Block Size War". In 2017, there was a debate within the Bitcoin community about whether to increase the block size limit to improve scalability. Some members of the community believed that increasing the block size would allow for more transactions to be processed per block, while others argued that it would lead to centralization and security risks. To resolve this debate, a proposal called Segregated Witness (SegWit) was introduced, which not only increased the effective block size but also addressed transaction malleability issues. </p>
+<p>But big blockers were not satisfied with SegWit alone, they wanted a direct increase in the block size limit. This led to the creation of Bitcoin Cash (BCH) in August 2017, which implemented a larger block size limit of 8 MB. The split resulted in two separate cryptocurrencies: Bitcoin (BTC) and Bitcoin Cash (BCH). Some miners are also do not want to accept SegWit upgrade, then the User-Activated Soft Fork (UASF) mechanism was proposed, which allowed users to signal their support for the upgrade by running software that enforced the new rules. This put pressure on miners to adopt the upgrade, as they risked losing support from users if they did not comply. Eventually, the majority of miners adopted SegWit, and it was activated on the Bitcoin network in August 2017. This event proofs that</p>
+<blockquote>
+<p>Users, not miners, ultimately control the Bitcoin network.</p>
+</blockquote>
+<h3 id="segwit-upgrade">SegWit Upgrade<a class="headerlink" href="#segwit-upgrade" title="Permanent link">&para;</a></h3>
+<p>The SegWit upgrade is a significant improvement to the Bitcoin protocol. First, it resolves a critical vulnerability known as Quadratic Sighash Problem. Recall the Locking Script and Unlocking Script we discussed earlier, the last step is to verify the signature by using <code>OP_CHECKSIG</code> opcode. If we check the algiorithm of signature verification or generation, we will find its complexity is <span class="arithmatex">\(O(n^2)\)</span>, where is the number of inputs. If an attacker create a transaction with many inputs, it will cause the signature verification to take a long time, which can be exploited to launch a denial-of-service (DoS) attack on the network. </p>
+<p>The original algorithm of signature generation and verification is as follows: A transaction have <span class="arithmatex">\(n\)</span> inputs, each input contains a ScriptSig and a reference to a UTXO, which means we need to geneate <span class="arithmatex">\(n\)</span> signatures for each input, each signature generation process be like:</p>
+<ol>
+<li>
+<p>Create a copy of the transaction.</p>
+</li>
+<li>
+<p>For each input in the transaction copy, set the ScriptSig to an empty script (or a placeholder), except for the input being signed, which retains its original ScriptSig.</p>
+</li>
+<li>
+<p>Serialize the modified transaction copy.</p>
+</li>
+<li>
+<p>Hash the serialized transaction using SHA-256 twice to produce a message digest.</p>
+</li>
+<li>
+<p>Use the private key corresponding to the public key in the ScriptSig to sign the message digest, producing the signature.</p>
+</li>
+<li>
+<p>Insert the generated signature into the ScriptSig of the input being signed.</p>
+</li>
+</ol>
+<p>The pseudocode for the above algorithm is as follows:</p>
+<pre><code class="language-cpp">for (auto &amp;input : transaction.inputs) {
+    Transaction txCopy = transaction;
+    for (auto&amp; in : txCopy.inputs) {
+        in.scriptSig = (in == input) ? in.scriptSig : EmptyScript;
+    }
+    uint8_t[] serializedTx = Serialize(txCopy);
+    uint8_t[] messageDigest = SHA256(SHA256(serializedTx));
+    uint8_t[] signature = Sign(messageDigest, input.privateKey);
+    input.scriptSig.insert(signature);
+}
+</code></pre>
+<p>As we can see, for each input, we need to serialize and hash the entire transaction, and format of transaction for each input is different, which means the total complexity is <span class="arithmatex">\(O(n^2)\)</span>. To solve this problem, SegWit introduces a new way to calculate the signature hash (sighash) that separates the witness data (signatures) from the transaction data. The new algorithm is as follows:</p>
+<ol>
+<li>
+<p>Create a copy of the transaction.</p>
+</li>
+<li>
+<p>For each input in the transaction copy, set the ScriptSig to an empty script (or a placeholder). (<strong>different from the original algorithm</strong>)</p>
+</li>
+<li>
+<p>Serialize the modified transaction copy without the witness data.</p>
+</li>
+<li>
+<p>Hash the serialized transaction using SHA-256 twice to produce a message digest.</p>
+</li>
+<li>
+<p>Use the private key corresponding to the public key in the ScriptSig to sign the message digest, producing the signature.</p>
+</li>
+<li>
+<p>Insert the generated signature into the witness data of the input being signed. (<strong>different from the original algorithm</strong>)</p>
+</li>
+</ol>
+<p>The pseudocode for the new algorithm is as follows:</p>
+<pre><code class="language-cpp">Transaction txCopy = transaction;
+for (auto&amp; in : txCopy.inputs) {
+    in.scriptSig = EmptyScript; // Set all ScriptSigs to empty
+}
+uint8_t[] serializedTx = SerializeWithoutWitness(txCopy);
+uint8_t[] messageDigest = SHA256(SHA256(serializedTx));
+for (auto &amp;input : transaction.inputs) {
+    uint8_t[] signature = Sign(messageDigest, input.privateKey);
+    transaction.witnessData.insert(signature);
+}
+</code></pre>
+<p>By separating the witness data from the transaction data, SegWit allows for more efficient signature generation and verification, reducing the complexity to <span class="arithmatex">\(O(n)\)</span>. </p>
+<p><strong>You may want to ask why we need to separate the witness data from the transaction data but not insert them into placeholder in ScriptSig?</strong> The answer is because of <em>Transaction Malleability Attack</em> and <em>lightning network</em> (L2 solutions).</p>
+<p>The speed of transaction of bitcoin is very slow because we generate a new block every 10 minutes, to improve the speed, someone propose the concept of L2 solutions, which means we can create a second layer on top of the Bitcoin blockchain to handle transactions off-chain, while still leveraging the security of the underlying blockchain. The most notable L2 solution is the Lightning Network. </p>
+<p>However, <em>Transaction Malleability Attack</em> is a critical issue that needs to be addressed before implementing L2 solutions. Transaction malleability refers to the ability to modify a transaction's ID (TxID) without changing its content. This can cause problems for L2 solutions, for example, considering following scenario of Exchange like Binance:</p>
+<ol>
+<li>
+<p>User A wants to deposit 1 BTC to Binance.</p>
+</li>
+<li>
+<p>Binance provides User A with a deposit address and waits for the transaction to be confirmed on the Bitcoin blockchain.</p>
+</li>
+<li>
+<p>User A creates a transaction to send 1 BTC to the deposit address.</p>
+</li>
+<li>
+<p>An attacker intercepts the transaction and modifies it in a way that changes its TxID.</p>
+</li>
+<li>
+<p>The modified transaction is confirmed on the Bitcoin blockchain, but Binance is still waiting for the original transaction with the original TxID.</p>
+</li>
+<li>
+<p>User A's deposit is not recognized by Binance, leading to confusion and potential loss of funds.</p>
+</li>
+</ol>
+<p>You may want to ask why Binance do not ask the user to provide the confirmed transaction details? The answer is Binance can do it but it means the user need to wait much longer time which will cause the meaning of using L2 solution is lost. The another question is how the attacker can modify the transaction id without changing its content? I will discuss it in another article because most of them content is related to the cryptographic algorithm.</p>
+<p>After fixing the two issues, blockchain can support L2 solutions like Lightning Network in principle. I will discuss its principle later.</p>
+<h3 id="taproot-upgrade">Taproot Upgrade<a class="headerlink" href="#taproot-upgrade" title="Permanent link">&para;</a></h3>
+<p>The main purpose of Taproot upgrade is to enhance privacy and flexibility of Bitcoin transactions. Originally, complex transactions, such as multi-signature transactions or those with time-lock conditions, were easily identifiable on the blockchain. For example, a multi-signature transaction would reveal the public keys involved and the number of required signatures. This transparency could potentially expose user behavior and transaction patterns.</p>
+<p>To resolve this multi-signature transaction privacy issue, Taproot introduces Schnorr signatures (<a href="https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki">BIP 340</a>), which allow multiple signatures to be aggregated into a single signature. This means that a multi-signature transaction can appear identical to a standard single-signature transaction on the blockchain, enhancing privacy. </p>
+<div class="admonition note">
+<p class="admonition-title">NOTE</p>
+<p>Of course, the signature algorithm is determined by the ScriptPubKey, so we need to create a new ScriptPubKey to support Schnorr signatures. The new ScriptPubKey is called Pay-to-Taproot (P2TR), which uses a new opcode <code>OP_CHECKSIGADD</code> (<a href="https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki">BIP 342</a>) to verify Schnorr signatures.
+I have another question when I leaned the Schnorr signature, which is why the privacy is so important? The answer is because Bitcoin is pseudonymous, meaning that while transactions are public, the identities of the users behind those transactions are not directly linked to their Bitcoin addresses. However, with enough analysis, it is possible to link addresses to real-world identities, especially when users reuse addresses or interact with centralized services like exchanges. Enhancing privacy helps protect users from such analysis and potential targeting.</p>
+</div>
 
     </article>
   </main>

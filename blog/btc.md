@@ -36,7 +36,7 @@ A transaction is a data structure that represents the transfer of Bitcoin from o
 Each UTXO can be assumed as a coin, the coin have a locking script (ScriptPubKey), to spend the coin, you need to provide an unlocking script (ScriptSig) that satisfies the locking script. The script system is stack-based language, it is not Turing complete for security considerations (e.g., to prevent infinite loops). If you want to express the coin that have value 1 BTC belong to user A, and now you want to transfer 0.3 BTC to user B.
 
 The UTXO of user A can be represented as:
-```yaml
+```
 Value: 1 BTC,
 ScriptPubKey: 
     OP_DUP 
@@ -55,7 +55,7 @@ Inputs:
           <Input_PubKey_A>
 ```
 The ScriptSig is used to show that user A has the right to spend the UTXO, the verification process is to concatenate the ScriptSig and ScriptPubKey, then execute the script. If the result is true, the UTXO can be spent. In this case, if we concatenate the ScriptSig and ScriptPubKey, we get:
-```basic
+```
     <Input_Signature_A>
     <Input_PubKey_A>
     OP_DUP 
@@ -241,7 +241,7 @@ Although the script itself allow very flexible logic, in practice, most transact
 
 If you want to create a custom locking script, you can use P2SH to bypass, let me use a example to illustrate how it works.
 1. First, you need to write your custom script, for example, a multi-signature script that requires two out of three signatures to spend the UTXO.
-```yaml
+```
 OP_2
 <PubKey1>
 <PubKey2>
@@ -251,13 +251,13 @@ OP_CHECKMULTISIG
 ```
 2. Next, you need to hash the script using SHA-256 followed by RIPEMD-160 to get the script hash.
 3. Then, you create a P2SH ScriptPubKey using the script hash.
-```yaml
+```
 OP_HASH160
 <ScriptHash>
 OP_EQUAL
 ```
 4. When you want to spend the UTXO, you need to provide the original script and the required signatures in the ScriptSig.
-```yaml
+```
 <Empty>  # Due to a bug in OP_CHECKMULTISIG, an extra item is needed
 <Signature1>
 <Signature2>
@@ -273,3 +273,91 @@ Currently, Bitcoin still have many shortcomings, the most notable one is scalabi
 - **Lightning Network**: a second-layer (L2) solution that enables fast and low-cost transactions by creating off-chain payment channels between users. It leverages the security of the Bitcoin blockchain while allowing for instant transactions.
 
 Before moving on, I want to discuss why upgrade is possible in a decentralized network? Because it seems we need majority of the nodes to agree on the upgrade, otherwise, it may cause a hard fork.
+
+Briefly, the upgraude happens through social and technical consensus, which meams everyone believe the upgrade is beneficial to the network. The upgrade process usually involves several steps:
+1. **Proposal**: a Bitcoin Improvement Proposal (BIP) is created to outline the details of the upgrade.
+2. **Discussion**: the proposal is discussed within the Bitcoin community, including developers, miners, and users.
+3. **Implementation**: the upgrade is implemented in the Bitcoin software.
+4. **Activation**: the upgrade is activated through a signaling mechanism, where miners signal their support for the upgrade by including a specific bit in the block header. Once a certain threshold of blocks signal support, the upgrade is activated.
+
+To better understand the consensus mechanism, we can revise a famous battle which is "Block Size War". In 2017, there was a debate within the Bitcoin community about whether to increase the block size limit to improve scalability. Some members of the community believed that increasing the block size would allow for more transactions to be processed per block, while others argued that it would lead to centralization and security risks. To resolve this debate, a proposal called Segregated Witness (SegWit) was introduced, which not only increased the effective block size but also addressed transaction malleability issues. 
+
+But big blockers were not satisfied with SegWit alone, they wanted a direct increase in the block size limit. This led to the creation of Bitcoin Cash (BCH) in August 2017, which implemented a larger block size limit of 8 MB. The split resulted in two separate cryptocurrencies: Bitcoin (BTC) and Bitcoin Cash (BCH). Some miners are also do not want to accept SegWit upgrade, then the User-Activated Soft Fork (UASF) mechanism was proposed, which allowed users to signal their support for the upgrade by running software that enforced the new rules. This put pressure on miners to adopt the upgrade, as they risked losing support from users if they did not comply. Eventually, the majority of miners adopted SegWit, and it was activated on the Bitcoin network in August 2017. This event proofs that
+> Users, not miners, ultimately control the Bitcoin network.
+
+## SegWit Upgrade
+
+The SegWit upgrade is a significant improvement to the Bitcoin protocol. First, it resolves a critical vulnerability known as Quadratic Sighash Problem. Recall the Locking Script and Unlocking Script we discussed earlier, the last step is to verify the signature by using `OP_CHECKSIG` opcode. If we check the algiorithm of signature verification or generation, we will find its complexity is $O(n^2)$, where is the number of inputs. If an attacker create a transaction with many inputs, it will cause the signature verification to take a long time, which can be exploited to launch a denial-of-service (DoS) attack on the network. 
+
+The original algorithm of signature generation and verification is as follows: A transaction have $n$ inputs, each input contains a ScriptSig and a reference to a UTXO, which means we need to geneate $n$ signatures for each input, each signature generation process be like:
+1. Create a copy of the transaction.
+2. For each input in the transaction copy, set the ScriptSig to an empty script (or a placeholder), except for the input being signed, which retains its original ScriptSig.
+3. Serialize the modified transaction copy.
+4. Hash the serialized transaction using SHA-256 twice to produce a message digest.
+5. Use the private key corresponding to the public key in the ScriptSig to sign the message digest, producing the signature.
+6. Insert the generated signature into the ScriptSig of the input being signed.
+
+The pseudocode for the above algorithm is as follows:
+```cpp
+for (auto &input : transaction.inputs) {
+    Transaction txCopy = transaction;
+    for (auto& in : txCopy.inputs) {
+        in.scriptSig = (in == input) ? in.scriptSig : EmptyScript;
+    }
+    uint8_t[] serializedTx = Serialize(txCopy);
+    uint8_t[] messageDigest = SHA256(SHA256(serializedTx));
+    uint8_t[] signature = Sign(messageDigest, input.privateKey);
+    input.scriptSig.insert(signature);
+}
+```
+
+As we can see, for each input, we need to serialize and hash the entire transaction, and format of transaction for each input is different, which means the total complexity is $O(n^2)$. To solve this problem, SegWit introduces a new way to calculate the signature hash (sighash) that separates the witness data (signatures) from the transaction data. The new algorithm is as follows:
+1. Create a copy of the transaction.
+2. For each input in the transaction copy, set the ScriptSig to an empty script (or a placeholder). (**different from the original algorithm**)
+3. Serialize the modified transaction copy without the witness data.
+4. Hash the serialized transaction using SHA-256 twice to produce a message digest.
+5. Use the private key corresponding to the public key in the ScriptSig to sign the message digest, producing the signature.
+6. Insert the generated signature into the witness data of the input being signed. (**different from the original algorithm**)
+
+The pseudocode for the new algorithm is as follows:
+```cpp
+Transaction txCopy = transaction;
+for (auto& in : txCopy.inputs) {
+    in.scriptSig = EmptyScript; // Set all ScriptSigs to empty
+}
+uint8_t[] serializedTx = SerializeWithoutWitness(txCopy);
+uint8_t[] messageDigest = SHA256(SHA256(serializedTx));
+for (auto &input : transaction.inputs) {
+    uint8_t[] signature = Sign(messageDigest, input.privateKey);
+    transaction.witnessData.insert(signature);
+}
+```
+
+By separating the witness data from the transaction data, SegWit allows for more efficient signature generation and verification, reducing the complexity to $O(n)$. 
+
+**You may want to ask why we need to separate the witness data from the transaction data but not insert them into placeholder in ScriptSig?** The answer is because of *Transaction Malleability Attack* and *lightning network* (L2 solutions).
+
+The speed of transaction of bitcoin is very slow because we generate a new block every 10 minutes, to improve the speed, someone propose the concept of L2 solutions, which means we can create a second layer on top of the Bitcoin blockchain to handle transactions off-chain, while still leveraging the security of the underlying blockchain. The most notable L2 solution is the Lightning Network. 
+
+However, *Transaction Malleability Attack* is a critical issue that needs to be addressed before implementing L2 solutions. Transaction malleability refers to the ability to modify a transaction's ID (TxID) without changing its content. This can cause problems for L2 solutions, for example, considering following scenario of Exchange like Binance:
+1. User A wants to deposit 1 BTC to Binance.
+2. Binance provides User A with a deposit address and waits for the transaction to be confirmed on the Bitcoin blockchain.
+3. User A creates a transaction to send 1 BTC to the deposit address.
+4. An attacker intercepts the transaction and modifies it in a way that changes its TxID.
+5. The modified transaction is confirmed on the Bitcoin blockchain, but Binance is still waiting for the original transaction with the original TxID.
+6. User A's deposit is not recognized by Binance, leading to confusion and potential loss of funds.
+
+You may want to ask why Binance do not ask the user to provide the confirmed transaction details? The answer is Binance can do it but it means the user need to wait much longer time which will cause the meaning of using L2 solution is lost. The another question is how the attacker can modify the transaction id without changing its content? I will discuss it in another article because most of them content is related to the cryptographic algorithm.
+
+After fixing the two issues, blockchain can support L2 solutions like Lightning Network in principle. I will discuss its principle later.
+
+## Taproot Upgrade
+
+The main purpose of Taproot upgrade is to enhance privacy and flexibility of Bitcoin transactions. Originally, complex transactions, such as multi-signature transactions or those with time-lock conditions, were easily identifiable on the blockchain. For example, a multi-signature transaction would reveal the public keys involved and the number of required signatures. This transparency could potentially expose user behavior and transaction patterns.
+
+To resolve this multi-signature transaction privacy issue, Taproot introduces Schnorr signatures ([BIP 340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)), which allow multiple signatures to be aggregated into a single signature. This means that a multi-signature transaction can appear identical to a standard single-signature transaction on the blockchain, enhancing privacy. 
+> [!NOTE]
+> Of course, the signature algorithm is determined by the ScriptPubKey, so we need to create a new ScriptPubKey to support Schnorr signatures. The new ScriptPubKey is called Pay-to-Taproot (P2TR), which uses a new opcode `OP_CHECKSIGADD` ([BIP 342](https://github.com/bitcoin/bips/blob/master/bip-0342.mediawiki)) to verify Schnorr signatures.
+>
+> I have another question when I leaned the Schnorr signature, which is why the privacy is so important? The answer is because Bitcoin is pseudonymous, meaning that while transactions are public, the identities of the users behind those transactions are not directly linked to their Bitcoin addresses. However, with enough analysis, it is possible to link addresses to real-world identities, especially when users reuse addresses or interact with centralized services like exchanges. Enhancing privacy helps protect users from such analysis and potential targeting.
+
