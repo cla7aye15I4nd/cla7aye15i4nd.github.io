@@ -152,13 +152,31 @@ We can find that it is a function that takes a natural number `m` and a proof `i
 The type of `Eq.rec.{0, 1}` is:
 ```
 ∀ {α : Type} {a : α} {motive : (a_1 : α) → a = a_1 → Prop}, 
-    motive a → ∀ {a_1 : α} (t : a = a_1), motive a_1 t
+    motive a (Eq.refl a : a = a) → ∀ {a_1 : α} (t : a = a_1), motive a_1 t
 ```
-The parameters are:
-1. `α`: This is the type of the terms we are working with.
-2. `a`: This is the source term.
-3. `motive`: This is a function that takes a term `a_1` of type `α` and a proof that `a = a_1`, and returns a proposition.
-4. `motive a`: This is a proof of the proposition for the source term `a`.
-5. `∀ {a_1 : α} (t : a = a_1)`: This is a function that takes a target term `a_1` of type `α` and a proof that `a = a_1`, and returns a proof of the proposition for the target term `a_1`.
-6. `motive a_1 t`: This is the conclusion of the induction, which is a proof of the proposition for the target term `a_1`.
 
+It have 6 parameters, which is very crazy. Let's understand them by write this parts mathematically.
+
+> Within the context of $~\mathbb{N} \rightarrow$ **Arg 1: Type**
+> 
+> Since I have a proof that $0 + \text{succ}(m) = \text{succ}(0 + m) \rightarrow$ **Arg 4: Base Evidence**
+>
+> And I know that $0 + m = m$ **Arg 6: Equality Proof**,
+>
+> I can use the template $0 + \text{succ}(m) = \text{succ}(x) \rightarrow$ **Arg 3: Motive**
+>
+> to swap $(0 + m) \rightarrow$ **Arg 2: Source**
+> 
+> inside my goal
+> 
+> with $m \rightarrow$ **Arg 5: Target**
+> 
+> to conclude that $0 + \text{succ}(m) = \text{succ}(m)$.
+
+From above, we can understand why the simple step in original mathematical proof is so complex here. Now, we can check that what the each parameter is in our code:
+1. `Nat`: This is the type of natural numbers in Lean. (Arg 1)
+2. `0 + m`: This is the source term `a`. (Arg 2)
+3. `(fun (x : Nat) (_ : 0 + m = x) => 0 + @Nat.succ m = @Nat.succ x)`: This is the motive for `Eq.rec`. (Arg 3)
+4. `(@Eq.refl.{1} Nat (0 + @Nat.succ m))`: This is the starting term, which is a proof of the proposition for `0 + succ(m)`. (Arg 4)
+5. `m`: This is the target term `b`. (Arg 5)
+6. `ih`: This is the proof of `a = b`, which is `0 + m = m`. (Arg 6)

@@ -227,27 +227,38 @@ Finally, we need to prove that <span class="arithmatex">\(\text{succ}(k + 0) = \
 <p>We can find that it is a function that takes a natural number <code>m</code> and a proof <code>ih</code> of the proposition for <code>m</code>, and returns a proof of the proposition for <code>m.succ</code>. </p>
 <p>The type of <code>Eq.rec.{0, 1}</code> is:</p>
 <pre><code>∀ {α : Type} {a : α} {motive : (a_1 : α) → a = a_1 → Prop}, 
-    motive a → ∀ {a_1 : α} (t : a = a_1), motive a_1 t
+    motive a (Eq.refl a : a = a) → ∀ {a_1 : α} (t : a = a_1), motive a_1 t
 </code></pre>
-<p>The parameters are:</p>
+<p>It have 6 parameters, which is very crazy. Let's understand them by write this parts mathematically.</p>
+<blockquote>
+<p>Within the context of <span class="arithmatex">\(~\mathbb{N} \rightarrow\)</span> <strong>Arg 1: Type</strong></p>
+<p>Since I have a proof that <span class="arithmatex">\(0 + \text{succ}(m) = \text{succ}(0 + m) \rightarrow\)</span> <strong>Arg 4: Base Evidence</strong></p>
+<p>And I know that <span class="arithmatex">\(0 + m = m\)</span> <strong>Arg 6: Equality Proof</strong>,</p>
+<p>I can use the template <span class="arithmatex">\(0 + \text{succ}(m) = \text{succ}(x) \rightarrow\)</span> <strong>Arg 3: Motive</strong></p>
+<p>to swap <span class="arithmatex">\((0 + m) \rightarrow\)</span> <strong>Arg 2: Source</strong></p>
+<p>inside my goal</p>
+<p>with <span class="arithmatex">\(m \rightarrow\)</span> <strong>Arg 5: Target</strong></p>
+<p>to conclude that <span class="arithmatex">\(0 + \text{succ}(m) = \text{succ}(m)\)</span>.</p>
+</blockquote>
+<p>From above, we can understand why the simple step in original mathematical proof is so complex here. Now, we can check that what the each parameter is in our code:</p>
 <ol>
 <li>
-<p><code>α</code>: This is the type of the terms we are working with.</p>
+<p><code>Nat</code>: This is the type of natural numbers in Lean. (Arg 1)</p>
 </li>
 <li>
-<p><code>a</code>: This is the source term.</p>
+<p><code>0 + m</code>: This is the source term <code>a</code>. (Arg 2)</p>
 </li>
 <li>
-<p><code>motive</code>: This is a function that takes a term <code>a_1</code> of type <code>α</code> and a proof that <code>a = a_1</code>, and returns a proposition.</p>
+<p><code>(fun (x : Nat) (_ : 0 + m = x) =&gt; 0 + @Nat.succ m = @Nat.succ x)</code>: This is the motive for <code>Eq.rec</code>. (Arg 3)</p>
 </li>
 <li>
-<p><code>motive a</code>: This is a proof of the proposition for the source term <code>a</code>.</p>
+<p><code>(@Eq.refl.{1} Nat (0 + @Nat.succ m))</code>: This is the starting term, which is a proof of the proposition for <code>0 + succ(m)</code>. (Arg 4)</p>
 </li>
 <li>
-<p><code>∀ {a_1 : α} (t : a = a_1)</code>: This is a function that takes a target term <code>a_1</code> of type <code>α</code> and a proof that <code>a = a_1</code>, and returns a proof of the proposition for the target term <code>a_1</code>.</p>
+<p><code>m</code>: This is the target term <code>b</code>. (Arg 5)</p>
 </li>
 <li>
-<p><code>motive a_1 t</code>: This is the conclusion of the induction, which is a proof of the proposition for the target term <code>a_1</code>.</p>
+<p><code>ih</code>: This is the proof of <code>a = b</code>, which is <code>0 + m = m</code>. (Arg 6)</p>
 </li>
 </ol>
 
