@@ -69,6 +69,13 @@ class BlogBuilder:
 
                 # Parse and build article
                 article = self._process_file(md_file)
+
+                # Skip articles with "unfinished" tag
+                if 'unfinished' in article.tags:
+                    if verbose:
+                        print(f"  ⏸ Skipped (unfinished)")
+                    continue
+
                 articles.append(article)
 
                 # Write article HTML
