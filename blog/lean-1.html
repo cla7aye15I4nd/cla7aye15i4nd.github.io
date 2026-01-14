@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VQB5JBZ3B6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-VQB5JBZ3B6', {
+      enhanced_measurement: true,
+      send_page_view: true
+    });
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <link rel="stylesheet" href="../static/style.css">
+  <title>Learn Lean (A Language for Mathematical Proofs) from a Programmer's Perspective - Zheng Yu</title>
+
+  <!-- MathJax for math formula rendering -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="../static/hljs-lean.js"></script>
+  <script>hljs.highlightAll();</script>
+</head>
+
+<body id="top">
+  <main class="article-container">
+    
+    <aside class="toc-sidebar">
+      <nav class="toc">
+        <h3>Table of Contents</h3>
+        <div class="toc">
+<ul>
+<li><a href="#learn-lean-a-language-for-mathematical-proofs-from-a-programmers-perspective">Learn Lean (A Language for Mathematical Proofs) from a Programmer's Perspective</a><ul>
+<li><a href="#high-level-overview">High Level Overview</a></li>
+<li><a href="#starting-lean">Starting Lean</a><ul>
+<li><a href="#mathematical-proof">Mathematical Proof</a></li>
+</ul>
+</li>
+<li><a href="#raw-lean-code">Raw Lean Code</a><ul>
+<li><a href="#axioms-used">Axioms Used</a></li>
+<li><a href="#function-signatures">Function Signatures</a></li>
+<li><a href="#constructing-the-proof">Constructing the Proof</a><ul>
+<li><a href="#step-1-natrec0">Step 1: Nat.rec.{0}</a></li>
+<li><a href="#step-2-base-case">Step 2: Base Case</a></li>
+<li><a href="#step-3-inductive-step">Step 3: Inductive Step</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+
+      </nav>
+    </aside>
+    
+
+    <article>
+      <nav class="breadcrumb">
+        <a href="../index.html">Home</a> / <a href="index.html">Blog Archive</a>
+      </nav>
+
+      <p class="author">
+        <small>2026-01-14</small>
+        
+        <br />
+        <small>Tags:
+          
+            <a href="index.html#tag-math">math</a>, 
+          
+            <a href="index.html#tag-lean">lean</a>
+          
+        </small>
+        
+      </p>
+
+      <h2 id="learn-lean-a-language-for-mathematical-proofs-from-a-programmers-perspective">Learn Lean (A Language for Mathematical Proofs) from a Programmer's Perspective<a class="headerlink" href="#learn-lean-a-language-for-mathematical-proofs-from-a-programmers-perspective" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Why I learn Lean?</p>
+<p>Briefly, I have broad interest in many areas of mathematics and computer science. However, due to limited time and energy, I can only choose a few areas to focus on. I have taken too much time exploring computer science topics. Recently, I noticed that Terence Tao said that AI can help non-professionals do research in mathematics. This motivated me to learn Lean, which is a language for writing mathematical proofs that can be checked by a computer. It is also a cross between programming and mathematics, which should be a good starting point for me.</p>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Prerequisites</p>
+<p>I already have some knowledge of mathematics, such as basic <a href="https://en.wikipedia.org/wiki/Peano_axioms">Peano axioms</a>. I also very like Combinatorial Mathematics, which can motivated me to learn lean.</p>
+</div>
+<h3 id="high-level-overview">High Level Overview<a class="headerlink" href="#high-level-overview" title="Permanent link">&para;</a></h3>
+<p>The overall idea of using a programming language to write mathematical proofs is based on type.
+In OOP languages, you can define classes (different types) and corresponding instances, some language may have generic types, for example, in C++ you can define a template class. In math, we have proposition and corresponding proofs. In Lean, proposition is a type, and proof is an instance of that type. So in Lean, you can define a proposition as a type, and then write a proof as an instance of that type. </p>
+<p>However, a big differece between type system of Lean and other languages is that Lean has dependent types, which means that the type of a proposition can depend on the value of a term. For example, you can define a type <code>Vector n</code> which represents a vector of length <code>n</code>, where <code>n</code> is a natural number. This allows you to write more expressive propositions and proofs.</p>
+<h3 id="starting-lean">Starting Lean<a class="headerlink" href="#starting-lean" title="Permanent link">&para;</a></h3>
+<p>After understanding its high level idea, let me use a example to show how Lean works. I want to use Lean to prove that <span class="arithmatex">\(0 + n = n + 0\)</span>. We can first see how we proof it in math.</p>
+<h4 id="mathematical-proof">Mathematical Proof<a class="headerlink" href="#mathematical-proof" title="Permanent link">&para;</a></h4>
+<div class="admonition note">
+<p class="admonition-title">Peano Axioms (Addition Definition)</p>
+<div class="arithmatex">\[
+\begin{align*}
+\text{1. }&amp; a + 0 = a \\
+\text{2. }&amp; a + \text{succ}(b) = \text{succ}(a + b)
+\end{align*}
+\]</div>
+</div>
+<p>We can use induction to prove this proposition. First, we need to prove the base case, which is when <span class="arithmatex">\(n = 0\)</span>. In this case, we have <span class="arithmatex">\(0 + 0 = 0 + 0\)</span>, which is true.</p>
+<p>Next, we need to prove the inductive step, which is when <span class="arithmatex">\(n = \text{succ}(k)\)</span>, where <span class="arithmatex">\(\text{succ}(k)\)</span> is the successor of <span class="arithmatex">\(k\)</span>. In this case, we have:
+$$
+0 + \text{succ}(k) = \text{succ}(0 + k)
+$$
+By the inductive hypothesis, we have <span class="arithmatex">\(0 + k = k + 0\)</span>, so we can substitute this into the equation:
+$$
+0 + \text{succ}(k) = \text{succ}(k + 0)
+$$
+Finally, we need to prove that <span class="arithmatex">\(\text{succ}(k + 0) = \text{succ}(k)\)</span>, which is true by the definition of addition.  </p>
+<h3 id="raw-lean-code">Raw Lean Code<a class="headerlink" href="#raw-lean-code" title="Permanent link">&para;</a></h3>
+<pre><code class="language-lean4">theorem zero_add_raw (n : Nat) : 0 + n = n :=
+  @Nat.rec.{0}
+    (fun (k : Nat) =&gt; 0 + k = k)              -- Motive P(k)
+    (@Eq.refl.{1} Nat 0)                      -- Base case: P(0)
+    (fun (m : Nat) (ih : 0 + m = m) =&gt;        -- Inductive step: P(m) -&gt; P(m+1)
+      @Eq.rec.{0, 1}
+        Nat
+        (0 + m)                               -- Source 'a'
+        (fun (x : Nat) (_ : 0 + m = x) =&gt;     -- Motive for Eq.rec
+          0 + @Nat.succ m = @Nat.succ x)
+        (@Eq.refl.{1} Nat (0 + @Nat.succ m))       -- Starting term (Type matches Motive at 'a')
+        m                                     -- Target 'b'
+        ih                                    -- Proof of 'a = b'
+    )
+    n
+</code></pre>
+<p>I call it as raw lean code because real Lean user do not write such code like this. They will use more friendly syntax sugar provided by Lean, but I think this version can better show the underlying mechanism of Lean.</p>
+<h5 id="axioms-used">Axioms Used<a class="headerlink" href="#axioms-used" title="Permanent link">&para;</a></h5>
+<p>Let's explain some key elements in this code:</p>
+<ul>
+<li><code>Nat</code>: This is the type of natural numbers in Lean.</li>
+<li><code>@Nat.rec.{0}</code>, <code>@Eq.refl.{1}</code>, and <code>@Eq.rec.{0, 1}</code>: These are some predefined functions. They are axioms in mathematics.<ul>
+<li><code>Nat.rec</code> is the principle of <a href="https://en.wikipedia.org/wiki/Mathematical_induction">mathematical induction</a> for natural numbers.</li>
+<li><code>Eq.refl</code> is the reflexivity of equality (ie. for any term <code>a</code>, <code>a = a</code>).</li>
+<li><code>Eq.rec</code> is the principle of substituting equals for equals (ie. if <code>a = b</code>, then we can replace <code>a</code> with <code>b</code> in any proposition).</li>
+</ul>
+</li>
+</ul>
+<h5 id="function-signatures">Function Signatures<a class="headerlink" href="#function-signatures" title="Permanent link">&para;</a></h5>
+<p>The type signature of <code>zero_add_raw</code> is:</p>
+<pre><code>    ∀ (n : Nat), 0 + n = n
+</code></pre>
+<p>Here is very hard to understand part if you are not familiar with dependent types. At here, we must notice that a type can contain logic. In common programming languages, a type is just a label for a set of values, for example, <code>Dict[int, str]</code> is a type for dictionaries with integer keys and string values. </p>
+<p>A signature of a function usually be like:</p>
+<pre><code>    (ReturnType) FunctionName(ParamType1 Param1, ParamType2 Param2, ...
+</code></pre>
+<p>It defines the input and output types of a function. However, in Lean, the type of a function can depend on the value of its parameters. </p>
+<p>To understand function in Lean, I prefer to take it in this way, <code>zero_add_raw</code> is not a function but just a elements with type: <code>∀ (n : Nat), 0 + n = n</code>, the code under the theorem is trying to construct an instance of this type from existing axioms.</p>
+<h4 id="constructing-the-proof">Constructing the Proof<a class="headerlink" href="#constructing-the-proof" title="Permanent link">&para;</a></h4>
+<h5 id="step-1-natrec0">Step 1: Nat.rec.{0}<a class="headerlink" href="#step-1-natrec0" title="Permanent link">&para;</a></h5>
+<p>Now, let's see the type of <code>Nat.rec.{0}</code> is:</p>
+<pre><code>∀ {motive : Nat → Prop}, motive Nat.zero → (∀ (n : Nat), motive n → motive n.succ) → ∀ (t : Nat), motive t
+</code></pre>
+<p>It have four parameters:</p>
+<ol>
+<li>
+<p><code>motive</code>: This is a function that takes a natural number and returns a proposition.</p>
+</li>
+<li>
+<p><code>motive Nat.zero</code>: This is the base case of the induction, which is a proof of the proposition for <code>0</code>.</p>
+</li>
+<li>
+<p><code>∀ (n : Nat), motive n → motive n.succ</code>: This is the inductive step, which is a function that takes a natural number <code>n</code> and a proof of the proposition for <code>n</code>, and returns a proof of the proposition for <code>n.succ</code>.</p>
+</li>
+<li>
+<p><code>∀ (t : Nat), motive t</code>: This is the conclusion of the induction, which is a proof of the proposition for any natural number <code>t</code>.</p>
+</li>
+</ol>
+<p>We can understand the first and the last parameters first because they are most simple.</p>
+<p><strong>For the first parameter</strong>, we have:</p>
+<pre><code class="language-lean4">(fun (k : Nat) =&gt; 0 + k = k)
+</code></pre>
+<p>This is a function that takes a natural number <code>k</code> and returns the proposition <code>0 + k = k</code>. This is our motive for the induction.</p>
+<p><strong>For the last parameter</strong>, we have:</p>
+<pre><code class="language-lean4">n
+</code></pre>
+<p>This is the natural number <code>n</code> that we want to prove the proposition for.</p>
+<h5 id="step-2-base-case">Step 2: Base Case<a class="headerlink" href="#step-2-base-case" title="Permanent link">&para;</a></h5>
+<p>Next, we can understand the second parameter, which is the base case of the induction. We have:</p>
+<pre><code class="language-lean4">(@Eq.refl.{1} Nat 0)
+</code></pre>
+<p>This is a proof of the proposition for <code>0</code>. The type of <code>Eq.refl.{1}</code> is:</p>
+<pre><code>∀ {α : Type u} (a : α), a = a
+</code></pre>
+<p>It takes a type <code>α</code> and a term <code>a</code> of type <code>α</code>, and returns a proof that <code>a = a</code>. In our case, we have <code>α</code> as <code>Nat</code> and <code>a</code> as <code>0</code>, so it returns a proof that <code>0 = 0</code>, which is our base case.</p>
+<h5 id="step-3-inductive-step">Step 3: Inductive Step<a class="headerlink" href="#step-3-inductive-step" title="Permanent link">&para;</a></h5>
+<p>This is the most complex part. The type of the third parameter is:</p>
+<pre><code>∀ (n : Nat), motive n → motive n.succ
+</code></pre>
+<p>and the code is:</p>
+<pre><code class="language-lean4">(fun (m : Nat) (ih : 0 + m = m) =&gt;        -- Inductive step: P(m) -&gt; P(m+1)
+    @Eq.rec.{0, 1}
+        Nat
+        (0 + m)                               -- Source 'a'
+        (fun (x : Nat) (_ : 0 + m = x) =&gt;     -- Motive for Eq.rec
+            0 + @Nat.succ m = @Nat.succ x)
+        (@Eq.refl.{1} Nat (0 + @Nat.succ m))       -- Starting term (Type matches Motive at 'a')
+        m                                     -- Target 'b'
+        ih                                    -- Proof of 'a = b'
+)
+</code></pre>
+<p>We can find that it is a function that takes a natural number <code>m</code> and a proof <code>ih</code> of the proposition for <code>m</code>, and returns a proof of the proposition for <code>m.succ</code>. </p>
+<p>The type of <code>Eq.rec.{0, 1}</code> is:</p>
+<pre><code>∀ {α : Type} {a : α} {motive : (a_1 : α) → a = a_1 → Prop}, 
+    motive a → ∀ {a_1 : α} (t : a = a_1), motive a_1 t
+</code></pre>
+<p>The parameters are:</p>
+<ol>
+<li>
+<p><code>α</code>: This is the type of the terms we are working with.</p>
+</li>
+<li>
+<p><code>a</code>: This is the source term.</p>
+</li>
+<li>
+<p><code>motive</code>: This is a function that takes a term <code>a_1</code> of type <code>α</code> and a proof that <code>a = a_1</code>, and returns a proposition.</p>
+</li>
+<li>
+<p><code>motive a</code>: This is a proof of the proposition for the source term <code>a</code>.</p>
+</li>
+<li>
+<p><code>∀ {a_1 : α} (t : a = a_1)</code>: This is a function that takes a target term <code>a_1</code> of type <code>α</code> and a proof that <code>a = a_1</code>, and returns a proof of the proposition for the target term <code>a_1</code>.</p>
+</li>
+<li>
+<p><code>motive a_1 t</code>: This is the conclusion of the induction, which is a proof of the proposition for the target term <code>a_1</code>.</p>
+</li>
+</ol>
+
+    </article>
+  </main>
+
+  <footer>
+    <hr />
+    <p style="text-align: center;">
+      <small>
+        Zheng Yu &copy; 1999 -
+        <script>document.write(new Date().getFullYear());</script>. All rights reserved.
+      </small>
+    </p>
+  </footer>
+</body>
+
+</html>
