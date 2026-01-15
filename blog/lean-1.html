@@ -69,6 +69,19 @@
 </li>
 </ul>
 </li>
+<li><a href="#simplified-lean-code">Simplified Lean Code</a><ul>
+<li><a href="#universe-levels-omitted">Universe Levels Omitted</a></li>
+<li><a href="#implicit-arguments">Implicit Arguments</a></li>
+<li><a href="#definition-equality">Definition Equality</a></li>
+<li><a href="#congrarg-for-eqrec">congrArg for Eq.rec</a></li>
+<li><a href="#pattern-matching-for-recursion">Pattern Matching for Recursion</a></li>
+</ul>
+</li>
+<li><a href="#tactic-mode">Tactic Mode</a><ul>
+<li><a href="#the-mind-map-from-term-to-tactic">The "Mind Map" from Term to Tactic</a></li>
+<li><a href="#step">Step</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -261,6 +274,127 @@ Finally, we need to prove that <span class="arithmatex">\(\text{succ}(k + 0) = \
 <p><code>ih</code>: This is the proof of <code>a = b</code>, which is <code>0 + m = m</code>. (Arg 6)</p>
 </li>
 </ol>
+<h3 id="simplified-lean-code">Simplified Lean Code<a class="headerlink" href="#simplified-lean-code" title="Permanent link">&para;</a></h3>
+<p>If Lean ask user to write code in above section, the lean will be too complex to use. So Lean provide some syntax sugar to make it easier to write code. The simplified version of above code is:</p>
+<h4 id="universe-levels-omitted">Universe Levels Omitted<a class="headerlink" href="#universe-levels-omitted" title="Permanent link">&para;</a></h4>
+<p>In the original code, we use .{0} and .{1} to specify the universe levels of types. However, in most cases, Lean can infer the universe levels automatically, so we can omit them. The code becomes:</p>
+<div class="admonition note">
+<p class="admonition-title">Universe Levels</p>
+<p>Here I introduce a concept called universe levels. If you do not want know what it is, you can assume it is something like template parameters in C++. If we use .{0}, it means we explicitly specify the type.</p>
+</div>
+<pre><code class="language-lean4">theorem zero_add_v1 (n : Nat) : 0 + n = n :=
+  @Nat.rec
+    (fun (k : Nat) =&gt; 0 + k = k)              -- Motive P(k)
+    (@Eq.refl Nat 0)                      -- Base case: P(0)
+    (fun (m : Nat) (ih : 0 + m = m) =&gt;        -- Inductive step: P(m) -&gt; P(m+1)
+      @Eq.rec
+        Nat
+        (0 + m)                               -- Source 'a'
+        (fun (x : Nat) (_ : 0 + m = x) =&gt;     -- Motive for Eq.rec
+          0 + @Nat.succ m = @Nat.succ x)
+        (@Eq.refl Nat (0 + @Nat.succ m))       -- Starting term (Type matches Motive at 'a')
+        m                                     -- Target 'b'
+        ih                                    -- Proof of 'a = b'
+    )
+    n
+</code></pre>
+<h4 id="implicit-arguments">Implicit Arguments<a class="headerlink" href="#implicit-arguments" title="Permanent link">&para;</a></h4>
+<p>Recall the type signatures of <code>Nat.rec</code>, <code>Eq.refl</code>, and <code>Eq.rec</code>, we can find that they have some implicit arguments, for example, the signature of <code>Eq.refl</code> is:</p>
+<pre><code>∀ {α : Type u} (a : α), a = a
+</code></pre>
+<p>The implicit argument is <code>α</code>, which is wrapped in <code>{}</code>. Lean can infer the value of implicit arguments automatically, so we can omit them when calling the function. The <code>@</code> symbol is used to indicate that we are calling a function with implicit arguments. After removing the <code>@</code> symbols and use implicit arguments in the code.</p>
+<pre><code class="language-lean4">
+theorem zero_add_v2 (n : Nat) : 0 + n = n :=
+  Nat.rec
+    (Eq.refl 0)                               -- Base case: P(0)
+    (fun (m : Nat) (ih : 0 + m = m) =&gt;        -- Inductive step: P(m) -&gt; P(m+1)
+      Eq.rec
+        (motive := fun (x : Nat) (_ : 0 + m = x) =&gt;
+          0 + Nat.succ m = Nat.succ x)
+        (Eq.refl (0 + Nat.succ m))            -- Starting term
+        ih                                    -- Proof of 'a = b'
+    )
+    n
+</code></pre>
+<p>We need add <code>motive :=</code> to specify the motive for <code>Nat.rec</code> and <code>Eq.rec</code>, because Lean cannot infer them automatically in this case.</p>
+<h4 id="definition-equality">Definition Equality<a class="headerlink" href="#definition-equality" title="Permanent link">&para;</a></h4>
+<p>We may find many steps in last version code is very very trivial, for example, the base case <code>0 + 0 = 0</code> is true by definition of addition. So Lean provide a sugar called <code>rfl</code>, which can prove any proposition that is true by definition. We can use <code>rfl</code> to replace some trivial steps in last version code. The final version code is:</p>
+<pre><code class="language-lean4">theorem zero_add_v3 (n : Nat) : 0 + n = n :=
+  Nat.rec
+    rfl
+    (fun (m : Nat) (ih : 0 + m = m) =&gt;        -- Inductive step: P(m) -&gt; P(m+1)
+      Eq.rec
+        (motive := fun (x : Nat) (_ : 0 + m = x) =&gt;
+          0 + Nat.succ m = Nat.succ x)
+        rfl
+        ih                                    -- Proof of 'a = b'
+    )
+    n
+</code></pre>
+<h4 id="congrarg-for-eqrec"><code>congrArg</code> for <code>Eq.rec</code><a class="headerlink" href="#congrarg-for-eqrec" title="Permanent link">&para;</a></h4>
+<p>In last version code, we use <code>Eq.rec</code> to do substitution. However, Lean provide a more friendly function called <code>congrArg</code>, which can be used to prove that if <code>a = b</code>, then <code>f(a) = f(b)</code> for any function <code>f</code>. The use of <code>congrArg</code> will be like:</p>
+<pre><code class="language-lean4">congrArg f h
+</code></pre>
+<p>where <code>f</code> is a function and <code>h</code> is a proof of <code>a = b</code>. After using <code>congrArg</code>, the code becomes:</p>
+<pre><code class="language-lean4">theorem zero_add_v4 (n : Nat) : 0 + n = n :=
+  Nat.rec
+    rfl
+    (fun (m : Nat) (ih : 0 + m = m) =&gt;
+      congrArg Nat.succ ih
+    )
+    n
+</code></pre>
+<p>or even shorter:</p>
+<pre><code class="language-lean4">theorem zero_add (n : Nat) : 0 + n = n :=
+    Nat.rec
+        rfl
+        (fun _ ih =&gt; congrArg Nat.succ ih)
+        n
+</code></pre>
+<h4 id="pattern-matching-for-recursion">Pattern Matching for Recursion<a class="headerlink" href="#pattern-matching-for-recursion" title="Permanent link">&para;</a></h4>
+<p>Lean also provide pattern matching for recursion, which can make the code more readable. The code becomes:</p>
+<pre><code class="language-lean4">theorem zero_add_v5 : (n : Nat) → 0 + n = n
+  | 0 =&gt; rfl
+  | Nat.succ m =&gt; congrArg Nat.succ (zero_add_v5 m)
+</code></pre>
+<p>We should notice that in this version we use a recursive function to define the proof. We can not use original <code>(fun _ ih =&gt; congrArg Nat.succ ih)</code> style because we need to call the function itself in the inductive step, otherwise we can not caoture the inductive hypothesis (<code>ih</code>).</p>
+<h3 id="tactic-mode">Tactic Mode<a class="headerlink" href="#tactic-mode" title="Permanent link">&para;</a></h3>
+<p>Lean also provide a tactic mode. How to understand tactic mode? The original mode is called term mode, the code will be like real programming code. However, in tactic mode, we can write code like we do in mathematical proof, which is much friendlier for mathematicians.</p>
+<p>If Term Mode is like writing a nested functional expression, Tactic Mode is like using an interactive debugger or a REPL. You see the state of your variables and your "Goal" (the type you are trying to inhabit) at every step.</p>
+<h4 id="the-mind-map-from-term-to-tactic">The "Mind Map" from Term to Tactic<a class="headerlink" href="#the-mind-map-from-term-to-tactic" title="Permanent link">&para;</a></h4>
+<p>When you move from Term Mode to Tactic Mode, your mental model shifts from Construction to Transformation:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Concept</th>
+<th style="text-align: left;">Term Mode (Construction)</th>
+<th style="text-align: left;">Tactic Mode (Transformation)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Induction</strong></td>
+<td style="text-align: left;"><code>Nat.rec</code> or Pattern Matching</td>
+<td style="text-align: left;"><code>induction n with d hd</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Substitution</strong></td>
+<td style="text-align: left;"><code>Eq.rec</code> or <code>congrArg</code></td>
+<td style="text-align: left;"><code>rw [hd]</code> (rewrite)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Definition</strong></td>
+<td style="text-align: left;"><code>rfl</code></td>
+<td style="text-align: left;"><code>simp</code> or <code>rfl</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Function App</strong></td>
+<td style="text-align: left;"><code>f x</code></td>
+<td style="text-align: left;"><code>apply f</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="step">Step<a class="headerlink" href="#step" title="Permanent link">&para;</a></h4>
 
     </article>
   </main>

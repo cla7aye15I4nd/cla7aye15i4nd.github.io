@@ -180,3 +180,122 @@ From above, we can understand why the simple step in original mathematical proof
 4. `(@Eq.refl.{1} Nat (0 + @Nat.succ m))`: This is the starting term, which is a proof of the proposition for `0 + succ(m)`. (Arg 4)
 5. `m`: This is the target term `b`. (Arg 5)
 6. `ih`: This is the proof of `a = b`, which is `0 + m = m`. (Arg 6)
+
+## Simplified Lean Code
+
+If Lean ask user to write code in above section, the lean will be too complex to use. So Lean provide some syntax sugar to make it easier to write code. The simplified version of above code is:
+
+### Universe Levels Omitted
+ 
+In the original code, we use .{0} and .{1} to specify the universe levels of types. However, in most cases, Lean can infer the universe levels automatically, so we can omit them. The code becomes:
+
+> [!NOTE] Universe Levels
+> Here I introduce a concept called universe levels. If you do not want know what it is, you can assume it is something like template parameters in C++. If we use .{0}, it means we explicitly specify the type.
+
+
+```lean4
+theorem zero_add_v1 (n : Nat) : 0 + n = n :=
+  @Nat.rec
+    (fun (k : Nat) => 0 + k = k)              -- Motive P(k)
+    (@Eq.refl Nat 0)                      -- Base case: P(0)
+    (fun (m : Nat) (ih : 0 + m = m) =>        -- Inductive step: P(m) -> P(m+1)
+      @Eq.rec
+        Nat
+        (0 + m)                               -- Source 'a'
+        (fun (x : Nat) (_ : 0 + m = x) =>     -- Motive for Eq.rec
+          0 + @Nat.succ m = @Nat.succ x)
+        (@Eq.refl Nat (0 + @Nat.succ m))       -- Starting term (Type matches Motive at 'a')
+        m                                     -- Target 'b'
+        ih                                    -- Proof of 'a = b'
+    )
+    n
+```
+
+### Implicit Arguments
+Recall the type signatures of `Nat.rec`, `Eq.refl`, and `Eq.rec`, we can find that they have some implicit arguments, for example, the signature of `Eq.refl` is:
+```
+∀ {α : Type u} (a : α), a = a
+```
+The implicit argument is `α`, which is wrapped in `{}`. Lean can infer the value of implicit arguments automatically, so we can omit them when calling the function. The `@` symbol is used to indicate that we are calling a function with implicit arguments. After removing the `@` symbols and use implicit arguments in the code.
+```lean4
+
+theorem zero_add_v2 (n : Nat) : 0 + n = n :=
+  Nat.rec
+    (Eq.refl 0)                               -- Base case: P(0)
+    (fun (m : Nat) (ih : 0 + m = m) =>        -- Inductive step: P(m) -> P(m+1)
+      Eq.rec
+        (motive := fun (x : Nat) (_ : 0 + m = x) =>
+          0 + Nat.succ m = Nat.succ x)
+        (Eq.refl (0 + Nat.succ m))            -- Starting term
+        ih                                    -- Proof of 'a = b'
+    )
+    n
+```
+We need add `motive :=` to specify the motive for `Nat.rec` and `Eq.rec`, because Lean cannot infer them automatically in this case.
+
+### Definition Equality
+We may find many steps in last version code is very very trivial, for example, the base case `0 + 0 = 0` is true by definition of addition. So Lean provide a sugar called `rfl`, which can prove any proposition that is true by definition. We can use `rfl` to replace some trivial steps in last version code. The final version code is:
+```lean4
+theorem zero_add_v3 (n : Nat) : 0 + n = n :=
+  Nat.rec
+    rfl
+    (fun (m : Nat) (ih : 0 + m = m) =>        -- Inductive step: P(m) -> P(m+1)
+      Eq.rec
+        (motive := fun (x : Nat) (_ : 0 + m = x) =>
+          0 + Nat.succ m = Nat.succ x)
+        rfl
+        ih                                    -- Proof of 'a = b'
+    )
+    n
+```
+
+### `congrArg` for `Eq.rec`
+In last version code, we use `Eq.rec` to do substitution. However, Lean provide a more friendly function called `congrArg`, which can be used to prove that if `a = b`, then `f(a) = f(b)` for any function `f`. The use of `congrArg` will be like:
+```lean4
+congrArg f h
+```
+where `f` is a function and `h` is a proof of `a = b`. After using `congrArg`, the code becomes:
+```lean4
+theorem zero_add_v4 (n : Nat) : 0 + n = n :=
+  Nat.rec
+    rfl
+    (fun (m : Nat) (ih : 0 + m = m) =>
+      congrArg Nat.succ ih
+    )
+    n
+```
+or even shorter:
+```lean4
+theorem zero_add (n : Nat) : 0 + n = n :=
+    Nat.rec
+        rfl
+        (fun _ ih => congrArg Nat.succ ih)
+        n
+```
+
+### Pattern Matching for Recursion
+Lean also provide pattern matching for recursion, which can make the code more readable. The code becomes:
+```lean4
+theorem zero_add_v5 : (n : Nat) → 0 + n = n
+  | 0 => rfl
+  | Nat.succ m => congrArg Nat.succ (zero_add_v5 m)
+```
+We should notice that in this version we use a recursive function to define the proof. We can not use original `(fun _ ih => congrArg Nat.succ ih)` style because we need to call the function itself in the inductive step, otherwise we can not caoture the inductive hypothesis (`ih`).
+
+## Tactic Mode
+Lean also provide a tactic mode. How to understand tactic mode? The original mode is called term mode, the code will be like real programming code. However, in tactic mode, we can write code like we do in mathematical proof, which is much friendlier for mathematicians.
+
+If Term Mode is like writing a nested functional expression, Tactic Mode is like using an interactive debugger or a REPL. You see the state of your variables and your "Goal" (the type you are trying to inhabit) at every step.
+
+### The "Mind Map" from Term to Tactic
+
+When you move from Term Mode to Tactic Mode, your mental model shifts from Construction to Transformation:
+
+| Concept | Term Mode (Construction) | Tactic Mode (Transformation) |
+| :--- | :--- | :--- |
+| **Induction** | `Nat.rec` or Pattern Matching | `induction n with d hd` |
+| **Substitution** | `Eq.rec` or `congrArg` | `rw [hd]` (rewrite) |
+| **Definition** | `rfl` | `simp` or `rfl` |
+| **Function App** | `f x` | `apply f` |
+
+### Step 
