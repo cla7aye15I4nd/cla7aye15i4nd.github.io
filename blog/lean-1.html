@@ -79,7 +79,7 @@
 </li>
 <li><a href="#tactic-mode">Tactic Mode</a><ul>
 <li><a href="#the-mind-map-from-term-to-tactic">The "Mind Map" from Term to Tactic</a></li>
-<li><a href="#step">Step</a></li>
+<li><a href="#final-tactic-code">Final Tactic Code</a></li>
 </ul>
 </li>
 </ul>
@@ -124,7 +124,7 @@
 In OOP languages, you can define classes (different types) and corresponding instances, some language may have generic types, for example, in C++ you can define a template class. In math, we have proposition and corresponding proofs. In Lean, proposition is a type, and proof is an instance of that type. So in Lean, you can define a proposition as a type, and then write a proof as an instance of that type. </p>
 <p>However, a big differece between type system of Lean and other languages is that Lean has dependent types, which means that the type of a proposition can depend on the value of a term. For example, you can define a type <code>Vector n</code> which represents a vector of length <code>n</code>, where <code>n</code> is a natural number. This allows you to write more expressive propositions and proofs.</p>
 <h3 id="starting-lean">Starting Lean<a class="headerlink" href="#starting-lean" title="Permanent link">&para;</a></h3>
-<p>After understanding its high level idea, let me use a example to show how Lean works. I want to use Lean to prove that <span class="arithmatex">\(0 + n = n + 0\)</span>. We can first see how we proof it in math.</p>
+<p>After understanding its high level idea, let me use a example to show how Lean works. I want to use Lean to prove that <span class="arithmatex">\(0 + n = n\)</span>. We can first see how we proof it in math.</p>
 <h4 id="mathematical-proof">Mathematical Proof<a class="headerlink" href="#mathematical-proof" title="Permanent link">&para;</a></h4>
 <div class="admonition note">
 <p class="admonition-title">Peano Axioms (Addition Definition)</p>
@@ -135,16 +135,16 @@ In OOP languages, you can define classes (different types) and corresponding ins
 \end{align*}
 \]</div>
 </div>
-<p>We can use induction to prove this proposition. First, we need to prove the base case, which is when <span class="arithmatex">\(n = 0\)</span>. In this case, we have <span class="arithmatex">\(0 + 0 = 0 + 0\)</span>, which is true.</p>
+<p>We can use induction to prove this proposition. First, we need to prove the base case, which is when <span class="arithmatex">\(n = 0\)</span>. In this case, we have <span class="arithmatex">\(0 + 0 = 0\)</span>, which is true.</p>
 <p>Next, we need to prove the inductive step, which is when <span class="arithmatex">\(n = \text{succ}(k)\)</span>, where <span class="arithmatex">\(\text{succ}(k)\)</span> is the successor of <span class="arithmatex">\(k\)</span>. In this case, we have:
 $$
 0 + \text{succ}(k) = \text{succ}(0 + k)
 $$
-By the inductive hypothesis, we have <span class="arithmatex">\(0 + k = k + 0\)</span>, so we can substitute this into the equation:
+By the inductive hypothesis, we have <span class="arithmatex">\(0 + k = k\)</span>, so we can substitute this into the equation:
 $$
-0 + \text{succ}(k) = \text{succ}(k + 0)
+0 + \text{succ}(k) = \text{succ}(k)
 $$
-Finally, we need to prove that <span class="arithmatex">\(\text{succ}(k + 0) = \text{succ}(k)\)</span>, which is true by the definition of addition.  </p>
+Finally, we have proved that <span class="arithmatex">\(0 + n = n\)</span> for all natural numbers <span class="arithmatex">\(n\)</span>.</p>
 <h3 id="raw-lean-code">Raw Lean Code<a class="headerlink" href="#raw-lean-code" title="Permanent link">&para;</a></h3>
 <pre><code class="language-lean4">theorem zero_add_raw (n : Nat) : 0 + n = n :=
   @Nat.rec.{0}
@@ -394,7 +394,55 @@ theorem zero_add_v2 (n : Nat) : 0 + n = n :=
 </tr>
 </tbody>
 </table>
-<h4 id="step">Step<a class="headerlink" href="#step" title="Permanent link">&para;</a></h4>
+<h4 id="final-tactic-code">Final Tactic Code<a class="headerlink" href="#final-tactic-code" title="Permanent link">&para;</a></h4>
+<pre><code class="language-lean">theorem zero_add (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero =&gt;
+    rfl
+  | succ n ih =&gt;
+    rw [add_succ]  -- 0 + succ(n) = succ(0 + n)
+    rw [ih]        -- succ(0 + n) = succ(n)
+</code></pre>
+<p>I think most part of the code are meet intuition except the <code>rw</code>, I believe it is because of the <code>InfoView</code> panel is not here.</p>
+<pre><code class="language-lean">theorem zero_add (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero =&gt;
+    rfl
+  | succ n ih =&gt;
+</code></pre>
+<p>When you just have this part of code, the info view will show</p>
+<pre><code>n: Nat
+ih: 0 + n = n
+⊢ 0 + (n + 1) = n + 1
+</code></pre>
+<p>when you put the cursor on <code>rw [add_succ]</code>, it means you want to rewrite the goal using the theorem <code>add_succ</code>, which is replace <code>0 + succ(n)</code> with <code>succ(0 + n)</code>. After you apply this step, the info view will show</p>
+<pre><code>n : Nat
+ih : 0 + n = n
+⊢ (0 + n).succ = n + 1
+</code></pre>
+<p>Than when you put the cursor on <code>rw [ih]</code>, it means you want to rewrite the goal using the inductive hypothesis <code>ih</code>, which is replace <code>0 + n</code> with <code>n</code>. After you apply this step, the info view will show</p>
+<pre><code>n : Nat
+ih : 0 + n = n
+⊢ n.succ = n + 1
+</code></pre>
+<p>Now, the goal is true by definition of addition.</p>
+<div class="admonition warning">
+<p class="admonition-title">WARNING</p>
+<p>I have a little question here, why we do not use another rfl to finish the proof? I think it is because Lean can not infer that <code>n.succ = n + 1</code> by definition of addition here.</p>
+</div>
+<p>For reference, I put the original mathematical proof here again, you will find the tactic code is very similar to it.</p>
+<div class="admonition note">
+<p class="admonition-title">NOTE</p>
+<p>Next, we need to prove the inductive step, which is when <span class="arithmatex">\(n = \text{succ}(k)\)</span>, where <span class="arithmatex">\(\text{succ}(k)\)</span> is the successor of <span class="arithmatex">\(k\)</span>. In this case, we have:
+$$
+0 + \text{succ}(k) = \text{succ}(0 + k)
+$$
+By the inductive hypothesis, we have <span class="arithmatex">\(0 + k = k\)</span>, so we can substitute this into the equation:
+$$
+0 + \text{succ}(k) = \text{succ}(k)
+$$
+Finally, we have proved that <span class="arithmatex">\(0 + n = n\)</span> for all natural numbers <span class="arithmatex">\(n\)</span>.</p>
+</div>
 
     </article>
   </main>

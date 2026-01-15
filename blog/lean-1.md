@@ -21,7 +21,7 @@ However, a big differece between type system of Lean and other languages is that
 
 ## Starting Lean
 
-After understanding its high level idea, let me use a example to show how Lean works. I want to use Lean to prove that $0 + n = n + 0$. We can first see how we proof it in math.
+After understanding its high level idea, let me use a example to show how Lean works. I want to use Lean to prove that $0 + n = n$. We can first see how we proof it in math.
 
 ### Mathematical Proof
 
@@ -33,17 +33,17 @@ After understanding its high level idea, let me use a example to show how Lean w
 > \end{align*}
 > $$
 
-We can use induction to prove this proposition. First, we need to prove the base case, which is when $n = 0$. In this case, we have $0 + 0 = 0 + 0$, which is true.
+We can use induction to prove this proposition. First, we need to prove the base case, which is when $n = 0$. In this case, we have $0 + 0 = 0$, which is true.
 
 Next, we need to prove the inductive step, which is when $n = \text{succ}(k)$, where $\text{succ}(k)$ is the successor of $k$. In this case, we have:
 $$
 0 + \text{succ}(k) = \text{succ}(0 + k)
 $$
-By the inductive hypothesis, we have $0 + k = k + 0$, so we can substitute this into the equation:
+By the inductive hypothesis, we have $0 + k = k$, so we can substitute this into the equation:
 $$
-0 + \text{succ}(k) = \text{succ}(k + 0)
+0 + \text{succ}(k) = \text{succ}(k)
 $$
-Finally, we need to prove that $\text{succ}(k + 0) = \text{succ}(k)$, which is true by the definition of addition.  
+Finally, we have proved that $0 + n = n$ for all natural numbers $n$.
 
 ## Raw Lean Code
 ```lean4
@@ -298,4 +298,61 @@ When you move from Term Mode to Tactic Mode, your mental model shifts from Const
 | **Definition** | `rfl` | `simp` or `rfl` |
 | **Function App** | `f x` | `apply f` |
 
-### Step 
+
+### Final Tactic Code
+
+```lean
+theorem zero_add (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero =>
+    rfl
+  | succ n ih =>
+    rw [add_succ]  -- 0 + succ(n) = succ(0 + n)
+    rw [ih]        -- succ(0 + n) = succ(n)
+```
+
+I think most part of the code are meet intuition except the `rw`, I believe it is because of the `InfoView` panel is not here.
+
+```lean
+theorem zero_add (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero =>
+    rfl
+  | succ n ih =>
+```
+
+When you just have this part of code, the info view will show
+```
+n: Nat
+ih: 0 + n = n
+⊢ 0 + (n + 1) = n + 1
+```
+when you put the cursor on `rw [add_succ]`, it means you want to rewrite the goal using the theorem `add_succ`, which is replace `0 + succ(n)` with `succ(0 + n)`. After you apply this step, the info view will show
+```
+n : Nat
+ih : 0 + n = n
+⊢ (0 + n).succ = n + 1
+```
+Than when you put the cursor on `rw [ih]`, it means you want to rewrite the goal using the inductive hypothesis `ih`, which is replace `0 + n` with `n`. After you apply this step, the info view will show
+```
+n : Nat
+ih : 0 + n = n
+⊢ n.succ = n + 1
+```
+Now, the goal is true by definition of addition.
+
+> [!WARNING]
+> I have a little question here, why we do not use another rfl to finish the proof? I think it is because Lean can not infer that `n.succ = n + 1` by definition of addition here. 
+
+For reference, I put the original mathematical proof here again, you will find the tactic code is very similar to it.
+
+> [!NOTE]
+> Next, we need to prove the inductive step, which is when $n = \text{succ}(k)$, where $\text{succ}(k)$ is the successor of $k$. In this case, we have:
+> $$
+> 0 + \text{succ}(k) = \text{succ}(0 + k)
+> $$
+> By the inductive hypothesis, we have $0 + k = k$, so we can substitute this into the equation:
+> $$
+> 0 + \text{succ}(k) = \text{succ}(k)
+> $$
+> Finally, we have proved that $0 + n = n$ for all natural numbers $n$.
