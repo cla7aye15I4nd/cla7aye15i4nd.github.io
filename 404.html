@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="static/style.css">
+  <title>404 - Page Not Found</title>
+  <style>
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      text-align: center;
+      gap: 1.5rem;
+    }
+
+    .dumpling-svg {
+      animation: float 4.2s ease-in-out infinite;
+      transform-origin: center center;
+      filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.22));
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-0.8deg); }
+      50%      { transform: translateY(-4px) rotate(0.9deg); }
+    }
+
+    .error-code {
+      font-size: 5rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      color: #333;
+      line-height: 1;
+    }
+
+    .error-message {
+      font-size: 1.2rem;
+      color: #555;
+      font-style: italic;
+    }
+
+    .error-sub {
+      font-size: 0.95rem;
+      color: #888;
+    }
+
+    .home-link {
+      font-size: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Zheng Yu <small>(于峥)</small></h1>
+  </header>
+
+  <main>
+    <div class="error-container">
+
+      <svg class="dumpling-svg" width="230" height="215" viewBox="0 0 230 215"
+           xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="edgeTone" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#f9deba"/>
+            <stop offset="44%" stop-color="#f5d2a5"/>
+            <stop offset="100%" stop-color="#e8c194"/>
+          </linearGradient>
+          <linearGradient id="bodyTone" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f7f1e6"/>
+            <stop offset="100%" stop-color="#e7d1b6"/>
+          </linearGradient>
+          <linearGradient id="rimShade" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#fffdfa" stop-opacity="0.52"/>
+            <stop offset="100%" stop-color="#f4e1c2" stop-opacity="0.08"/>
+          </linearGradient>
+          <linearGradient id="seamStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#000000" stop-opacity="0.22"/>
+            <stop offset="30%" stop-color="#000000" stop-opacity="0"/>
+            <stop offset="70%" stop-color="#000000" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0.22"/>
+          </linearGradient>
+        </defs>
+
+        <g fill="none" stroke="#000000" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Outer wrapper -->
+          <path d="M 46 190
+                 C 31 173, 24 154, 26 134
+                 C 16 119, 16 99, 27 83
+                 C 23 64, 31 47, 46 37
+                 C 52 23, 66 15, 83 16
+                 C 97 7, 117 7, 131 16
+                 C 147 12, 164 17, 177 29
+                 C 194 30, 208 42, 213 59
+                 C 226 69, 231 87, 226 104
+                 C 232 124, 228 145, 215 160
+                 C 213 178, 200 194, 182 199
+                 C 168 210, 147 210, 131 202
+                 C 114 210, 93 210, 77 201
+                 C 62 202, 50 198, 46 190 Z"
+                fill="url(#edgeTone)"/>
+
+          <!-- Inner body -->
+          <path d="M 66 167
+                 C 48 132, 47 90, 70 58
+                 C 94 26, 139 20, 176 40
+                 C 212 59, 223 99, 206 137
+                 C 187 178, 153 204, 110 203
+                 C 90 202, 75 189, 66 167 Z"
+                fill="url(#bodyTone)"/>
+        </g>
+
+        <!-- Face details -->
+        <path d="M 86 149 Q 89 163 103 176" fill="none" stroke="#000000" stroke-width="8.2" stroke-linecap="round"/>
+        <path d="M 124 151 C 132 156, 142 154, 149 146" fill="none" stroke="#000000" stroke-width="5.2" stroke-linecap="round"/>
+        <circle cx="112" cy="150" r="2.6" fill="#000000"/>
+        <ellipse cx="88" cy="142" rx="8" ry="5" fill="#f0bf53" opacity="0.72"/>
+        <ellipse cx="152" cy="142" rx="8" ry="5" fill="#f0bf53" opacity="0.72"/>
+
+        <!-- Highlight -->
+        <ellipse cx="102" cy="93" rx="34" ry="12" fill="#fffefb" opacity="0.26" transform="rotate(-24 102 93)"/>
+        <ellipse cx="170" cy="96" rx="22" ry="5" fill="#fdf8ed" opacity="0.28" transform="rotate(16 170 96)"/>
+
+      </svg>
+
+      <div class="error-code">404</div>
+      <div class="error-message">这个页面迷路了，像一只找不到锅的饺子。</div>
+      <div class="error-sub">The page you are looking for doesn't exist.</div>
+      <div class="home-link"><a href="/">← Back to Home</a></div>
+    </div>
+  </main>
+
+</body>
+</html>
