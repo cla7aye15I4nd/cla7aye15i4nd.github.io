@@ -1,0 +1,102 @@
+- date: "2026.03"
+  html: '<a href="./paper/ppatch.pdf">pPatch</a> is accepted to ACM FSE 2026!'
+
+- date: "2026.03"
+  html: >-
+    I joined <a href="https://www.depthfirst.com/" target="_blank">DepthFirst</a>
+    as a Security Research Engineer! I am excited to work with the talented team.
+
+- date: "2026.03"
+  html: >-
+    I passed the PhD defense at Northwestern University! Thanks to my committee members:
+    <a href="http://xinyuxing.org/" target="_blank">Prof. Xinyu Xing</a>,
+    <a href="http://pdinda.org/" target="_blank">Prof. Peter Dinda</a>,
+    <a href="https://users.cs.northwestern.edu/~ychen/" target="_blank">Prof. Yan Chen</a>,
+    <a href="https://sites.google.com/site/kexinpeisite/" target="_blank">Prof. Kexin Pei</a>.
+    Here is my <a href="/paper/defense.pdf" target="_blank">slides</a> and
+    <a href="/paper/thesis.pdf" target="_blank">thesis</a>.
+
+- date: "2025.11"
+  html: >-
+    I got 🥈 Runner-up in Technical Impact Award of
+    <a href="https://mlab.cyber.nyu.edu/csaw/finalists/" target="_blank">CSAW Applied Research Competition (ARC) 2025!</a>
+
+- date: "2025.11"
+  html: >-
+    I was invited to be a PC member for
+    <a href="https://llm4code.github.io/" target="_blank">LLM4Code 2026, which is co-located with ICSE 2026!</a>
+
+- date: "2025.10"
+  html: >-
+    I passed the PhD proposal exam at Northwestern University!
+    Thanks to my committee members:
+    <a href="http://xinyuxing.org/" target="_blank">Prof. Xinyu Xing</a>,
+    <a href="http://pdinda.org/" target="_blank">Prof. Peter Dinda</a>,
+    <a href="https://users.cs.northwestern.edu/~ychen/" target="_blank">Prof. Yan Chen</a> and
+    <a href="https://sites.google.com/site/kexinpeisite/" target="_blank">Prof. Kexin Pei</a>.
+    Here is my <a href="/paper/proposal.pdf" target="_blank">slides</a>.
+
+- date: "2025.10"
+  html: >-
+    <a href="https://www.usenix.org/conference/usenixsecurity25/presentation/yu-zheng" target="_blank">PatchAgent</a>
+    is accepted to
+    <a href="https://mlab.cyber.nyu.edu/csaw/finalists/#finalists" target="_blank">CSAW Applied Research Competition (ARC) 2025 as Finalist!</a>
+
+- date: "2025.09"
+  html: '<a href="paper/portgpt.pdf" target="_blank">PortGPT</a> is accepted to IEEE S&P 2026!'
+
+- date: "2025.08"
+  html: >-
+    Our team, <a href="https://b3yond.org/" target="_blank">42-b3yond-6ug</a>, won rank 6 at AIxCC Finals!
+
+- date: "2025.06"
+  html: "Awarded Student Grant from USENIX Security 2025!"
+
+- date: "2025.01"
+  html: >-
+    <a href="https://www.usenix.org/conference/usenixsecurity25/presentation/yu-zheng" target="_blank">PatchAgent</a>
+    is accepted to USENIX Security 2025!
+
+- date: "2024.12"
+  html: "I got the Master of Science degree in Computer Science from Northwestern University!"
+
+- date: "2024.10"
+  html: >-
+    I passed the PhD qualifying exam at Northwestern University!
+    Thanks to my committee members:
+    <a href="http://xinyuxing.org/" target="_blank">Prof. Xinyu Xing</a>,
+    <a href="http://pdinda.org/" target="_blank">Prof. Peter Dinda</a>, and
+    <a href="https://users.cs.northwestern.edu/~ychen/" target="_blank">Prof. Yan Chen</a>.
+    Here is my <a href="/paper/qual.pdf" target="_blank">slides</a>.
+
+- date: "2024.09"
+  html: "Awarded Student Grant from ACM CCS 2024!"
+
+- date: "2024.08"
+  html: >-
+    Our team, <a href="https://b3yond.org/" target="_blank">42-b3yond-6ug</a>,
+    won the AIxCC Semi-Finals and was awarded $2 million. I had the honor
+    of designing the program repair system for the competition.
+
+- date: "2024.07"
+  html: "Awarded Student Grant from USENIX Security 2024!"
+
+- date: "2024.06"
+  html: >-
+    <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/yu-jiahao" target="_blank">LLM-Fuzzer</a>
+    is accepted to USENIX Security 2024!
+
+- date: "2024.05"
+  html: >-
+    <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/yu-zheng" target="_blank">ShadowBound</a>
+    is accepted to USENIX Security 2024!
+
+- date: "2024.02"
+  html: >-
+    Our team, <a href="https://b3yond.org/" target="_blank">42-b3yond-6ug</a>,
+    received funding of $1 million from AIxCC.
+
+- date: "2023.09"
+  html: >-
+    <a href="https://www.usenix.org/conference/usenixsecurity24/presentation/lin" target="_blank">CAMP</a>
+    is accepted to USENIX Security 2024!

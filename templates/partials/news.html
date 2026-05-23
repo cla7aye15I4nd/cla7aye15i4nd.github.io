@@ -1,0 +1,8 @@
+<h3 id="news">News</h3>
+<ul>
+{% for item in site.data.news %}
+  <li>
+    <p>[{{ item.date }}] {{ item.html | safe }}</p>
+  </li>
+{% endfor %}
+</ul>

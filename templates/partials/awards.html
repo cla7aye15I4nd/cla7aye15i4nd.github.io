@@ -1,0 +1,14 @@
+<h3 id="awards">Honors &amp; Awards</h3>
+<ul>
+{% for award in site.data.awards %}
+  <li>
+    <p class="two-col">
+      <b>{{ award.title }}</b>
+      <small>{{ award.year }}</small>
+    </p>
+    {% if award.detail %}
+    <em><small>{{ award.detail }}</small></em>
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>

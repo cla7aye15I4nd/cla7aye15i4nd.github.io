@@ -1,0 +1,14 @@
+title: "Zheng Yu"
+author: "Zheng Yu"
+domain: "www.dataisland.org"
+analytics:
+  ga_id: "G-VQB5JBZ3B6"
+default_lang: "en"
+content_dir: "content"
+template_dir: "templates"
+static_dir: "static"
+output_dir: "dist"
+copy_dirs:
+  - paper
+copy_files:
+  - CNAME

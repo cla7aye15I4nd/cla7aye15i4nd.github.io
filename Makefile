@@ -1,58 +1,41 @@
-.PHONY: all build clean install help
+.PHONY: all install build serve clean typecheck lint fmt check help
 
-# Python virtual environment directory
-VENV := .venv
-PYTHON := $(VENV)/bin/python3
-PIP := $(VENV)/bin/pip
+UV := uv
 
-# Default target
 all: build
 
-# Create virtual environment if it doesn't exist
-$(VENV):
-	@echo "Creating virtual environment..."
-	python3 -m venv $(VENV)
-	@echo "Virtual environment created at $(VENV)"
+install:
+	@$(UV) sync
 
-# Install dependencies
-install: $(VENV)
-	@echo "Installing dependencies..."
-	$(PIP) install -r requirements.txt
-	@echo "Dependencies installed"
-
-# Build blog (sets up env if needed)
 build: install
-	@echo "Building blog..."
-	$(PYTHON) build_blog.py --verbose
-	@echo "Blog built successfully!"
+	@$(UV) run site build
 
-# Clean generated HTML files
+serve: install
+	@$(UV) run site serve
+
 clean:
-	@echo "Cleaning generated files..."
-	@if [ -f "$(PYTHON)" ]; then \
-		$(PYTHON) build_blog.py --clean; \
-	else \
-		rm -f blog/*.html; \
-		echo "Removed blog/*.html"; \
-	fi
-	@echo "Clean complete"
+	@rm -rf dist .mypy_cache .ruff_cache
+	@find . -name '__pycache__' -type d -prune -exec rm -rf {} +
 
-# Clean everything including virtual environment
-clean-all: clean
-	@echo "Removing virtual environment..."
-	rm -rf $(VENV)
-	@echo "All clean!"
+typecheck: install
+	@$(UV) run mypy
 
-# Help target
+lint: install
+	@$(UV) run ruff check .
+
+fmt: install
+	@$(UV) run ruff format .
+	@$(UV) run ruff check --fix .
+
+check: typecheck lint build
+
 help:
-	@echo "Blog Build System"
-	@echo ""
-	@echo "Available targets:"
-	@echo "  make build      - Build the blog (sets up venv if needed)"
-	@echo "  make install    - Install Python dependencies"
-	@echo "  make clean      - Remove generated HTML files"
-	@echo "  make clean-all  - Remove generated files and virtual environment"
-	@echo "  make help       - Show this help message"
-	@echo ""
-	@echo "Quick start:"
-	@echo "  make            - Build the blog (same as 'make build')"
+	@echo "Targets:"
+	@echo "  install    Sync the uv environment"
+	@echo "  build      Build the site into dist/"
+	@echo "  serve      Run a local dev server with watch + rebuild"
+	@echo "  typecheck  Run mypy in strict mode"
+	@echo "  lint       Run ruff checks"
+	@echo "  fmt        Format with ruff and apply fixes"
+	@echo "  check      Run typecheck, lint, and a strict build"
+	@echo "  clean      Remove build artifacts and caches"

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="{{ lang | default(site.default_lang) }}">
+
+<head>
+  {% if site.analytics.ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.analytics.ga_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', '{{ site.analytics.ga_id }}', {
+      enhanced_measurement: true,
+      send_page_view: true
+    });
+  </script>
+  {% endif %}
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {% block description %}{% endblock %}
+  {% block stylesheets %}
+  <link rel="stylesheet" href="{{ static_prefix | default('') }}static/style.css">
+  {% endblock %}
+  <title>{% block title %}{{ site.title }}{% endblock %}</title>
+  {% block head_extra %}{% endblock %}
+</head>
+
+<body id="top">
+  {% block body %}{% endblock %}
+
+  {% block footer %}
+  <footer>
+    <hr />
+    <p style="text-align: center;">
+      <small>
+        {{ site.author }} &copy; 1999 -
+        <script>document.write(new Date().getFullYear());</script>. All rights reserved.
+      </small>
+    </p>
+  </footer>
+  {% endblock %}
+</body>
+
+</html>

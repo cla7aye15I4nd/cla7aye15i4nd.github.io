@@ -1,0 +1,8 @@
+<h3 id="media">Media Coverage</h3>
+<ul>
+{% for item in site.data.media %}
+  <li>
+    <a href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+  </li>
+{% endfor %}
+</ul>

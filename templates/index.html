@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set profile = site.data.profile %}
+{% block title %}{{ profile.name }}{% endblock %}
+
+{% block body %}
+<header>
+  <h1>{{ profile.name }} <small> ({{ profile.name_alt }})</small></h1>
+
+  {% if profile.quote %}
+  <p class="info">
+    <small>
+      <i>{{ profile.quote }}</i>
+      <br />
+      <br />
+    </small>
+  </p>
+  {% endif %}
+
+  <p class="info">
+    {% for link in profile.links %}
+      <a href="{{ link.url }}"{% if not link.get('same_window') %} target="_blank"{% endif %}>{{ link.label }}</a>{% if not loop.last %} /{% endif %}
+    {% endfor %}
+  </p>
+
+  <div class="abstract">
+    <h3>About Me (<a href="{{ profile.cv_url }}" target="_blank">CV</a>)</h3>
+    {% for paragraph in profile.about %}
+    <p>{{ paragraph | safe }}</p>
+    {% if not loop.last %}<br />{% endif %}
+    {% endfor %}
+  </div>
+</header>
+
+<main>
+  <article>
+    {% include "partials/news.html" %}
+    {% include "partials/publications.html" %}
+    {% include "partials/talks.html" %}
+    {% include "partials/experience.html" %}
+    {% include "partials/awards.html" %}
+    {% include "partials/media.html" %}
+    {% include "partials/services.html" %}
+  </article>
+</main>
+{% endblock %}

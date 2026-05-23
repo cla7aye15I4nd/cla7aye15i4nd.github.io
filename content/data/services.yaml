@@ -1,0 +1,26 @@
+program_committee:
+  - { name: "LLM4Code 2026", url: "https://llm4code.github.io/" }
+  - { name: "ICLR 2026",     url: "https://iclr.cc/Conferences/2026/ProgramCommittee" }
+  - { name: "NeurIPS 2025",  url: "https://neurips.cc/Conferences/2025/ProgramCommittee" }
+  - { name: "ICML 2025",     url: "https://icml.cc/Conferences/2025/Reviewers" }
+  - { name: "ICLR 2025",     url: "https://iclr.cc/Conferences/2025/ProgramCommittee" }
+  - { name: "AISTATS 2025",  url: "https://aistats.org/aistats2025/committee.html" }
+  - { name: "AAAI-UC 2025",  url: "https://aaai.org/conference/aaai/aaai-25/aaai-25-uc-call/" }
+  - { name: "NeurIPS 2024",  url: "https://neurips.cc/Conferences/2024/ProgramCommittee" }
+  - { name: "ICECI 2024",    url: "https://iceci-conference.eai-conferences.org/2024/committees/" }
+
+artifact_evaluation:
+  - { name: "CCS 2025",              url: "https://www.sigsac.org/ccs/CCS2025/artifact-evaluation-committee/" }
+  - { name: "NDSS 2025",             url: "https://www.ndss-symposium.org/ndss2025/submissions/call-for-artifacts" }
+  - { name: "USENIX Security 2025",  url: "https://www.usenix.org/conference/usenixsecurity25/call-for-artifacts" }
+  - { name: "ATC 2024",              url: "https://www.usenix.org/conference/atc24/call-for-artifacts" }
+  - { name: "OSDI 2024",             url: "https://www.usenix.org/conference/osdi24/call-for-artifacts" }
+  - { name: "ISSTA 2024",            url: "https://2024.issta.org/committee/issta-2024-artifact-evaluation-artifact-evaluation-committee" }
+  - { name: "USENIX Security 2024",  url: "https://www.usenix.org/conference/usenixsecurity24/call-for-artifacts" }
+  - { name: "CCS 2024",              url: "https://www.sigsac.org/ccs/CCS2024/organization/ae-committee.html" }
+  - { name: "CCS 2023",              url: "https://www.sigsac.org/ccs/CCS2023/orgs-artifact.html" }
+
+journal_reviewer:
+  - { name: "IEEE TDSC", url: "https://www.computer.org/csdl/journal/tq" }
+  - { name: "PeerJ CS",  url: "https://peerj.com/computer-science/" }
+  - { name: "IEEE TIFS", url: "https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=10206" }

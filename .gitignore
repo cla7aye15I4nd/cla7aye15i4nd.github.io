@@ -1,5 +1,20 @@
 ## Mac
 .DS_Store
+
+# Build output
+dist/
+
+# LaTeX build artifacts (CV/)
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+
 # Blog build system
 .venv/
 

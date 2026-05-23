@@ -1,0 +1,31 @@
+<h3 id="publications">Publications</h3>
+<div>
+  <small><b>*</b> indicates equal contribution.</small>
+</div>
+<ul>
+{% for pub in site.data.publications %}
+  <li>
+    <p>
+      <a href="{{ pub.url }}" target="_blank"><b>{{ pub.title }}</b></a>
+      {% for link in pub.links %}
+        <a href="{{ link.url }}" target="_blank">[{{ link.label }}]</a>
+      {% endfor %}
+    </p>
+    <em>
+      <small>
+        {%- for author in pub.authors -%}
+          {%- set is_me = author.rstrip('*') == site.data.profile.me -%}
+          {%- if is_me %}<b>{{ author }},</b>{% else %}{{ author }}{% if not loop.last %},{% endif %}{% endif %}
+          {%- if not loop.last %} {% endif -%}
+        {%- endfor -%}
+      </small>
+    </em>
+    <br />
+    {{ pub.venue }}
+    {% if pub.note %}
+    <br />
+    <small><b>{{ pub.note }}</b></small>
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>

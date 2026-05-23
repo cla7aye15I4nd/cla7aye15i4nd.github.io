@@ -1,0 +1,25 @@
+<h3 id="experiences">Work &amp; Teaching Experience</h3>
+<ul>
+{% for item in site.data.experience %}
+  <li>
+    <p class="two-col">
+      <a href="{{ item.url }}" target="_blank"><b>{{ item.org }}</b></a>
+      <small>{{ item.date }}</small>
+    </p>
+    <p class="two-col">
+      <b>{{ item.role }}</b>
+      <small>{{ item.location }}</small>
+    </p>
+    {% if item.team %}
+    <em><small>{{ item.team }}</small></em>
+    {% endif %}
+    {% if item.bullets %}
+    <ul>
+      {% for bullet in item.bullets %}
+      <li>{{ bullet | safe }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>

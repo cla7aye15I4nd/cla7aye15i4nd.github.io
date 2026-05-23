@@ -1,0 +1,5 @@
+- title: "Reversing MCU with Firmware Emulation"
+  url: "https://www.blackhat.com/eu-22/arsenal/schedule/index.html#reversing-mcu-with-firmware-emulation-29553"
+  venue: "BlackHat Europe 2022, London, UK"
+  links:
+    - { label: "Code", url: "https://github.com/qilingframework/qiling" }

@@ -1,93 +1,75 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% set static_prefix = "../" %}
+{% set lang = post.lang %}
 
-<head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VQB5JBZ3B6"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
+{% block title %}{{ post.title }} - {{ site.author }}{% endblock %}
 
-    gtag('config', 'G-VQB5JBZ3B6', {
-      enhanced_measurement: true,
-      send_page_view: true
-    });
-  </script>
+{% block description %}
+{% if post.description %}
+<meta name="description" content="{{ post.description }}" />
+{% endif %}
+{% endblock %}
 
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  {% if description %}
-  <meta name="description" content="{{ description }}" />
+{% block head_extra %}
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../static/hljs-lean.js"></script>
+<script>hljs.highlightAll();</script>
+{% endblock %}
+
+{% block body %}
+<main class="article-container">
+  {% if post.toc_html %}
+  <aside class="toc-sidebar">
+    <nav class="toc">
+      <h3>Table of Contents</h3>
+      {{ post.toc_html | safe }}
+    </nav>
+  </aside>
   {% endif %}
-  <link rel="stylesheet" href="../static/style.css">
-  <title>{{ title }} - Zheng Yu</title>
 
-  <!-- MathJax for math formula rendering -->
-  <script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        processEscapes: true,
-        processEnvironments: true
-      },
-      options: {
-        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-      }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-  <!-- Highlight.js for syntax highlighting -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="../static/hljs-lean.js"></script>
-  <script>hljs.highlightAll();</script>
-</head>
-
-<body id="top">
-  <main class="article-container">
-    {% if toc %}
-    <aside class="toc-sidebar">
-      <nav class="toc">
-        <h3>Table of Contents</h3>
-        {{ toc | safe }}
-      </nav>
-    </aside>
-    {% endif %}
-
-    <article>
-      <nav class="breadcrumb">
-        <a href="../index.html">Home</a> / <a href="index.html">Blog Archive</a>
-      </nav>
-
-      <p class="author">
-        <small>{{ date }}</small>
-        {% if tags %}
-        <br />
-        <small>Tags:
-          {% for tag in tags %}
-            <a href="index.html#tag-{{ tag }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
-          {% endfor %}
-        </small>
-        {% endif %}
-      </p>
-
-      {{ content | safe }}
-
-    </article>
-  </main>
-
-  <footer>
-    <hr />
-    <p style="text-align: center;">
-      <small>
-        Zheng Yu &copy; 1999 -
-        <script>document.write(new Date().getFullYear());</script>. All rights reserved.
+  <article>
+    <nav class="breadcrumb">
+      <a href="../index.html">Home</a> / <a href="index.html">Blog Archive</a>
+      {% if post.translations %}
+      &nbsp;|&nbsp;
+      <small>Language:
+        <b>{{ post.lang | upper }}</b>
+        {% for lang_code, other in post.translations.items() %}
+        / <a href="{{ other.url }}" hreflang="{{ lang_code }}">{{ lang_code | upper }}</a>
+        {% endfor %}
       </small>
-    </p>
-  </footer>
-</body>
+      {% endif %}
+    </nav>
 
-</html>
+    <p class="author">
+      <small>{{ post.date }}</small>
+      {% if post.tags %}
+      <br />
+      <small>Tags:
+        {% for tag in post.tags %}
+        <a href="index.html#tag-{{ tag }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </small>
+      {% endif %}
+    </p>
+
+    {{ post.content_html | safe }}
+  </article>
+</main>
+{% endblock %}
