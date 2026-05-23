@@ -32,8 +32,8 @@
     - { label: "Paper",         url: "https://www.usenix.org/system/files/usenixsecurity25-yu-zheng.pdf" }
     - { label: "Slides",        url: "/paper/slides-patchagent.pdf" }
     - { label: "Code - 100+ Stars", url: "https://github.com/cla7aye15I4nd/patchagent" }
-    - { label: "USENIX Poster", url: "/paper/USENIX-PatchAgent.pdf" }
-    - { label: "CSAW Poster",   url: "/paper/CSAW-PatchAgent.pdf" }
+    - { label: "USENIX Poster", url: "/paper/poster-usenix-patchagent.pdf" }
+    - { label: "CSAW Poster",   url: "/paper/poster-csaw-patchagent.pdf" }
 
 - title: "ShadowBound: Efficient Heap Memory Protection Through Advanced Metadata Management and Customized Compiler Optimization"
   url: "https://www.usenix.org/conference/usenixsecurity24/presentation/yu-zheng"
@@ -61,7 +61,7 @@
   links:
     - { label: "Paper",  url: "https://www.usenix.org/system/files/usenixsecurity24-lin-zhenpeng.pdf" }
     - { label: "Code - 40+ Stars", url: "https://github.com/cla7aye15I4nd/CAMP" }
-    - { label: "Slides", url: "paper/slides-CAMP.pdf" }
+    - { label: "Slides", url: "paper/slides-camp.pdf" }
 
 - title: "FIRST: Exploiting the Multi-Dimensional Attributes of Functions for Power-Aware Serverless Computing"
   url: "https://ieeexplore.ieee.org/document/10177391"
