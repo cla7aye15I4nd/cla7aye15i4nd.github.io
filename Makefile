@@ -1,4 +1,4 @@
-.PHONY: all install build serve clean typecheck lint fmt check help
+.PHONY: all install build serve clean cv typecheck lint fmt check help
 
 UV := uv
 
@@ -13,8 +13,14 @@ build: install
 serve: install
 	@$(UV) run site serve
 
+cv:
+	@cd resume && latexmk -pdf -interaction=nonstopmode -jobname=resume main.tex
+	@mv resume/resume.pdf paper/resume.pdf
+	@echo "built paper/resume.pdf"
+
 clean:
 	@rm -rf dist .mypy_cache .ruff_cache
+	@cd resume && latexmk -C >/dev/null 2>&1 || true
 	@find . -name '__pycache__' -type d -prune -exec rm -rf {} +
 
 typecheck: install
@@ -34,6 +40,7 @@ help:
 	@echo "  install    Sync the uv environment"
 	@echo "  build      Build the site into dist/"
 	@echo "  serve      Run a local dev server with watch + rebuild"
+	@echo "  cv         Build resume/main.tex -> paper/cv.pdf (requires latexmk)"
 	@echo "  typecheck  Run mypy in strict mode"
 	@echo "  lint       Run ruff checks"
 	@echo "  fmt        Format with ruff and apply fixes"

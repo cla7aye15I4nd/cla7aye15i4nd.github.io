@@ -36,6 +36,17 @@ jobs:
       - name: Lint
         run: uv run ruff check .
 
+      - name: Build resume
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: resume
+          latexmk_use_lualatex: false
+          args: -pdf -interaction=nonstopmode -jobname=resume
+
+      - name: Stage resume into paper/
+        run: mv resume/resume.pdf paper/resume.pdf
+
       - name: Build site
         run: uv run site build
 

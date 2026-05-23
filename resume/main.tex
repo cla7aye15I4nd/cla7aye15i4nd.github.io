@@ -1,0 +1,425 @@
+%-------------------------
+% Resume in Latex
+% Author : Jake Gutierrez
+% Based off of: https://github.com/sb2nov/resume
+% License : MIT
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+\usepackage{xcolor}
+\definecolor{accentblue}{RGB}{0, 102, 204} 
+
+
+%----------FONT OPTIONS----------
+% sans-serif
+% \usepackage[sfdefault]{FiraSans}
+% \usepackage[sfdefault]{roboto}
+% \usepackage[sfdefault]{noto-sans}
+% \usepackage[default]{sourcesanspro}
+
+% serif
+% \usepackage{CormorantGaramond}
+% \usepackage{charter}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-4pt}
+}
+
+\newcommand{\resumeSubheadingDense}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-12pt}
+}
+
+\newcommand{\resumeSubheadingMedium}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\begin{center}
+    \textbf{\Huge Zheng Yu} \\ \vspace{2pt}
+    \href{mailto:zheng.yu@northwestern.edu}{\underline{zheng.yu@northwestern.edu}} 
+    $|$  \underline{+1 312-520-5936}
+\end{center}
+
+
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheadingDense
+        {Northwestern University}{Evanston, IL, USA}
+        {Ph.D. in Computer Science (Advisor: Prof. Xinyu Xing)}{Sep 2022 -- March 2026}
+    \resumeSubheadingDense
+        {Shanghai Jiao Tong University}{Shanghai, China}
+        {Bachelor of Science in Computer Science $|$ ACM Honors Program}{Sep 2018 -- Jun 2022}
+  \resumeSubHeadingListEnd
+
+
+\section{Core Competencies}
+\resumeSubHeadingListStart
+  \resumeSubheadingMedium
+    {\textbf{High-Impact Open-Source Leadership}}{}
+    {\textcolor{accentblue}{5,000+ Combined GitHub Stars} $|$ Industry \& Government Recognition}
+    {}
+    \resumeItemListStart
+      \resumeItem{\textbf{Project Leadership:} Created \textcolor{accentblue}{GPT-Fuzzer (500+ stars)}, an LLM robustness testing framework integrated into Microsoft Azure's PyRIT security toolkit. Developed \textcolor{accentblue}{PatchAgent (100+ stars)}, an AI-powered automated program repair system that achieved DARPA AIxCC finalist status among 50+ international teams.}
+      \resumeItem{\textbf{Core Maintainer Contributions:} Served as core developer for \textcolor{accentblue}{Qiling Framework (5,000+ stars)}, implementing hardware emulation modules. Contributed security patches and performance improvements to critical infrastructure projects including Linux Kernel, PHP interpreter, Assimp, GPAC, and Yasm assembler.}
+      \resumeItem{\textbf{Competitive Programming Excellence:} \textcolor{accentblue}{Silver medalist at China National Olympiad in Informatics (NOI 2017)}, ranking top 100 among 10,000+ participants nationwide. Leveraged algorithmic expertise as Teaching Assistant for competitive programming and data structures courses at Shanghai Jiao Tong University.}
+      \resumeItem{\textbf{Full-Stack Engineering:} Architected and deployed end-to-end systems across the technology stack. Expert proficiency in front-end technologies (JavaScript, React, CSS), back-end development (C/C++, Python, Java, Go, Rust), and cloud-native infrastructure (Docker, Kubernetes, CI/CD pipelines) for production-grade applications.}
+    \resumeItemListEnd
+    \resumeSubheadingMedium
+    {\textbf{Pioneering Agentic System Design for Security Purpose}}{}
+    {\textcolor{accentblue}{IEEE S\&P \& USENIX Security Publications} $|$ DARPA AIxCC Finalist}
+    {}
+    \resumeItemListStart
+      \resumeItem{\textbf{Patch Backporting Agent:} First-authored \textcolor{accentblue}{PortGPT}, an LLM-based agent system for automated backporting with hierarchical workflow design to mitigate hallucination and context limitations. Published at IEEE S\&P 2026 and backported 9 Linux kernel patches from mainline to stable versions, garnering coverage by tech media.}
+      \resumeItem{\textbf{Automated Vulnerability Repair:} First-authored \textcolor{accentblue}{PatchAgent} with innovative middleware layer between LLM and execution environment, enabling enhanced tool utilization. Accepted at USENIX Security 2025 and repaired 10 real-world CVEs across open-source projects including Pcapplusplus, libredwg, Assimp, libssh2, and HDF5.}
+      \resumeItem{\textbf{End-to-End DARPA AIxCC System:}
+      Core team member of 42-b3yond-6ug at DARPA AIxCC, architecting \textcolor{accentblue}{BugBuster}—an LLM-powered system for automated vulnerability discovery and repair. Advanced to finalist position among 50+ international teams.}
+    \resumeItemListEnd
+    \resumeSubheadingMedium
+    {\textbf{Deep Expertise in Low-Level Security \& Systems}}{}
+    {\textcolor{accentblue}{50+ CVE Discoveries} $|$ Compiler-Based Defenses $|$ Highly-Cited AI Security Research}
+    {}
+    \resumeItemListStart
+      \resumeItem{\textbf{Compiler \& Kernel Security:} First-authored \textcolor{accentblue}{ShadowBound} and co-authored \textcolor{accentblue}{CAMP} for userspace and kernel hardening, both published at USENIX Security. Implemented custom LLVM optimization passes, showing mastery of compiler and low-level memory management across privilege boundaries.}
+      \resumeItem{\textbf{Vulnerability \& Exploit Study:} Discovered \textcolor{accentblue}{50+ CVEs} across userspace applications and the Linux kernel through systematic security analysis. \textcolor{accentblue}{Top 5 finalist at DEFCON CTF Finals (2022-2023)} with team StrawHat, showcasing deep understanding of binary exploitation and defense mechanisms.}
+      \resumeItem{\textbf{AI Security Research Impact:} Co-authored \textcolor{accentblue}{GPT-Fuzzer} (published as LLM-Fuzzer at USENIX Security 2024), which has become a foundational work in LLM jailbreak assessment. The framework was integrated into Microsoft Azure's PyRIT security toolkit.}
+    \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Publications}
+\small{\textit{* denotes equal contribution}}
+\resumeSubHeadingListStart
+\resumeSubItem{
+    \textbf{Patch Validation in Automated Vulnerability Repair} \\
+    \textit{\textbf{Zheng Yu}, Wenxuan Shi, Xinqian Sun, Zheyun Feng, Meng Xu, Xinyu Xing} \\
+    \textit{arXiv 2603.06858} \\
+  }
+  \resumeSubItem{
+    \textbf{pPatch: Automated Vulnerability Unpatching} \\
+    \textit{Tianyi Jing, Pengyu Ding, Meng Xu, Yinhao Hu, \textbf{Zheng Yu}, Dongliang Mu} \\
+    \textit{ACM International Conference on the Foundations of Software Engineering (FSE) 2026}
+  }
+  \resumeSubItem{
+    \textbf{PortGPT: Towards Automated Backporting Using Large Language Models} \\
+    \textit{\textbf{Zheng Yu*}, Zhaoyang Li*, Jingyi Song, Meng Xu, Yuxuan Luo, Dongliang Mu} \\
+    \textit{IEEE Symposium on Security and Privacy (S\&P) 2026}
+  }
+  \resumeSubItem{
+    \textbf{PatchAgent: A Practical Program Repair Agent Mimicking Human Expertise} \\
+    \textit{\textbf{Zheng Yu}, Ziyi Guo, Yuhang Wu, Jiahao Yu, Meng Xu, Dongliang Mu, Yan Chen, Xinyu Xing} \\
+    \textit{USENIX Security Symposium 2025}
+  }
+  \resumeSubItem{
+    \textbf{ShadowBound: Efficient Heap Memory Protection Through Advanced Metadata Management and Customized Compiler Optimization} \\
+    \textit{\textbf{Zheng Yu}, Ganxiang Yang, Xinyu Xing} \\
+    \textit{USENIX Security Symposium 2024}
+  }
+  \resumeSubItem{
+    \textbf{LLM-Fuzzer: Scaling Assessment of Large Language Model Jailbreaks} \\
+    \textit{Jiahao Yu, Xingwei Lin, \textbf{Zheng Yu}, Xinyu Xing} \\
+    \textit{USENIX Security Symposium 2024}
+  }
+  \resumeSubItem{
+    \textbf{CAMP: Compiler and Allocator-based Heap Memory Protection} \\
+    \textit{Zhenpeng Lin, \textbf{Zheng Yu}, Ziyi Guo, Simone Campanoni, Peter Dinda, Xinyu Xing} \\
+    \textit{USENIX Security Symposium 2024}
+  }
+  \resumeSubItem{
+    \textbf{FIRST: Exploiting the Multi-Dimensional Attributes of Functions for Power-Aware Serverless Computing} \\
+    \textit{Lu Zhang, Chao Li, Xinkai Wang, Weiqi Feng, \textbf{Zheng Yu}, Quan Chen, Jingwen Leng, Minyi Guo, Pu Yang, Shang Yue} \\
+    \textit{IEEE International Parallel and Distributed Processing Symposium (IPDPS) 2023}
+  }
+\resumeSubHeadingListEnd
+
+\section{Professional Experience}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {DepthFirst}{San Francisco, CA, US}
+    {Security Research Engineer}{March 2026 -- Present}
+    \resumeItemListStart
+      \resumeItem{\textbf{Web \& Application Security:} Developing LLM-based agent systems for automated vulnerability discovery in web applications, targeting both frontend and backend components written in high-level languages. Agents autonomously identify and exploit classes such as XSS, SQLi, SSRF, IDOR, authentication bypass, and business-logic flaws.}
+      \resumeItem{\textbf{Low-Level System Security:} Building automated vulnerability discovery systems for programs written in low-level languages (C/C++), including memory corruption bugs (buffer overflows, use-after-free, format strings) and logic vulnerabilities in system software.}
+      \resumeItem{\textbf{Automated Penetration Testing:} Designing end-to-end agentic pipelines that conduct full penetration testing engagements autonomously—covering reconnaissance, attack surface enumeration, exploitation, and impact verification across heterogeneous environments.}
+    \resumeItemListEnd
+  \resumeSubheading
+    {CertiK}{New York, NY, US}
+    {Security Researcher}{Jan 2026 -- March 2026}
+    \resumeItemListStart
+      \resumeItem{Developed LLM-based agents for automated smart contract vulnerability discovery and analysis}
+      \resumeItem{Conducted smart contract vulnerability research across multiple platforms including Solidity, Move, and Solana}
+    \resumeItemListEnd
+  \resumeSubheading
+    {University of Waterloo}{Waterloo, ON, Canada}
+    {Visiting Graduate Researcher -- CrySP Lab (Advisor: Prof. Meng Xu)}{Jun 2025 -- Sep 2025}
+    \resumeItemListStart
+      \resumeItem{Conducted patch validation research to verify the correctness of vulnerability repairs across open-source projects.}
+      \resumeItem{Designed and evaluated techniques for detecting incomplete or incorrect patches.}
+    \resumeItemListEnd
+  % \resumeSubheading
+  %   {Google Summer of Code (Part-time)}{Remote}
+  %   {Project Mentor -- Qiling Framework}{Apr 2022 -- Oct 2022}
+  %   \resumeItemListStart
+  %     \resumeItem{Mentored international contributors on MCU emulation and firmware analysis implementations.}
+  %     \resumeItem{Guided development of RISC-V and Cortex-M architecture support for the Qiling emulation framework.}
+  %   \resumeItemListEnd
+  \resumeSubheading
+    {JD.COM, Inc.}{Beijing, China}
+    {Security Engineer -- Application Security Team}{Jun 2021 -- May 2022}
+    \resumeItemListStart
+      \resumeItem{Conducted vulnerability research and security assessments for large-scale e-commerce infrastructure.}
+      \resumeItem{Developed automated security testing tools and contributed to internal security training programs.}
+    \resumeItemListEnd
+  % \resumeSubheading
+  %   {Shanghai Jiao Tong University}{Shanghai, China}
+  %   {Infrastructure Engineer -- Information and Network Center}{Sep 2019 -- May 2021}
+  %   \resumeItemListStart
+  %     \resumeItem{Maintained and optimized university-wide computing infrastructure serving 40,000+ users.}
+  %     \resumeItem{Implemented monitoring solutions and performance improvements for critical campus systems.}
+  %   \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Teaching Experience}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Operating Systems (COMP\_SCI 343)}{Sep 2025 -- Dec 2025}
+    {Graduate Teaching Assistant, Northwestern University}{Instructor: Dr. Branden Ghena}
+  \resumeSubheading
+    {Introduction to Computer Security (COMP\_SCI 350)}{Sep 2024 -- Dec 2024}
+    {Graduate Teaching Assistant, Northwestern University}{Instructor: Prof. Xinyu Xing}
+  \resumeSubheading
+    {Programming Design and Data Structures (CS151)}{Jun 2019 -- Sep 2019}
+    {Undergraduate Teaching Assistant, Shanghai Jiao Tong University}{Instructor: Prof. Huiyu Weng}
+\resumeSubHeadingListEnd
+
+
+
+
+
+\section{Selected Projects}
+\resumeSubHeadingListStart
+  \resumeProjectHeading
+      {\textbf{PortGPT} $|$ \emph{LLM-based Automated Patch Backporting}}{\href{https://github.com/OS3Lab/patch-backporting}{[\underline{GitHub}]}}
+      \resumeItemListStart
+        \resumeItem{Engineered an LLM-powered system for automatically backporting security patches across software versions, addressing a critical challenge in software maintenance that traditionally requires significant manual expert effort.}
+        \resumeItem{Implemented novel prompt engineering techniques and validation mechanisms to ensure backport correctness.}
+      \resumeItemListEnd
+
+  \resumeProjectHeading
+      {\textbf{PatchAgent} $|$ \emph{AI-Powered Program Repair System}}{\href{https://github.com/cla7aye15I4nd/PatchAgent}{[\underline{GitHub}]}}
+      \resumeItemListStart
+        \resumeItem{Built an intelligent program repair agent that mimics human debugging workflows using large language models, achieving state-of-the-art performance on standard benchmarks and recognition as a DARPA AIxCC finalist.}
+        \resumeItem{Designed multi-stage repair pipeline incorporating static analysis, dynamic testing, and iterative refinement.}
+      \resumeItemListEnd
+
+  \resumeProjectHeading
+      {\textbf{ShadowBound} $|$ \emph{Compiler-Based Memory Safety}}{\href{https://github.com/cla7aye15I4nd/ShadowBound}{[\underline{GitHub}]}}
+      \resumeItemListStart
+        \resumeItem{Developed novel heap memory protection mechanism using advanced metadata management and LLVM-based compiler optimizations, achieving significant performance improvements over existing solutions.}
+        \resumeItem{Implemented custom LLVM passes for fine-grained memory instrumentation with minimal runtime overhead.}
+      \resumeItemListEnd
+
+  \resumeProjectHeading
+      {\textbf{GPT-Fuzzer} $|$ \emph{LLM Security Testing Framework}}{\href{https://github.com/sherdencooper/GPTFuzz}{[\underline{GitHub}]}}
+      \resumeItemListStart
+        \resumeItem{Created scalable fuzzing infrastructure for evaluating LLM safety properties and jailbreak resistance, now integrated into Microsoft Azure's PyRIT security toolkit used by enterprise customers worldwide.}
+        \resumeItem{Pioneered template-based generation techniques for systematic exploration of prompt injection vulnerabilities.}
+      \resumeItemListEnd
+
+  \resumeProjectHeading
+      {\textbf{Qiling Framework} $|$ \emph{Advanced Binary Emulation}}{\href{https://github.com/qilingframework/qiling}{[\underline{GitHub}]}}
+      \resumeItemListStart
+        \resumeItem{Core contributor to multi-platform binary emulation framework with 5,000+ GitHub stars. Implemented comprehensive MCU emulation module supporting STM32, GigaDevice, and SiFive microcontrollers across ARM Cortex-M and RISC-V architectures.}
+        \resumeItem{Extended firmware analysis capabilities and integrated AFL fuzzing support for embedded systems testing.}
+      \resumeItemListEnd
+
+  \resumeProjectHeading
+      {\textbf{Pymx Compiler} $|$ \emph{Educational Compiler Infrastructure}}{\href{https://github.com/cla7aye15I4nd/Pymx}{[\underline{GitHub}]}}
+      \resumeItemListStart
+        \resumeItem{Designed and implemented a complete compiler for Java-like language targeting RISC-V architecture, featuring lexical analysis, parsing, semantic analysis, optimization passes, and code generation to RV32IM assembly.}
+      \resumeItemListEnd
+
+  \resumeProjectHeading
+      {\textbf{RISC-V CPU Implementation} $|$ \emph{Hardware Design}}{\href{https://github.com/cla7aye15I4nd/trivial-riscv-cpu}{[\underline{GitHub}]}}
+      \resumeItemListStart
+        \resumeItem{Architected RISC-V processor in Verilog HDL implementing Tomasulo algorithm for out-of-order execution, with instruction cache, load buffer, and branch prediction for enhanced performance on FPGA platforms.}
+      \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+
+\section{Honors \& Awards}
+    \resumeSubHeadingListStart
+        \resumeSubheading
+        {CSAW Applied Research Competition Finalist / Runner-up in Technical Impact Award}{2025}
+        {NYU Tandon School of Engineering -- PatchAgent Project}{}
+        \resumeSubheading
+        {USENIX Security Student Grant Recipient}{2024, 2025}
+        {USENIX Association}{}
+        \resumeSubheading
+        {DARPA AIxCC Advanced Finals}{2024}
+        {Top Finalist -- Team 42-b3yond-6ug}{}
+        \resumeSubheading
+        {ACM CCS Student Grant Recipient}{2024}
+        {ACM SIGSAC Conference on Computer and Communications Security}{}
+        \resumeSubheading
+        {DEFCON CTF Finals -- 5th Place}{2023}
+        {Team StrawHat (7th Place in 2022)}{}
+        \resumeSubheading
+        {Outstanding Graduate Award}{2022}
+        {Shanghai Jiao Tong University}{}
+        \resumeSubheading
+        {Zhiyuan Honor Scholarship}{2018--2021}
+        {Shanghai Jiao Tong University (Top 2\% annually)}{}
+        \resumeSubheading
+        {China National Olympiad in Informatics -- Silver Medal}{2017}
+        {China Computer Federation (CCF) -- Top 100 Nationally}{}
+    \resumeSubHeadingListEnd
+
+
+\section{Conference Presentations}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Reversing MCU with Firmware Emulation}{Dec 2022}
+    {BlackHat Europe}{London, UK}
+\resumeSubHeadingListEnd
+
+
+\section{Academic Service}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Program Committee Member}{}
+    {AI/ML/SE Conferences}{}
+    \resumeItemListStart
+        \resumeItem{LLM4Code Workshop, co-located with ICSE -- 2026}
+        \resumeItem{International Conference on Learning Representations (ICLR) -- 2025, 2026}
+        \resumeItem{Conference on Neural Information Processing Systems (NeurIPS) -- 2024, 2025}
+        \resumeItem{International Conference on Machine Learning (ICML) -- 2025}
+        \resumeItem{Artificial Intelligence and Statistics (AISTATS) -- 2025}
+        \resumeItem{AAAI Undergraduate Consortium (AAAI-UC) -- 2025}
+        \resumeItem{ICECI -- 2024}
+    \resumeItemListEnd
+  \resumeSubheading
+    {Artifact Evaluation Committee Member}{}
+    {Security \& Systems Conferences}{}
+    \resumeItemListStart
+        \resumeItem{ACM Conference on Computer and Communications Security (CCS) -- 2023, 2024, 2025}
+        \resumeItem{USENIX Security Symposium -- 2024, 2025}
+        \resumeItem{Network and Distributed System Security Symposium (NDSS) -- 2025}
+        \resumeItem{USENIX Annual Technical Conference (ATC) -- 2024}
+        \resumeItem{Operating Systems Design and Implementation (OSDI) -- 2024}
+        \resumeItem{International Symposium on Software Testing and Analysis (ISSTA) -- 2024}
+    \resumeItemListEnd
+  \resumeSubheading
+    {Peer Reviewer}{}
+    {Academic Journals}{}
+    \resumeItemListStart
+        \resumeItem{IEEE Transactions on Dependable and Secure Computing (TDSC)}
+        \resumeItem{PeerJ Computer Science}
+        \resumeItem{IEEE Transactions on Information Forensics and Security (TIFS)}
+    \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+
+\section{Technical Skills}
+    \begin{itemize}[leftmargin=0.15in, label={}]
+    \item{
+        \textbf{Programming Languages}{: C/C++ (Expert), Python (Expert), Rust, Java, JavaScript/TypeScript, Go, OCaml, Verilog HDL} \\
+        \textbf{Security \& Binary Analysis}{: IDA Pro, Ghidra, Angr, Unicorn Engine, Qiling Framework, Binary Ninja, GDB} \\
+        \textbf{AI/ML Frameworks}{: PyTorch, LangChain, Transformers, OpenAI API, Anthropic API} \\
+        \textbf{Systems \& Compilers}{: LLVM/Clang, GCC, Linux Kernel Development, QEMU, Unicorn} \\
+        \textbf{Development Tools}{: Git, Docker, Kubernetes, CI/CD (GitHub Actions, Jenkins), Vivado, VSCode, Emacs} \\
+        \textbf{Databases \& Infrastructure}{: MySQL, PostgreSQL, Redis, Apache Spark, Elasticsearch} \\
+        \textbf{Languages}{: English (Fluent), Chinese (Native)}
+    }
+    \end{itemize}
+
+
+%-------------------------------------------
+\end{document}
