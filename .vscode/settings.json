@@ -1,10 +1,4 @@
 {
-  "emeraldwalk.runonsave": {
-    "commands": [
-      {
-        "match": "blog/.*\\.md$",
-        "cmd": "make"
-      }
-    ]
-  }
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 500
 }
