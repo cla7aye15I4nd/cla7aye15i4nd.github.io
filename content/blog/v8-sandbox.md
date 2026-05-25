@@ -41,10 +41,6 @@ To find these harmful results, we should understand the boundary of the V8 sandb
 <figure>
   <svg viewBox="0 0 1020 560" role="img" aria-label="V8 sandbox attack paths" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <filter id="card-shadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.1"></feDropShadow>
-      </filter>
-
       <marker id="arrow-green" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
         <path d="M 0 0 L 12 6 L 0 12 z" fill="#10b981"></path>
       </marker>
@@ -54,23 +50,6 @@ To find these harmful results, we should understand the boundary of the V8 sandb
       <marker id="arrow-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
         <path d="M 0 0 L 12 6 L 0 12 z" fill="#64748b"></path>
       </marker>
-
-      <linearGradient id="grad-sandbox" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ecfdf5"></stop>
-        <stop offset="100%" stop-color="#d1fae5"></stop>
-      </linearGradient>
-      <linearGradient id="grad-code" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#eff6ff"></stop>
-        <stop offset="100%" stop-color="#dbeafe"></stop>
-      </linearGradient>
-      <linearGradient id="grad-outside" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#fff7ed"></stop>
-        <stop offset="100%" stop-color="#fed7aa"></stop>
-      </linearGradient>
-      <linearGradient id="grad-attacker" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#f8fafc"></stop>
-        <stop offset="100%" stop-color="#e2e8f0"></stop>
-      </linearGradient>
     </defs>
 
     <style>
@@ -79,69 +58,68 @@ To find these harmful results, we should understand the boundary of the V8 sandb
       .l { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-weight: 600; }
     </style>
 
-    <rect x="40" y="255" width="140" height="80" rx="12" fill="url(#grad-attacker)" stroke="#94a3b8" stroke-width="1.5" filter="url(#card-shadow)"></rect>
+    <rect x="40" y="255" width="140" height="80" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"></rect>
     <text x="110" y="291" text-anchor="middle" class="h" font-size="18" fill="#334155">Attacker</text>
     <text x="110" y="313" text-anchor="middle" class="b" font-size="11" fill="#64748b">via JS / V8 bug</text>
 
-    <rect x="230" y="120" width="240" height="120" rx="12" fill="url(#grad-sandbox)" stroke="#10b981" stroke-width="1.5" filter="url(#card-shadow)"></rect>
+    <rect x="230" y="120" width="240" height="120" rx="4" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"></rect>
     <text x="350" y="156" text-anchor="middle" class="h" font-size="17" fill="#065f46">Sandbox Memory</text>
     <text x="350" y="183" text-anchor="middle" class="b" font-size="12" fill="#047857">objects · metadata · data</text>
     <text x="350" y="203" text-anchor="middle" class="b" font-size="12" fill="#047857">attacker can read / write</text>
     <text x="350" y="225" text-anchor="middle" class="b" font-size="11" font-style="italic" fill="#059669">(threat model assumption)</text>
 
-    <rect x="230" y="330" width="240" height="110" rx="12" fill="url(#grad-code)" stroke="#3b82f6" stroke-width="1.5" filter="url(#card-shadow)"></rect>
+    <rect x="230" y="330" width="240" height="110" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"></rect>
     <text x="350" y="366" text-anchor="middle" class="h" font-size="17" fill="#1e40af">V8 Code</text>
     <text x="350" y="393" text-anchor="middle" class="b" font-size="12" fill="#1d4ed8">reads sandbox memory,</text>
     <text x="350" y="413" text-anchor="middle" class="b" font-size="12" fill="#1d4ed8">writes outside, calls APIs</text>
 
-    <rect x="555" y="195" width="220" height="140" rx="12" fill="url(#grad-outside)" stroke="#fb923c" stroke-width="1.5" filter="url(#card-shadow)"></rect>
+    <rect x="555" y="195" width="220" height="140" rx="4" fill="#fed7aa" stroke="#f97316" stroke-width="1.5"></rect>
     <text x="665" y="231" text-anchor="middle" class="h" font-size="17" fill="#9a3412">Outside Memory</text>
     <text x="665" y="258" text-anchor="middle" class="b" font-size="12" fill="#c2410c">memory / registers</text>
     <text x="665" y="278" text-anchor="middle" class="b" font-size="12" fill="#c2410c">outside the sandbox</text>
-    <line x1="580" y1="295" x2="750" y2="295" stroke="#fdba74" stroke-width="1"></line>
+    <line x1="580" y1="295" x2="750" y2="295" stroke="#fb923c" stroke-width="1" opacity="0.6"></line>
     <text x="665" y="316" text-anchor="middle" class="b" font-size="12" fill="#c2410c">destination of V8</text>
     <text x="665" y="328" text-anchor="middle" class="b" font-size="12" fill="#c2410c">writes / copies</text>
 
-    <rect x="830" y="260" width="170" height="140" rx="12" fill="url(#grad-code)" stroke="#3b82f6" stroke-width="1.5" filter="url(#card-shadow)"></rect>
-    <text x="915" y="296" text-anchor="middle" class="h" font-size="17" fill="#1e40af">Other Code</text>
-    <text x="915" y="324" text-anchor="middle" class="b" font-size="12" fill="#1d4ed8">browser / renderer</text>
-    <text x="915" y="344" text-anchor="middle" class="b" font-size="12" fill="#1d4ed8">code reads, writes,</text>
-    <text x="915" y="364" text-anchor="middle" class="b" font-size="12" fill="#1d4ed8">or interprets data</text>
+    <rect x="830" y="260" width="170" height="140" rx="4" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"></rect>
+    <text x="915" y="296" text-anchor="middle" class="h" font-size="17" fill="#3730a3">Other Code</text>
+    <text x="915" y="324" text-anchor="middle" class="b" font-size="12" fill="#4338ca">browser / renderer</text>
+    <text x="915" y="344" text-anchor="middle" class="b" font-size="12" fill="#4338ca">code reads, writes,</text>
+    <text x="915" y="364" text-anchor="middle" class="b" font-size="12" fill="#4338ca">or interprets data</text>
 
     <path d="M 180 280 C 200 260, 215 215, 230 195" fill="none" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrow-green)"></path>
-    <rect x="175" y="220" width="58" height="20" rx="10" fill="#10b981"></rect>
+    <rect x="175" y="220" width="58" height="20" rx="4" fill="#10b981"></rect>
     <text x="204" y="234" text-anchor="middle" class="l" font-size="11" fill="white">change</text>
 
     <line x1="350" y1="240" x2="350" y2="330" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-gray)"></line>
-    <text x="360" y="275" class="b" font-size="11" fill="#475569">V8 reads</text>
-    <text x="360" y="290" class="b" font-size="11" fill="#475569">sandbox memory</text>
+    <text x="340" y="287" text-anchor="end" class="b" font-size="11" fill="#475569">V8 reads sandbox memory</text>
 
     <path d="M 470 360 C 510 330, 540 270, 555 245" fill="none" stroke="#ef4444" stroke-width="2.5" marker-end="url(#arrow-red)"></path>
-    <text x="497" y="318" class="b" font-size="10" font-weight="600" fill="#b91c1c">ptr / arg</text>
+    <text x="510" y="290" text-anchor="middle" class="b" font-size="10" font-weight="600" fill="#b91c1c">ptr / arg</text>
 
     <path d="M 470 410 C 510 390, 540 340, 555 320" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrow-red)"></path>
-    <text x="497" y="395" class="b" font-size="10" font-weight="600" fill="#b91c1c">data copy</text>
+    <text x="510" y="412" text-anchor="middle" class="b" font-size="10" font-weight="600" fill="#b91c1c">data copy</text>
 
     <path d="M 775 285 C 795 295, 815 315, 830 325" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrow-red)"></path>
 
     <path d="M 470 145 C 660 65, 850 130, 880 260" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrow-red)"></path>
 
     <g transform="translate(320, 25)">
-      <rect x="0" y="0" width="92" height="22" rx="11" fill="#ef4444"></rect>
+      <rect x="0" y="0" width="92" height="22" rx="4" fill="#ef4444"></rect>
       <text x="46" y="15" text-anchor="middle" class="l" font-size="12" fill="white">ATTACK 2A</text>
       <text x="102" y="15" class="l" font-size="12" fill="#991b1b">other code directly reads sandbox memory</text>
       <text x="102" y="33" class="b" font-size="11" fill="#7f1d1d">allowed by sandbox — it doesn't restrict outside-in reads</text>
     </g>
 
     <g transform="translate(40, 480)">
-      <rect x="0" y="0" width="78" height="22" rx="11" fill="#ef4444"></rect>
+      <rect x="0" y="0" width="78" height="22" rx="4" fill="#ef4444"></rect>
       <text x="39" y="15" text-anchor="middle" class="l" font-size="12" fill="white">ATTACK 1</text>
       <text x="88" y="15" class="l" font-size="12" fill="#991b1b">V8 uses sandbox data as pointer / arg for write / execute</text>
       <text x="88" y="33" class="b" font-size="11" fill="#7f1d1d">validated by sandbox — this is the core sandbox check</text>
     </g>
 
     <g transform="translate(490, 480)">
-      <rect x="0" y="0" width="92" height="22" rx="11" fill="#ef4444"></rect>
+      <rect x="0" y="0" width="92" height="22" rx="4" fill="#ef4444"></rect>
       <text x="46" y="15" text-anchor="middle" class="l" font-size="12" fill="white">ATTACK 2B</text>
       <text x="102" y="15" class="l" font-size="12" fill="#991b1b">V8 copies sandbox data out → other code interprets it</text>
       <text x="102" y="33" class="b" font-size="11" fill="#7f1d1d">allowed by sandbox — safety depends on the other code</text>
