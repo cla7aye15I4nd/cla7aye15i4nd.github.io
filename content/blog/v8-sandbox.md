@@ -130,9 +130,12 @@ To find these harmful results, we should understand the boundary of the V8 sandb
 
 ## How V8 Sandbox Validate Execute from Sandbox Memory to Outside?
 
-Due to some historical reasons, V8 sandbox have mutiply mechanism related to prevent execute from sandbox memory to outside. The main mechanism is called **JDT** (JS Dispatch Table). V8 also have other mechanisms to prevent it, such as:
-- **CPT** (Code Pointer Table): The mechanism is originally designed to prevent code execution from sandbox memory to outside. However, due to performance and campatibility reasons, it is gradually deprecated.
-  > Comments from [v8/src/sandbox/code-pointer-table.h](https://chromium.googlesource.com/v8/v8/+/e88e94638bf0e99430828b1b27251b7e2db15147/src/sandbox/code-pointer-table.h):
+For historical reasons, V8 sandbox has multiple mechanisms related to preventing execution from sandbox memory to the outside. The main mechanism is the **JDT** (JS Dispatch Table). V8 also has supporting mechanisms:
+
+- **CPT** (Code Pointer Table): The original mechanism designed to prevent code execution from sandbox memory to outside. It is gradually being deprecated in favor of TPT.
+
+  > Comments from [`v8/src/sandbox/code-pointer-table.h`](https://source.chromium.org/chromium/_/chromium/v8/v8/+/e88e94638bf0e99430828b1b27251b7e2db15147:src/sandbox/code-pointer-table.h;l=94-113):
+  >
   > A table containing pointers to Code.
   >
   > TODO(498510170): Removing this table and replacing the usages with the TPT is work in progress.
@@ -140,5 +143,54 @@ Due to some historical reasons, V8 sandbox have mutiply mechanism related to pre
   > Essentially a specialized version of the trusted pointer table (TPT). A code pointer table entry contains both a pointer to a Code object as well as a pointer to the entrypoint. This way, the performance sensitive code paths that for example call a JSFunction can directly load the entrypoint from the table without having to load it from the Code object.
   >
   > When the sandbox is enabled, a code pointer table (CPT) is used to ensure basic control-flow integrity in the absence of special hardware support (such as landing pad instructions): by referencing code through an index into a CPT, and ensuring that only valid code entrypoints are stored inside the table, it is then guaranteed that any indirect control-flow transfer ends up on a valid entrypoint as long as an attacker is still confined to the sandbox.
-- **TPT** (Trusted Pointer Table): The mechanism is originally designed for storing pointers to trusted objects, these objects are also included code pointers.
+
+- **TPT** (Trusted Pointer Table): Originally designed for storing pointers to trusted objects in general. These objects can include Code, which is why the long-term plan is to absorb CPT into TPT.
+
+### JS Dispatch Table
+
+#### Quick View of JSFunction and Its Function Handle
+
+A JavaScript function as the user sees it (`function f() { ... }` or `(x) => x + 1`), V8 will use a `JSFunction` object to represent it. A `JSFunction` object contains a field called [`dispatch_handle_`](https://source.chromium.org/chromium/_/chromium/v8/v8/+/e88e94638bf0e99430828b1b27251b7e2db15147:src/objects/js-function.h;l=505) to store the index of the `JSDispatchTable` entry, which is used to repace the direct call to the function.
+
+`dispatch_handle_` is a 32-bit integer, it's lower 8 bits is always 0, and the other 24 bits is the index of the `JSDispatchTable` entry.
+
+```text
++---------------------------------+------------+
+| JSDispatchTable index (24 bits) | 0 (8 bits) |
++---------------------------------+------------+
+```
+
+Since the index have only 24 bits, the number of JDT entries will not exceed `2^24 = 16M`. Each entry's is 16 bytes, so the total size of JDT table is 256M. The 16 bytes include: 
+
+```
+Offset 0  ┌─────────────────────────────────────────────────┐
+   |      │   entrypoint_   (atomic<Address>)               │  ← Word 0：raw machine code pointer
+Offset 8  ├─────────────────────────────────────────────────┤
+   |      │   encoded_word_ (atomic<Address>)               │  ← Word 1：pack 3 info
+Offset 16 └─────────────────────────────────────────────────┘
+```
+
+for the second field, it includes:
+
+```
+bit  63               17 16                15            0
+  +-------------------+----+-------------------------------+
+  |  HeapObject ptr   |mark|     parameter_count           |
+  |    (47 bits)      |    |       (16 bits)               |
+  +-------------------+----+-------------------------------+
+```
+
+After finding the entry, V8 will use the `entrypoint_` to call the function. For freeed entry, the high 16 bits of `entrypoint_` are set to 1, which ensure dereference of free entry's `entrypoint_` will always cause segment faults. Such design ensure attacker can only replace one JS function to another JS function, considering directly call any JS function is allowed, JDT will not grant attacker any new primities. 
+
+#### Some Pitfall Examples
+
+Although JDT looks perfect, if we consider the attack path that I mentioned in the beginning, we will find some historical CVE that bypass the JDT check. Before JDT jumped to `entrypoint_`, the caller will put arguments into the stack (such mechanism is usually complex because different JIT optimizations may have different argument passing mechanisms), but the caller do not pass parameter size to the callee, the callee will recalculate the parameter size based on data stored in the sandbox again, which is called SFI. However, the attacker can swap the SFI to make the parameter size is longer than the actual parameter size, which will cause the stack overlow read. Hence, the harden for these issues is read JDT again to ensure the parameter size is consistent.
+
+The essential of bug is the attacker indirectly affact the data in the register which is represent the offset of the stack, which will cause the stack overlow read. Commit [crrev.com/c/5906113 ](https://chromium-review.googlesource.com/c/v8/v8/+/5906113) record how the bug is fixed.
+
+### Code Pointer Table
+
+> TODO 
+
+## How V8 Sandbox Validate Write from Sandbox Memory to Outside?
 
