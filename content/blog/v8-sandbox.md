@@ -194,3 +194,59 @@ The essential of bug is the attacker indirectly affact the data in the register 
 
 ## How V8 Sandbox Validate Write from Sandbox Memory to Outside?
 
+V8 use another two table to prevent write from sandbox memory to outside, based on the difference of allocator, these objects put outside sandbox memory but still need to be accessed are split into two tables:
+
+- **EPT** (External Pointer Table): The mechanism is used to access objects allocated by other components / C++.
+- **TPT** (Trusted Pointer Table): The mechanism is used to access objects allocated by V8 engine.
+
+### External Pointer Table
+
+Like the JDT, the sandbox never store the original pointer of the external objects but store the EPT handle, which is used to index the EPT table. EPT handle have 32 bits, the low 8 bits is always 0, and the other 24 bits is the index of the EPT table, which is exactly same as the JDT index. The difference is the EPT entry have only 8 bytes which is half of the JDT entry.
+
+```text
+bit 63                      56             49  48                               0
++---------------------------+--------------+---+--------------------------------+
+| pointer high 8 bits       |   tag 7 bits |mrk| pointer low 48 bits            |
+| (for hardware features)   |              |   |                                |
+| (56 bits)                 | (7 bits)     |   | (48 bits)                      |
++---------------------------+--------------+---+--------------------------------+
+```
+
+the `mrk` is used for GC mechanism, which will be discussed later. If V8 code want to dereference a EPT handle, the V8 code will always provide a tag which is hardcodeed though template mechanism, the tag will used to compare with the tag in the EPT entry, if they are not the same, the V8 code will abort the execution. Specifically, the tag is a 7 bits integer, which will be XORed with the tag in the EPT entry, if the result is not 0, the V8 code abort the execution automatically.
+
+```c++
+template <ExternalPointerTag tag> // <= hardcoded tag
+Address ReadExternalPointerField(Address field_address, IsolateForSandbox isolate) {
+  // ① read handle from sandbox (4 bytes)
+  ExternalPointerHandle handle = *reinterpret_cast<ExternalPointerHandle*>(field_address);
+  
+  // ② handle → index
+  uint32_t index = handle >> kExternalPointerIndexShift;   // >> 6
+  
+  // ③ read entry
+  Address payload = isolate.external_pointer_table().at(index).load();
+  
+  // ④ validate tag and extract pointer
+  Address expected_tag_bits = static_cast<Address>(tag) << kExternalPointerTagShift;
+  return (payload ^ expected_tag_bits) & kExternalPointerPayloadMask;
+}
+```
+
+### Trusted Pointer Table
+
+TPT is almost same as EPT, the main difference is the tag is wider than 7 bits, which is 15 bits.
+
+```text
++----------------------+--------+--------------------+
+| tag (15 bits)        | mark   | pointer (48 bits)  |
+| bits 63..49          | bit 48 | bits 0..47         |
++----------------------+--------+--------------------+
+```
+
+Additionally, TPT have publish/unpublish mechanism, which is used to mark if an object is fully initialized or not. The mechanism is need is because the V8 engine may allocate a lot of objects which are depend on each other, if any one of them is not fully initialized, the other objects may be corrupted. So TPT allocated a special bit to mark if an object is fully initialized or not. The bit will never be used by other tag, which ensure the tag is always valid.
+
+## Objects Partition
+
+Now, let's refine the threat model again, we will figure out what objects are stored in sandbox memory, what objects are managed by JDT, EPT, TPT, etc.
+
+> TODO
