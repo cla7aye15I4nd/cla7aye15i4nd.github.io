@@ -129,3 +129,16 @@ To find these harmful results, we should understand the boundary of the V8 sandb
 
 
 ## How V8 Sandbox Validate Execute from Sandbox Memory to Outside?
+
+Due to some historical reasons, V8 sandbox have mutiply mechanism related to prevent execute from sandbox memory to outside. The main mechanism is called **JDT** (JS Dispatch Table). V8 also have other mechanisms to prevent it, such as:
+- **CPT** (Code Pointer Table): The mechanism is originally designed to prevent code execution from sandbox memory to outside. However, due to performance and campatibility reasons, it is gradually deprecated.
+  > Comments from [v8/src/sandbox/code-pointer-table.h](https://chromium.googlesource.com/v8/v8/+/e88e94638bf0e99430828b1b27251b7e2db15147/src/sandbox/code-pointer-table.h):
+  > A table containing pointers to Code.
+  >
+  > TODO(498510170): Removing this table and replacing the usages with the TPT is work in progress.
+  >
+  > Essentially a specialized version of the trusted pointer table (TPT). A code pointer table entry contains both a pointer to a Code object as well as a pointer to the entrypoint. This way, the performance sensitive code paths that for example call a JSFunction can directly load the entrypoint from the table without having to load it from the Code object.
+  >
+  > When the sandbox is enabled, a code pointer table (CPT) is used to ensure basic control-flow integrity in the absence of special hardware support (such as landing pad instructions): by referencing code through an index into a CPT, and ensuring that only valid code entrypoints are stored inside the table, it is then guaranteed that any indirect control-flow transfer ends up on a valid entrypoint as long as an attacker is still confined to the sandbox.
+- **TPT** (Trusted Pointer Table): The mechanism is originally designed for storing pointers to trusted objects, these objects are also included code pointers.
+
