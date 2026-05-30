@@ -62,6 +62,16 @@ html[data-spa-loading="false"]::before {
   transform: scaleX(1);
 }
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 140ms;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-old(root) {
+  opacity: 0;
+}
+
 /* (MODIFIED) */
 body {
   font-family: Georgia, Cambria, "Times New Roman", Times, serif;

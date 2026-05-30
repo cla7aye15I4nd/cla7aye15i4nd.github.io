@@ -143,8 +143,14 @@
     }
   };
 
-  const swapBody = (nextDocument) => {
-    document.body.innerHTML = nextDocument.body.innerHTML;
+  const swapApp = (nextDocument) => {
+    const currentApp = document.getElementById("app");
+    const nextApp = nextDocument.getElementById("app");
+    if (!currentApp || !nextApp) {
+      document.body.innerHTML = nextDocument.body.innerHTML;
+      return;
+    }
+    currentApp.replaceChildren(...[...nextApp.childNodes].map((node) => document.importNode(node, true)));
     document.body.id = nextDocument.body.id || "";
     document.body.className = nextDocument.body.className || "";
   };
@@ -190,8 +196,15 @@
       const html = await fetchPage(target.href);
       const nextDocument = parser.parseFromString(html, "text/html");
       await syncHead(nextDocument);
-      swapBody(nextDocument);
-      runPageEnhancements();
+      const updatePage = () => {
+        swapApp(nextDocument);
+        runPageEnhancements();
+      };
+      if (document.startViewTransition) {
+        await document.startViewTransition(updatePage).finished;
+      } else {
+        updatePage();
+      }
       if (history) {
         window.history.pushState({ spa: true }, "", target.href);
       }
