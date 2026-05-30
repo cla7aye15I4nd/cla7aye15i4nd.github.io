@@ -90,6 +90,3 @@ hljs.registerLanguage('lean4', function(hljs) {
     ]
   };
 });
-
-// Also register as 'lean' alias
-hljs.registerLanguage('lean', hljs.getLanguage('lean4'));

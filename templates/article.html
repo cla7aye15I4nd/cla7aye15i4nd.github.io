@@ -77,9 +77,12 @@
 
   {% if post.toc_html %}
   <aside class="toc-sidebar">
+    <button class="toc-toggle" type="button" aria-expanded="true" aria-controls="article-toc">Hide</button>
     <nav class="toc">
       <h3>{{ article.contents_label }}</h3>
-      {{ post.toc_html | safe }}
+      <div id="article-toc" class="toc-content">
+        {{ post.toc_html | safe }}
+      </div>
     </nav>
   </aside>
   {% endif %}

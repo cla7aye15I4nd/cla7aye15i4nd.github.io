@@ -21,6 +21,7 @@
   {% block stylesheets %}
   <link rel="stylesheet" href="{{ static_prefix | default('') }}static/style.css">
   {% endblock %}
+  <script defer src="{{ static_prefix | default('') }}static/spa.js"></script>
   <title>{% block title %}{{ site.title }}{% endblock %}</title>
   {% block head_extra %}{% endblock %}
 </head>
@@ -34,7 +35,7 @@
     <p style="text-align: center;">
       <small>
         {{ site.author }} &copy; {{ site.data.profile.footer.start_year }} -
-        <script>document.write(new Date().getFullYear());</script>. {{ site.data.profile.footer.rights }}
+        <span data-current-year></span>. {{ site.data.profile.footer.rights }}
       </small>
     </p>
   </footer>
