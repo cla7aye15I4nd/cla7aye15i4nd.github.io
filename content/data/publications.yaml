@@ -1,4 +1,7 @@
 - title: "Patch Validation in Automated Vulnerability Repair"
+  show_archive: true
+  show_home: false
+  primary_url: "paper/pvbench.pdf"
   url: "https://arxiv.org/abs/2603.06858"
   authors: ["Zheng Yu", "Wenxuan Shi", "Xinqian Sun", "Zheyun Feng", "Meng Xu", "Xinyu Xing"]
   venue: "arXiv 2603.06858"
@@ -8,6 +11,9 @@
     - { label: "Code",  url: "https://github.com/cla7aye15I4nd/PVBench" }
 
 - title: "pPatch: Automated Vulnerability Unpatching"
+  show_archive: true
+  show_home: true
+  primary_url: "paper/ppatch.pdf"
   url: "paper/ppatch.pdf"
   authors: ["Tianyi Jing", "Pengyu Ding", "Meng Xu", "Yinhao Hu", "Zheng Yu", "Dongliang Mu"]
   venue: "ACM International Conference on the Foundations of Software Engineering (FSE) 2026"
@@ -15,6 +21,9 @@
     - { label: "Paper", url: "paper/ppatch.pdf" }
 
 - title: "PortGPT: Towards Automated Backporting Using Large Language Models"
+  show_archive: true
+  show_home: true
+  primary_url: "/paper/portgpt.pdf"
   url: "https://www.computer.org/csdl/proceedings-article/sp/2026/606500a625/2bojvxQEIBW"
   authors: ["Zheng Yu*", "Zhaoyang Li*", "Jingyi Song", "Meng Xu", "Yuxuan Luo", "Dongliang Mu"]
   venue: "IEEE Symposium on Security and Privacy (S&P) 2026"
@@ -24,6 +33,9 @@
     - { label: "Code",  url: "https://github.com/OS3Lab/patch-backporting" }
 
 - title: "PatchAgent: A Practical Program Repair Agent Mimicking Human Expertise"
+  show_archive: true
+  show_home: true
+  primary_url: "https://www.usenix.org/system/files/usenixsecurity25-yu-zheng.pdf"
   url: "https://www.usenix.org/conference/usenixsecurity25/presentation/yu-zheng"
   authors: ["Zheng Yu", "Ziyi Guo", "Yuhang Wu", "Jiahao Yu", "Meng Xu", "Dongliang Mu", "Yan Chen", "Xinyu Xing"]
   venue: "USENIX Security Symposium 2025 (Long Presentation)"
@@ -31,39 +43,52 @@
   links:
     - { label: "Paper",         url: "https://www.usenix.org/system/files/usenixsecurity25-yu-zheng.pdf" }
     - { label: "Slides",        url: "/paper/slides-patchagent.pdf" }
-    - { label: "Code - 100+ Stars", url: "https://github.com/cla7aye15I4nd/patchagent" }
+    - { label: "Code - 100+ Stars", display_label: "Code", url: "https://github.com/cla7aye15I4nd/patchagent" }
     - { label: "USENIX Poster", url: "/paper/poster-usenix-patchagent.pdf" }
     - { label: "CSAW Poster",   url: "/paper/poster-csaw-patchagent.pdf" }
 
 - title: "ShadowBound: Efficient Heap Memory Protection Through Advanced Metadata Management and Customized Compiler Optimization"
+  show_archive: true
+  show_home: true
+  home_title_class: "is-long"
+  primary_url: "https://www.usenix.org/system/files/usenixsecurity24-yu-zheng.pdf"
   url: "https://www.usenix.org/conference/usenixsecurity24/presentation/yu-zheng"
   authors: ["Zheng Yu", "Ganxiang Yang", "Xinyu Xing"]
   venue: "USENIX Security Symposium 2024"
   links:
     - { label: "Paper",  url: "https://www.usenix.org/system/files/usenixsecurity24-yu-zheng.pdf" }
-    - { label: "Code - 20+ Stars", url: "https://github.com/cla7aye15I4nd/shadowbound" }
+    - { label: "Code - 20+ Stars", display_label: "Code", url: "https://github.com/cla7aye15I4nd/shadowbound" }
     - { label: "Slides", url: "/paper/slides-shadowbound.pdf" }
 
 - title: "LLM-Fuzzer: Scaling Assessment of Large Language Model Jailbreaks"
+  show_archive: true
+  show_home: true
+  primary_url: "https://www.usenix.org/system/files/usenixsecurity24-yu-jiahao.pdf"
   url: "https://www.usenix.org/conference/usenixsecurity24/presentation/yu-jiahao"
   authors: ["Jiahao Yu", "Xingwei Lin", "Zheng Yu", "Xinyu Xing"]
   venue: "USENIX Security Symposium 2024"
   note: "Geekcon 2023 Annual Breakthrough Awards / Integrated into Microsoft Azure PyRIT"
   links:
     - { label: "Paper",  url: "https://www.usenix.org/system/files/usenixsecurity24-yu-jiahao.pdf" }
-    - { label: "Code - 500+ Stars", url: "https://github.com/sherdencooper/GPTFuzz" }
+    - { label: "Code - 500+ Stars", display_label: "Code", url: "https://github.com/sherdencooper/GPTFuzz" }
     - { label: "Slides", url: "https://www.usenix.org/system/files/usenixsecurity24_slides-yu-jiahao.pdf" }
 
 - title: "CAMP: Compiler and Allocator-based Heap Memory Protection"
+  show_archive: true
+  show_home: false
+  primary_url: "https://www.usenix.org/system/files/usenixsecurity24-lin-zhenpeng.pdf"
   url: "https://www.usenix.org/conference/usenixsecurity24/presentation/lin"
   authors: ["Zhenpeng Lin", "Zheng Yu", "Ziyi Guo", "Simone Campanoni", "Peter Dinda", "Xinyu Xing"]
   venue: "USENIX Security Symposium 2024"
   links:
     - { label: "Paper",  url: "https://www.usenix.org/system/files/usenixsecurity24-lin-zhenpeng.pdf" }
-    - { label: "Code - 40+ Stars", url: "https://github.com/cla7aye15I4nd/CAMP" }
+    - { label: "Code - 40+ Stars", display_label: "Code", url: "https://github.com/cla7aye15I4nd/CAMP" }
     - { label: "Slides", url: "paper/slides-camp.pdf" }
 
 - title: "FIRST: Exploiting the Multi-Dimensional Attributes of Functions for Power-Aware Serverless Computing"
+  show_archive: true
+  show_home: false
+  primary_url: "paper/first.pdf"
   url: "https://ieeexplore.ieee.org/document/10177391"
   authors: ["Lu Zhang", "Chao Li", "Xinkai Wang", "Weiqi Feng", "Zheng Yu", "Quan Chen", "Jingwen Leng", "Minyi Guo", "Pu Yang", "Shang Yue"]
   venue: "IEEE International Parallel & Distributed Processing Symposium (IPDPS) 2023"

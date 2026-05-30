@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}404 - Page Not Found{% endblock %}
+{% set not_found = site.data.profile.not_found %}
+{% block title %}{{ not_found.title }}{% endblock %}
 
 {% block head_extra %}
 <style>
@@ -92,8 +93,8 @@
 
     <div class="error-code">404</div>
     <div class="error-message">{{ site.data.profile.not_found_message }}</div>
-    <div class="error-sub">The page you are looking for doesn't exist.</div>
-    <div class="home-link"><a href="/">&larr; Back to Home</a></div>
+    <div class="error-sub">{{ not_found.sub }}</div>
+    <div class="home-link"><a href="{{ not_found.home_url }}">{{ not_found.home_label }}</a></div>
   </div>
 </main>
 {% endblock %}

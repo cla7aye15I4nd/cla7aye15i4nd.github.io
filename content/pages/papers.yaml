@@ -1,0 +1,3 @@
+title: "Papers"
+template: "papers.html"
+output: "papers/index.html"

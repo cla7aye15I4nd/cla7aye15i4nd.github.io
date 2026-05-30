@@ -1,45 +1,145 @@
 {% extends "base.html" %}
 {% set profile = site.data.profile %}
 {% block title %}{{ profile.name }}{% endblock %}
+{% set home = profile.home %}
+
+{% macro home_paper_href(pub) -%}
+  {{- pub.primary_url -}}
+{%- endmacro %}
 
 {% block body %}
-<header>
-  <h1>{{ profile.name }} <small> ({{ profile.name_alt }})</small></h1>
+<main class="home-page">
+  <section class="home-identity">
+    <p class="home-kicker">{{ home.kicker }}</p>
+    <h1>{{ profile.name }} <small>{{ profile.name_alt }}</small></h1>
+    <p class="home-line">
+      {{ home.headline }}
+    </p>
+    <nav class="home-contact" aria-label="Primary links">
+      {% for link in profile.links %}
+      <a href="{{ link.url }}"{% if not link.get('same_window') %} target="_blank"{% endif %}>{{ link.label }}</a>
+      {% endfor %}
+    </nav>
+  </section>
 
-  {% if profile.quote %}
-  <p class="info">
-    <small>
-      <i>{{ profile.quote }}</i>
-      <br />
-      <br />
-    </small>
-  </p>
-  {% endif %}
+  <section class="home-cell home-now">
+    <span class="cell-label">{{ home.now_label }}</span>
+    {% set current = site.data.experience[0] %}
+    <div class="home-now-intro">
+      {% if home.now_summary %}
+      {% for paragraph in home.now_summary %}
+      <p>{{ paragraph | safe }}</p>
+      {% endfor %}
+      {% else %}
+      {% for paragraph in profile.about[:home.now_about_count] %}
+      <p>{{ paragraph | safe }}</p>
+      {% endfor %}
+      {% endif %}
+    </div>
+    {% if home.now_facts %}
+    <dl class="home-facts">
+      {% for fact in home.now_facts %}
+      <div>
+        <dt>{{ fact.label }}</dt>
+        <dd>
+          {% if fact.field == "org" %}
+          <a href="{{ current.url }}" target="_blank">{{ current.org }}</a>
+          {% else %}
+          {{ current[fact.field] }}
+          {% endif %}
+        </dd>
+      </div>
+      {% endfor %}
+    </dl>
+    {% endif %}
+  </section>
 
-  <p class="info">
-    {% for link in profile.links %}
-      <a href="{{ link.url }}"{% if not link.get('same_window') %} target="_blank"{% endif %}>{{ link.label }}</a>{% if not loop.last %} /{% endif %}
-    {% endfor %}
-  </p>
+  <section class="home-cell home-news">
+    <div class="cell-heading">
+      <span class="cell-label">{{ home.news_label }}</span>
+    </div>
+    <ul class="home-mini-list">
+      {% set shown = namespace(count=0) %}
+      {% for item in site.data.news %}
+      {% if (home.news_include_hidden or item.get("show_home", true)) and (not home.news_limit or shown.count < home.news_limit) %}
+      {% set shown.count = shown.count + 1 %}
+      <li>
+        <time>{{ item.date }}</time>
+        <p>{{ item.html | safe }}</p>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+  </section>
 
-  <div class="abstract">
-    <h3>About Me (<a href="{{ profile.cv_url }}" target="_blank">CV</a>)</h3>
-    {% for paragraph in profile.about %}
-    <p>{{ paragraph | safe }}</p>
-    {% if not loop.last %}<br />{% endif %}
-    {% endfor %}
-  </div>
-</header>
+  <section class="home-cell home-experience">
+    <div class="cell-heading">
+      <span class="cell-label">{{ home.experience_label }}</span>
+    </div>
+    <ul class="home-mini-list">
+      {% set shown = namespace(count=0) %}
+      {% for item in site.data.experience %}
+      {% if item.get("show_home", true) and shown.count < home.experience_limit %}
+      {% set shown.count = shown.count + 1 %}
+      <li>
+        <time>{{ item.date }}</time>
+        <p>
+          <a href="{{ item.url }}" target="_blank">{{ item.org }}</a> / {{ item.role }}
+          <span>{{ item.team }}</span>
+        </p>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+  </section>
 
-<main>
-  <article>
-    {% include "partials/news.html" %}
-    {% include "partials/publications.html" %}
-    {% include "partials/talks.html" %}
-    {% include "partials/experience.html" %}
-    {% include "partials/awards.html" %}
-    {% include "partials/media.html" %}
-    {% include "partials/services.html" %}
-  </article>
+  <section class="home-cell home-writing">
+    <div class="cell-heading">
+      <span class="cell-label">{{ home.writing_label }}</span>
+      <a href="{{ home.writing_url }}">{{ home.writing_all_label }}</a>
+    </div>
+    <ul>
+      {% for post in posts if post.lang == site.default_lang %}
+      <li>
+        <a href="blog/{{ post.url }}">{{ post.title }}</a>
+        <time datetime="{{ post.date }}">{{ post.date | pretty_date }}</time>
+        {% if post.description %}
+        <p>{{ post.description }}</p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="home-cell home-research">
+    <div class="cell-heading">
+      <span class="cell-label">{{ home.research_label }}</span>
+      <a href="{{ home.research_url }}">{{ home.research_all_label }}</a>
+    </div>
+    <ol>
+      {% for pub in site.data.publications[:home.research_limit] %}
+      {% if pub.get("show_home", true) %}
+      <li>
+        <a class="{{ pub.home_title_class or '' }}" href="{{ home_paper_href(pub) }}" target="_blank">{{ pub.title }}</a>
+        <span>{{ pub.venue }}</span>
+      </li>
+      {% endif %}
+      {% endfor %}
+      {% for talk in site.data.talks[:home.talks_limit] %}
+      <li>
+        <a href="{{ talk.url }}" target="_blank">{{ talk.title }}</a>
+        <span>{{ talk.venue }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <footer class="home-footer">
+    <span>{{ site.author }}</span>
+    <span>&copy; {{ profile.footer.start_year }} - <script>document.write(new Date().getFullYear());</script></span>
+    <span>{{ profile.footer.rights }}</span>
+  </footer>
 </main>
 {% endblock %}
+
+{% block footer %}{% endblock %}

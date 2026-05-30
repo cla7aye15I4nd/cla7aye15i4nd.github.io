@@ -148,13 +148,15 @@ For historical reasons, V8 sandbox has multiple mechanisms related to preventing
 
 - **TPT** (Trusted Pointer Table): Originally designed for storing pointers to trusted objects in general. These objects can include Code, which is why the long-term plan is to absorb CPT into TPT.
 
+> All four tables (JDT, EPT, TPT, CPT) are built on the same `SegmentedTable` infrastructure (via `ExternalEntityTable`, with EPT using the compactible variant `CompactibleExternalEntityTable`). They share the common shape *handle → shifted index → table load*, but they do **not** all share the same tag-validation logic: the type-tag check lives in [`src/sandbox/tagged-payload.h`](https://source.chromium.org/chromium/chromium/src/+/main:v8/src/sandbox/tagged-payload.h) (`TaggedPayload`) and is used only by EPT and TPT. The JDT has no type tag at all — its entry is `entrypoint_` + `encoded_word_`, and its safety comes from the entry always holding a valid entrypoint rather than from a tag check.
+
 ### JS Dispatch Table
 
 #### Quick View of JSFunction and Its Function Handle
 
-A JavaScript function as the user sees it (`function f() { ... }` or `(x) => x + 1`), V8 will use a `JSFunction` object to represent it. A `JSFunction` object contains a field called [`dispatch_handle_`](https://source.chromium.org/chromium/_/chromium/v8/v8/+/e88e94638bf0e99430828b1b27251b7e2db15147:src/objects/js-function.h;l=505) to store the index of the `JSDispatchTable` entry, which is used to repace the direct call to the function.
+A JavaScript function as the user sees it (`function f() { ... }` or `(x) => x + 1`), V8 will use a `JSFunction` object to represent it. A `JSFunction` object contains a field called [`dispatch_handle_`](https://source.chromium.org/chromium/_/chromium/v8/v8/+/e88e94638bf0e99430828b1b27251b7e2db15147:src/objects/js-function.h;l=505) to store the index of the `JSDispatchTable` entry, which is used to replace the direct call to the function.
 
-`dispatch_handle_` is a 32-bit integer, it's lower 8 bits is always 0, and the other 24 bits is the index of the `JSDispatchTable` entry.
+`dispatch_handle_` is a 32-bit integer. In the default (desktop) configuration its lower 8 bits are always 0, and the other 24 bits are the index of the `JSDispatchTable` entry (`kJSDispatchHandleShift = 8`). The shift is configuration-dependent: under `V8_LOWER_LIMITS_MODE` it is 12 (smaller table), and on 32-bit targets it is 0.
 
 ```text
 +---------------------------------+------------+
@@ -162,17 +164,17 @@ A JavaScript function as the user sees it (`function f() { ... }` or `(x) => x +
 +---------------------------------+------------+
 ```
 
-Since the index have only 24 bits, the number of JDT entries will not exceed `2^24 = 16M`. Each entry's is 16 bytes, so the total size of JDT table is 256M. The 16 bytes include: 
+Since the index has only 24 bits, the number of JDT entries will not exceed `2^24 = 16M`. Each entry is 16 bytes, so the total reservation of the JDT table is 256MB (`kJSDispatchTableReservationSize`, again the default-config value). The 16 bytes include:
 
 ```
 Offset 0  ┌─────────────────────────────────────────────────┐
    |      │   entrypoint_   (atomic<Address>)               │  ← Word 0：raw machine code pointer
 Offset 8  ├─────────────────────────────────────────────────┤
-   |      │   encoded_word_ (atomic<Address>)               │  ← Word 1：pack 3 info
+   |      │   encoded_word_ (atomic<Address>)               │  ← Word 1：packs 3 pieces of info
 Offset 16 └─────────────────────────────────────────────────┘
 ```
 
-for the second field, it includes:
+for the second word, it includes:
 
 ```
 bit  63               17 16                15            0
@@ -182,13 +184,13 @@ bit  63               17 16                15            0
   +-------------------+----+-------------------------------+
 ```
 
-After finding the entry, V8 will use the `entrypoint_` to call the function. For freeed entry, the high 16 bits of `entrypoint_` are set to 1, which ensure dereference of free entry's `entrypoint_` will always cause segment faults. Such design ensure attacker can only replace one JS function to another JS function, considering directly call any JS function is allowed, JDT will not grant attacker any new primities. 
+After finding the entry, V8 will use the `entrypoint_` to call the function. For a freed entry, the high 16 bits of `entrypoint_` are set to 1 (`kFreeEntryTag = 0xffff000000000000`, ORed with the next free-list index), which ensures that dereferencing a freed entry's `entrypoint_` always lands on a non-canonical address and causes a segment fault. Such design ensures an attacker can only replace one JS function with another JS function; since directly calling any JS function is already allowed, the JDT does not grant the attacker any new primitive.
 
 #### Some Pitfall Examples
 
-Although JDT looks perfect, if we consider the attack path that I mentioned in the beginning, we will find some historical CVE that bypass the JDT check. Before JDT jumped to `entrypoint_`, the caller will put arguments into the stack (such mechanism is usually complex because different JIT optimizations may have different argument passing mechanisms), but the caller do not pass parameter size to the callee, the callee will recalculate the parameter size based on data stored in the sandbox again, which is called SFI. However, the attacker can swap the SFI to make the parameter size is longer than the actual parameter size, which will cause the stack overlow read. Hence, the harden for these issues is read JDT again to ensure the parameter size is consistent.
+Although JDT looks perfect, if we consider the attack path that I mentioned in the beginning, we will find some historical CVE that bypass the JDT check. Before JDT jumped to `entrypoint_`, the caller will put arguments into the stack (such mechanism is usually complex because different JIT optimizations may have different argument passing mechanisms), but the caller do not pass parameter size to the callee, the callee will recalculate the parameter size based on data stored in the sandbox again, which is called SFI. However, the attacker can swap the SFI to make the parameter size is longer than the actual parameter size, which will cause the stack overflow read. Hence, the harden for these issues is read JDT again to ensure the parameter size is consistent.
 
-The essential of bug is the attacker indirectly affact the data in the register which is represent the offset of the stack, which will cause the stack overlow read. Commit [crrev.com/c/5906113 ](https://chromium-review.googlesource.com/c/v8/v8/+/5906113) record how the bug is fixed.
+The essence of the bug is that the attacker indirectly affects the data in the register which represents the offset of the stack, which causes the stack overflow read. Commit [crrev.com/c/5906113](https://chromium-review.googlesource.com/c/v8/v8/+/5906113) records how the bug is fixed.
 
 ### Code Pointer Table
 
@@ -196,47 +198,68 @@ The essential of bug is the attacker indirectly affact the data in the register 
 
 ## How V8 Sandbox Validate Write from Sandbox Memory to Outside?
 
-V8 use another two table to prevent write from sandbox memory to outside, based on the difference of allocator, these objects put outside sandbox memory but still need to be accessed are split into two tables:
+V8 uses another two tables to prevent writes from sandbox memory to the outside. Based on the difference of allocator, the objects that live outside sandbox memory but still need to be referenced from inside are split into two tables:
 
-- **EPT** (External Pointer Table): The mechanism is used to access objects allocated by other components / C++.
-- **TPT** (Trusted Pointer Table): The mechanism is used to access objects allocated by V8 engine.
+- **EPT** (External Pointer Table): used to access objects allocated by other components / C++.
+- **TPT** (Trusted Pointer Table): used to access objects allocated by the V8 engine itself.
 
 ### External Pointer Table
 
-Like the JDT, the sandbox never store the original pointer of the external objects but store the EPT handle, which is used to index the EPT table. EPT handle have 32 bits, the low 8 bits is always 0, and the other 24 bits is the index of the EPT table, which is exactly same as the JDT index. The difference is the EPT entry have only 8 bytes which is half of the JDT entry.
+Like the JDT, the sandbox never stores the original pointer of the external object; instead it stores an EPT handle, which is used to index the EPT table. The handle is 32 bits, but — unlike the JDT — its index shift is **not** 8 and is platform-dependent (`kExternalPointerIndexShift`):
+
+| Platform | shift | low zero bits | index width | reservation | max entries |
+|----------|-------|---------------|-------------|-------------|-------------|
+| Desktop (default) | **6** | 6 | 26 bits | 512MB | 64M |
+| Android | 7 | 7 | 25 bits | 256MB | 32M |
+| iOS | 8 | 8 | 24 bits | 128MB | 16M |
+
+So on the default desktop build the low **6** bits of the handle are always 0 and the index is 26 bits — different from the JDT's 8-bit shift. Each EPT entry is 8 bytes, which is half of a JDT entry.
 
 ```text
 bit 63                      56             49  48                               0
 +---------------------------+--------------+---+--------------------------------+
 | pointer high 8 bits       |   tag 7 bits |mrk| pointer low 48 bits            |
 | (for hardware features)   |              |   |                                |
-| (56 bits)                 | (7 bits)     |   | (48 bits)                      |
+| (8 bits)                  | (7 bits)     |   | (48 bits)                      |
 +---------------------------+--------------+---+--------------------------------+
 ```
 
-the `mrk` is used for GC mechanism, which will be discussed later. If V8 code want to dereference a EPT handle, the V8 code will always provide a tag which is hardcodeed though template mechanism, the tag will used to compare with the tag in the EPT entry, if they are not the same, the V8 code will abort the execution. Specifically, the tag is a 7 bits integer, which will be XORed with the tag in the EPT entry, if the result is not 0, the V8 code abort the execution automatically.
+This matches the constants in [`v8-internal.h`](https://source.chromium.org/chromium/chromium/src/+/main:v8/include/v8-internal.h): `kExternalPointerMarkBit = 1 << 48`, `kExternalPointerTagShift = 49`, `kExternalPointerTagMask = 0x00fe000000000000` (bits 49–55, i.e. 7 bits), and `kExternalPointerPayloadMask = 0xff00ffffffffffff` (the high 8 bits plus the low 48 bits).
+
+The `mrk` bit is used by the GC mechanism, which will be discussed later. If V8 code wants to dereference an EPT handle, it always provides an expected tag (or tag *range*) hardcoded through the template mechanism. The actual tag is extracted from the entry and checked against that range. Note that this is a **range containment check** (`tag_range.Contains(actual_tag)`), not a single-tag XOR comparison — this lets one field accept a sub-range of related tags. On a mismatch the behavior depends on the access path:
+
+- for pointers that may legitimately be null, the load returns `kNullAddress` (the inlined fast path in `v8-internal.h` also returns 0);
+- for pointers that must not be null, the check is an `SBXCHECK`, so a mismatch aborts the process.
+
+Either way the tag mismatch never yields an attacker-chosen out-of-sandbox pointer.
 
 ```c++
-template <ExternalPointerTag tag> // <= hardcoded tag
+// hardcoded expected tag range, via template
+template <ExternalPointerTagRange tag_range>
 Address ReadExternalPointerField(Address field_address, IsolateForSandbox isolate) {
   // ① read handle from sandbox (4 bytes)
   ExternalPointerHandle handle = *reinterpret_cast<ExternalPointerHandle*>(field_address);
-  
-  // ② handle → index
-  uint32_t index = handle >> kExternalPointerIndexShift;   // >> 6
-  
+
+  // ② handle → index  (the low kExternalPointerIndexShift bits are always 0)
+  uint32_t index = handle >> kExternalPointerIndexShift;   // >> 6 on desktop
+
   // ③ read entry
-  Address payload = isolate.external_pointer_table().at(index).load();
-  
-  // ④ validate tag and extract pointer
-  Address expected_tag_bits = static_cast<Address>(tag) << kExternalPointerTagShift;
-  return (payload ^ expected_tag_bits) & kExternalPointerPayloadMask;
+  Address entry = isolate.external_pointer_table().at(index).load();
+
+  // ④ extract tag, range-check it, then extract the pointer payload
+  ExternalPointerTag tag =
+      (entry & kExternalPointerTagMask) >> kExternalPointerTagShift;
+  if (V8_LIKELY(tag_range.Contains(tag))) {
+    return entry & kExternalPointerPayloadMask;
+  } else {
+    return kNullAddress;   // disallow-null path uses SBXCHECK and aborts instead
+  }
 }
 ```
 
 ### Trusted Pointer Table
 
-TPT is almost same as EPT, the main difference is the tag is wider than 7 bits, which is 15 bits.
+TPT is almost the same as EPT; the main difference is that the tag field is wider — up to 15 bits instead of 7 (`kTrustedPointerTableTagMask = 0xfffe000000000000`, `kTrustedPointerTableTagShift = 49`, mark bit at bit 48, payload in bits 0–47). The comment in [`indirect-pointer-tag.h`](https://source.chromium.org/chromium/chromium/src/+/main:v8/src/sandbox/indirect-pointer-tag.h) notes the tag is "currently in practice limited to maximum 15 bits since it needs to fit together with a marking bit into the unused parts of a pointer," and that today only ~8 bits are actually used.
 
 ```text
 +----------------------+--------+--------------------+
@@ -245,7 +268,7 @@ TPT is almost same as EPT, the main difference is the tag is wider than 7 bits, 
 +----------------------+--------+--------------------+
 ```
 
-Additionally, TPT have publish/unpublish mechanism, which is used to mark if an object is fully initialized or not. The mechanism is need is because the V8 engine may allocate a lot of objects which are depend on each other, if any one of them is not fully initialized, the other objects may be corrupted. So TPT allocated a special bit to mark if an object is fully initialized or not. The bit will never be used by other tag, which ensure the tag is always valid.
+Additionally, the TPT has a publish/unpublish mechanism, used to mark whether an object is fully initialized. This is needed because the V8 engine may allocate many objects that depend on each other; if any one of them is not fully initialized, accessing the others could corrupt state. So the TPT reserves a special **tag value**, `kUnpublishedIndirectPointerTag = 0xfc` (not a dedicated bit), to mark an entry as "not yet exposed to the sandbox." An entry can first be created unpublished and only `Publish()`-ed after successful validation; conversely a group of related entries can be `Unpublish()`-ed together (via `TrustedPointerPublishingScope`) if their initialization fails. Because this tag value is excluded from the normal tag set, a regular tag-checked load of an unpublished entry will fail.
 
 ## Objects Partition
 

@@ -1,20 +1,20 @@
-<h3 id="services">Academic Services</h3>
+<h3 id="services">{{ site.data.profile.sections.services }}</h3>
 <ul>
   {% if site.data.services.program_committee %}
   <li>
-    <b>Program Committee Member:</b>
+    <b>{{ site.data.profile.sections.services_program_committee }}</b>
     {% for v in site.data.services.program_committee %}<a href="{{ v.url }}" target="_blank">{{ v.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
   </li>
   {% endif %}
   {% if site.data.services.artifact_evaluation %}
   <li>
-    <b>Artifact Evaluation Committee Member:</b>
+    <b>{{ site.data.profile.sections.services_artifact_evaluation }}</b>
     {% for v in site.data.services.artifact_evaluation %}<a href="{{ v.url }}" target="_blank">{{ v.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
   </li>
   {% endif %}
   {% if site.data.services.journal_reviewer %}
   <li>
-    <b>Journal Reviewer:</b>
+    <b>{{ site.data.profile.sections.services_journal_reviewer }}</b>
     {% for v in site.data.services.journal_reviewer %}<a href="{{ v.url }}" target="_blank">{{ v.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
   </li>
   {% endif %}

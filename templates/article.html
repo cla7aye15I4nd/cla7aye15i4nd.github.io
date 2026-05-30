@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% set static_prefix = "../" %}
 {% set lang = post.lang %}
+{% set article = site.data.profile.blog_article %}
 
 {% block title %}{{ post.title }} - {{ site.author }}{% endblock %}
 
@@ -36,10 +37,11 @@
 <main class="blog-article-page">
   <article class="blog-article">
     <nav class="article-topbar">
-      <a class="article-brand" href="index.html">I Have Nothing</a>
+      <a class="article-brand" href="index.html">{{ article.brand }}</a>
       <span>
-        <a href="../index.html">Home</a>
-        <a href="index.html">Blog</a>
+        {% for link in article.nav_links %}
+        <a href="{{ link.url }}">{{ link.label }}</a>
+        {% endfor %}
       </span>
     </nav>
 
@@ -76,7 +78,7 @@
   {% if post.toc_html %}
   <aside class="toc-sidebar">
     <nav class="toc">
-      <h3>Contents</h3>
+      <h3>{{ article.contents_label }}</h3>
       {{ post.toc_html | safe }}
     </nav>
   </aside>

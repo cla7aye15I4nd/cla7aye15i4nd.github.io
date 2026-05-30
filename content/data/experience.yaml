@@ -1,7 +1,9 @@
 - org: "DepthFirst"
   url: "https://www.depthfirst.com/"
+  icon: "static/icons/depthfirst.svg"
+  show_home: true
   date: "Mar. 2026 – Present"
-  role: "Security Research Engineer"
+  role: "Security Researcher"
   location: "San Francisco, CA, USA"
   team: "AI Security Team"
   bullets:
@@ -11,6 +13,7 @@
 
 - org: "CertiK"
   url: "https://www.certik.com/"
+  show_home: true
   date: "Jan. 2026 – Mar. 2026"
   role: "Security Researcher"
   location: "New York, NY, USA"
@@ -18,6 +21,7 @@
 
 - org: "Northwestern University"
   url: "https://www.northwestern.edu/"
+  show_home: false
   date: "Sep. 2025 – Dec. 2025"
   role: "Teaching Assistant"
   location: "Evanston, IL, USA"
@@ -25,13 +29,16 @@
 
 - org: "University of Waterloo"
   url: "https://uwaterloo.ca/"
+  icon: "static/icons/waterloo.svg"
+  show_home: true
   date: "Jun. 2025 – Sep. 2025"
-  role: "Visiting Graduate Researcher"
+  role: "Visiting Researcher"
   location: "Waterloo, Ontario, Canada"
   team: "CrySP Lab, Advisor: Prof. Meng Xu"
 
 - org: "Northwestern University"
   url: "https://www.northwestern.edu/"
+  show_home: false
   date: "Sep. 2024 – Dec. 2024"
   role: "Teaching Assistant"
   location: "Evanston, IL, USA"
@@ -39,6 +46,7 @@
 
 - org: "Google Summer of Code"
   url: "https://www.honeynet.org/gsoc/gsoc-2022/google-summer-of-code-2022-project-ideas/#5---qiling-improvements"
+  show_home: true
   date: "Apr. 2022 – Oct. 2022"
   role: "GSOC Project Mentor"
   location: "Remote"
@@ -46,6 +54,7 @@
 
 - org: "JD.COM, Inc."
   url: "https://www.jd.com/"
+  show_home: true
   date: "Jun. 2021 – May 2022"
   role: "Security Engineer"
   location: "Beijing, China"

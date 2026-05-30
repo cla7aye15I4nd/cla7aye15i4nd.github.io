@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% set static_prefix = "../" %}
+{% set profile = site.data.profile %}
+{% set archive = profile.paper_archive %}
+
+{% block title %}{{ archive.title }} - {{ site.author }}{% endblock %}
+
+{% macro paper_href(pub) -%}
+  {%- if pub.primary_url.startswith("http") or pub.primary_url.startswith("/") -%}
+    {{- pub.primary_url -}}
+  {%- else -%}
+    ../{{- pub.primary_url -}}
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro link_href(url) -%}
+  {%- if url.startswith("http") or url.startswith("/") -%}
+    {{- url -}}
+  {%- else -%}
+    ../{{- url -}}
+  {%- endif -%}
+{%- endmacro %}
+
+{% block body %}
+<div class="blog-archive-page papers-page">
+  <aside class="index-sidebar">
+    <div>
+      <a class="site-mark" href="../index.html">{{ archive.mark }}</a>
+      <p class="site-description">
+        {{ archive.description }}
+      </p>
+      <p class="site-byline">
+        {{ archive.byline_prefix }} <a href="../index.html">{{ site.author }}</a>
+      </p>
+      <nav class="sidebar-links" aria-label="Paper links">
+        {% for link in archive.links %}
+        <a class="sidebar-button" href="{{ link.url }}">{{ link.label }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+    <div class="sidebar-foot">
+      <span>
+        {% for link in archive.footer_links %}
+        <a href="{{ link.url }}" target="_blank">{{ link.label }}</a>
+        {% endfor %}
+      </span>
+      <span>&copy; 1999 - <script>document.write(new Date().getFullYear());</script></span>
+    </div>
+  </aside>
+
+  <main class="index-feed">
+    <section class="paper-feed" aria-label="{{ archive.feed_label }}">
+      {% for pub in site.data.publications %}
+      <article class="paper-row">
+        <span class="paper-index">{{ "%02d"|format(loop.index) }}</span>
+        <div class="paper-title-block">
+          <a href="{{ paper_href(pub) }}" target="_blank">{{ pub.title }}</a>
+          <small>
+            {{ pub.venue }}
+          </small>
+          <span class="paper-authors">
+            {%- for author in pub.authors -%}
+              {%- set clean_author = author.replace("*", "") -%}
+              {%- if not loop.first %}, {% endif -%}
+              {%- if clean_author == profile.me -%}<strong>{{ clean_author }}</strong>{%- else -%}{{ clean_author }}{%- endif -%}
+            {%- endfor -%}
+          </span>
+          {% if pub.note %}
+          <span class="paper-note">{{ pub.note }}</span>
+          {% endif %}
+          {% if pub.links %}
+          <span class="paper-links">
+            {% for link in pub.links or [] %}
+            <a href="{{ link_href(link.url) }}" target="_blank">{{ link.display_label or link.label }}</a>
+            {% endfor %}
+          </span>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

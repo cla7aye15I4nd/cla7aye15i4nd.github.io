@@ -1,27 +1,31 @@
 {% extends "base.html" %}
 {% set static_prefix = "../" %}
+{% set archive = site.data.profile.blog_archive %}
 
-{% block title %}Blog Archive - {{ site.author }}{% endblock %}
+{% block title %}{{ archive.title }} - {{ site.author }}{% endblock %}
 
 {% block body %}
 <div class="blog-archive-page">
   <aside class="index-sidebar">
     <div>
-      <a class="site-mark" href="../index.html">I Have Nothing</a>
+      <a class="site-mark" href="../index.html">{{ archive.mark }}</a>
       <p class="site-description">
-        Technical notes from Dataisland on security, systems, blockchains, and programming.
+        {{ archive.description }}
       </p>
       <p class="site-byline">
-        by <a href="../index.html">{{ site.author }}</a>
+        {{ archive.byline_prefix }} <a href="../index.html">{{ site.author }}</a>
       </p>
       <nav class="sidebar-links" aria-label="Archive links">
-        <a class="sidebar-button" href="../index.html">Home</a>
+        {% for link in archive.links %}
+        <a class="sidebar-button" href="{{ link.url }}">{{ link.label }}</a>
+        {% endfor %}
       </nav>
     </div>
     <div class="sidebar-foot">
       <span>
-        <a href="https://github.com/cla7aye15I4nd" target="_blank">GitHub</a>
-        <a href="../paper/resume.pdf" target="_blank">CV</a>
+        {% for link in archive.footer_links %}
+        <a href="{{ link.url }}" target="_blank">{{ link.label }}</a>
+        {% endfor %}
       </span>
       <span>&copy; 1999 - <script>document.write(new Date().getFullYear());</script></span>
     </div>

@@ -1,0 +1,51 @@
+- type: "point"
+  date: "2026.03"
+  short_date: "2026.03"
+  label: "pPatch"
+  text: '<a href="./paper/ppatch.pdf">pPatch</a> accepted to ACM FSE 2026.'
+
+- type: "range"
+  date: "Mar. 2026 – Present"
+  short_date: "Mar. 2026"
+  label: "DepthFirst"
+  text: '<a href="https://www.depthfirst.com/" target="_blank">DepthFirst</a> / Security Researcher'
+  detail: "LLM agents for vulnerability discovery"
+
+- type: "point"
+  date: "2026.03"
+  short_date: "2026.03"
+  label: "Defense"
+  text: "Passed the PhD defense at Northwestern University."
+
+- type: "range"
+  date: "Jan. 2026 – Mar. 2026"
+  short_date: "Jan-Mar"
+  label: "CertiK"
+  text: '<a href="https://www.certik.com/" target="_blank">CertiK</a> / Security Researcher'
+  detail: "Smart Contract Security Team"
+
+- type: "point"
+  date: "2025.11"
+  short_date: "2025.11"
+  label: "LLM4Code"
+  text: 'Invited to serve as a PC member for <a href="https://llm4code.github.io/" target="_blank">LLM4Code 2026</a>.'
+
+- type: "point"
+  date: "2025.10"
+  short_date: "2025.10"
+  label: "Proposal"
+  text: "Passed the PhD proposal exam at Northwestern University."
+
+- type: "range"
+  date: "Sep. 2025 – Dec. 2025"
+  short_date: "Sep-Dec"
+  label: "Northwestern"
+  text: '<a href="https://www.northwestern.edu/" target="_blank">Northwestern University</a> / Teaching Assistant'
+  detail: "Operating Systems"
+
+- type: "range"
+  date: "Jun. 2025 – Sep. 2025"
+  short_date: "Jun-Sep"
+  label: "Waterloo"
+  text: '<a href="https://uwaterloo.ca/" target="_blank">University of Waterloo</a> / Visiting Graduate Researcher'
+  detail: "CrySP Lab"
