@@ -1,9 +1,11 @@
 ---
 date: 2026-05-24
 tags: [sandbox]
+title: "Inside the V8 Sandbox"
+description: "A practical map of V8's sandbox threat model, attack boundary, and the places browser code still has to be careful."
 ---
 
-# How V8 Sandbox Works
+# Inside the V8 Sandbox
 
 V8's sandbox is a well-known feature designed to address a core security problem: because vulnerabilities in the V8 engine are hard to fully eliminate, how can the browser be protected from being compromised by exploits targeting V8?
 

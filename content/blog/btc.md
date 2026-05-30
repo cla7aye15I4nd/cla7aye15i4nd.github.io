@@ -1,9 +1,11 @@
 ---
 date: 2026-01-10
 tags: [blockchain]
+title: "Bitcoin From the Top Down"
+description: "A top-down walkthrough of Bitcoin's data model, from peer-to-peer state to transactions, UTXOs, and script validation."
 ---
 
-# Understanding Bitcoin: A Top-Down Approach
+# Bitcoin From the Top Down
 
 > [!TIP] 
 > This article reflects my personal notes and may not resonate with everyone. In fact, I suspect most readers won't find it appealing—it's simply the way that feels most natural for me to understand Bitcoin, even though many of my friends have found my approach unconventional.

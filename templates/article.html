@@ -33,43 +33,53 @@
 {% endblock %}
 
 {% block body %}
-<main class="article-container">
+<main class="blog-article-page">
+  <article class="blog-article">
+    <nav class="article-topbar">
+      <a class="article-brand" href="index.html">I Have Nothing</a>
+      <span>
+        <a href="../index.html">Home</a>
+        <a href="index.html">Blog</a>
+      </span>
+    </nav>
+
+    <header class="article-hero">
+      <h1>{{ post.title }}</h1>
+      {% if post.description %}
+      <p>{{ post.description }}</p>
+      {% endif %}
+      <div class="article-meta">
+        <time datetime="{{ post.date }}">{{ post.date | pretty_date }}</time>
+        {% if post.tags %}
+        <span>
+          {% for tag in post.tags %}
+          <a href="index.html#tag-{{ tag }}">{{ tag }}</a>{% if not loop.last %} / {% endif %}
+          {% endfor %}
+        </span>
+        {% endif %}
+        {% if post.translations %}
+        <span>
+          {{ post.lang | upper }}
+          {% for lang_code, other in post.translations.items() %}
+          / <a href="{{ other.url }}" hreflang="{{ lang_code }}">{{ lang_code | upper }}</a>
+          {% endfor %}
+        </span>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="article-body">
+      {{ post.content_html | safe }}
+    </div>
+  </article>
+
   {% if post.toc_html %}
   <aside class="toc-sidebar">
     <nav class="toc">
-      <h3>Table of Contents</h3>
+      <h3>Contents</h3>
       {{ post.toc_html | safe }}
     </nav>
   </aside>
   {% endif %}
-
-  <article>
-    <nav class="breadcrumb">
-      <a href="../index.html">Home</a> / <a href="index.html">Blog Archive</a>
-      {% if post.translations %}
-      &nbsp;|&nbsp;
-      <small>Language:
-        <b>{{ post.lang | upper }}</b>
-        {% for lang_code, other in post.translations.items() %}
-        / <a href="{{ other.url }}" hreflang="{{ lang_code }}">{{ lang_code | upper }}</a>
-        {% endfor %}
-      </small>
-      {% endif %}
-    </nav>
-
-    <p class="author">
-      <small>{{ post.date }}</small>
-      {% if post.tags %}
-      <br />
-      <small>Tags:
-        {% for tag in post.tags %}
-        <a href="index.html#tag-{{ tag }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
-        {% endfor %}
-      </small>
-      {% endif %}
-    </p>
-
-    {{ post.content_html | safe }}
-  </article>
 </main>
 {% endblock %}

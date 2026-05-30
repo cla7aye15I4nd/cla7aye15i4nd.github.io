@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 
 from jinja2 import ChainableUndefined, Environment, FileSystemLoader, select_autoescape
@@ -17,11 +18,13 @@ class Renderer:
             trim_blocks=True,
             lstrip_blocks=True,
         )
+        self.env.filters["pretty_date"] = self._pretty_date
 
     def render_page(self, page: Page, context: SiteContext) -> str:
         template = self.env.get_template(page.template)
         return template.render(
             page=page,
+            posts=context.posts,
             **context.template_globals(),
         )
 
@@ -63,3 +66,7 @@ class Renderer:
         for tag in bucket:
             bucket[tag].sort(key=lambda p: p.date, reverse=True)
         return dict(sorted(bucket.items()))
+
+    @staticmethod
+    def _pretty_date(value: str) -> str:
+        return datetime.strptime(value, "%Y-%m-%d").strftime("%B %-d, %Y")

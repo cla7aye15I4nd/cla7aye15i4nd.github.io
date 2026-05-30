@@ -1,9 +1,11 @@
 ---
 date: 2026-01-14
 tags: [math, lean]
+title: "Learning Lean as a Programmer"
+description: "Learning Lean from the perspective of a programmer: types as propositions, proofs as programs, and raw induction machinery."
 ---
 
-# Learn Lean (A Language for Mathematical Proofs) from a Programmer's Perspective
+# Learning Lean as a Programmer
 
 
 > [!NOTE] Why I learn Lean?

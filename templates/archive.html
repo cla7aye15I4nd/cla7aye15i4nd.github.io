@@ -4,56 +4,81 @@
 {% block title %}Blog Archive - {{ site.author }}{% endblock %}
 
 {% block body %}
-<header>
-  <h1>Blog Archive</h1>
-  <p class="info">
-    <a href="../index.html">&larr; Back to Home</a>
-  </p>
-</header>
+<div class="blog-archive-page">
+  <aside class="index-sidebar">
+    <div>
+      <a class="site-mark" href="../index.html">I Have Nothing</a>
+      <p class="site-description">
+        Technical notes from Dataisland on security, systems, blockchains, and programming.
+      </p>
+      <p class="site-byline">
+        by <a href="../index.html">{{ site.author }}</a>
+      </p>
+      <nav class="sidebar-links" aria-label="Archive links">
+        <a class="sidebar-button" href="../index.html">Home</a>
+      </nav>
+    </div>
+    <div class="sidebar-foot">
+      <span>
+        <a href="https://github.com/cla7aye15I4nd" target="_blank">GitHub</a>
+        <a href="../paper/resume.pdf" target="_blank">CV</a>
+      </span>
+      <span>&copy; 1999 - <script>document.write(new Date().getFullYear());</script></span>
+    </div>
+  </aside>
 
-<main>
-  <article>
-    <h2>All Posts</h2>
-    <ul>
+  <main class="index-feed">
+    <section class="post-feed" aria-label="All posts">
       {% for post in posts %}
-      <li>
-        <p class="two-col">
-          <a href="{{ post.url }}"><b>{{ post.title }}</b></a>
-          <small>{{ post.date }}</small>
-        </p>
-        {% if post.translations %}
-        <p>
-          <small>Languages:
-            <a href="{{ post.url }}">{{ post.lang | upper }}</a>
+      <a class="post-row" href="{{ post.url }}">
+        <span class="post-icon" aria-hidden="true">
+          {% set icon = loop.index0 % 4 %}
+          {% if icon == 0 %}
+          <svg viewBox="0 0 96 96" role="img">
+            <path d="M28 24l36-5 12 12-8 39-39 7-11-12 10-41z" />
+            <path d="M36 35c10-8 28-5 29 8 2 17-23 25-33 13-8-10 3-24 17-20 9 2 12 11 6 17-5 5-15 5-17-1" />
+            <path d="M64 19l-5 17 17-5M18 65l17-4-6 16" />
+          </svg>
+          {% elif icon == 1 %}
+          <svg viewBox="0 0 96 96" role="img">
+            <path d="M24 29l42-14 14 40-43 16-13-42z" />
+            <path d="M32 25l13 43M47 20l14 42M26 43l48-16M32 61l44-15" />
+            <path d="M24 72c12-18 19-15 28-3 8 10 14 10 24-6" />
+          </svg>
+          {% elif icon == 2 %}
+          <svg viewBox="0 0 96 96" role="img">
+            <path d="M21 61a14 14 0 1020 20 14 14 0 00-20-20z" />
+            <path d="M39 62l28-29 8 8 8-8-8-8-36 37z" />
+            <path d="M60 41l8 8M67 34l8 8" />
+          </svg>
+          {% else %}
+          <svg viewBox="0 0 96 96" role="img">
+            <path d="M23 31c14-4 30-4 49 0v36c-18-5-34-5-49 0V31z" />
+            <path d="M23 31c4 8 4 25 0 36M72 31c-4 8-4 25 0 36" />
+            <path d="M35 43h25M35 53h18" />
+          </svg>
+          {% endif %}
+        </span>
+        <span class="post-title-block">
+          <strong>{{ post.title }}</strong>
+          <time datetime="{{ post.date }}">{{ post.date | pretty_date }}</time>
+          {% if post.translations %}
+          <small>
+            <span>Languages:</span>
+            <span>{{ post.lang | upper }}</span>
             {% for lang_code, other in post.translations.items() %}
-            / <a href="{{ other.url }}">{{ lang_code | upper }}</a>
+            <span>/ {{ lang_code | upper }}</span>
             {% endfor %}
           </small>
-        </p>
-        {% endif %}
-        {% if post.description %}
-        <p><small>{{ post.description }}</small></p>
-        {% endif %}
-      </li>
+          {% endif %}
+        </span>
+        <span class="post-summary">{{ post.description or "A technical note from the notebook." }}</span>
+        <span class="row-arrow" aria-hidden="true">&rarr;</span>
+      </a>
       {% endfor %}
-    </ul>
-
-    {% if posts_by_tag %}
-    <h2>Posts by Tag</h2>
-    {% for tag, tag_posts in posts_by_tag.items() %}
-    <h3 id="tag-{{ tag }}">{{ tag }}</h3>
-    <ul>
-      {% for post in tag_posts %}
-      <li>
-        <p class="two-col">
-          <a href="{{ post.url }}">{{ post.title }}</a>
-          <small>{{ post.date }}</small>
-        </p>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endfor %}
-    {% endif %}
-  </article>
-</main>
+    </section>
+  </main>
+</div>
 {% endblock %}
+
+{% block footer %}{% endblock %}
