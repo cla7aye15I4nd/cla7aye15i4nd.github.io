@@ -37,4 +37,5 @@ The archive merges entries by slug and renders a language switcher on each post.
 
 Pushing to `main` triggers `.github/workflows/deploy.yml` which builds the site
 and publishes `dist/` to GitHub Pages. The repository's Pages source must be
-set to "GitHub Actions".
+set to "GitHub Actions". The resume PDF is cached by the hash of `resume/**`,
+so deployments reuse it when the LaTeX sources have not changed.

@@ -1,6 +1,7 @@
 .PHONY: all install build serve clean cv typecheck lint fmt check help
 
 UV := uv
+RESUME_SOURCES := $(wildcard resume/*.tex resume/*.bib resume/*.cls resume/*.sty)
 
 all: build
 
@@ -13,7 +14,10 @@ build: install
 serve: install
 	@$(UV) run site serve
 
-cv:
+cv: paper/resume.pdf
+
+paper/resume.pdf: $(RESUME_SOURCES)
+	@mkdir -p paper
 	@cd resume && latexmk -pdf -interaction=nonstopmode -jobname=resume main.tex
 	@mv resume/resume.pdf paper/resume.pdf
 	@echo "built paper/resume.pdf"

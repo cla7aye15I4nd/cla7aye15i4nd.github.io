@@ -36,7 +36,15 @@ jobs:
       - name: Lint
         run: uv run ruff check .
 
+      - name: Restore cached resume
+        id: resume-cache
+        uses: actions/cache@v4
+        with:
+          path: paper/resume.pdf
+          key: ${{ runner.os }}-resume-${{ hashFiles('resume/**') }}
+
       - name: Build resume
+        if: steps.resume-cache.outputs.cache-hit != 'true'
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
@@ -45,7 +53,11 @@ jobs:
           args: -pdf -interaction=nonstopmode -jobname=resume
 
       - name: Stage resume into paper/
+        if: steps.resume-cache.outputs.cache-hit != 'true'
         run: mv resume/resume.pdf paper/resume.pdf
+
+      - name: Verify resume PDF
+        run: test -s paper/resume.pdf
 
       - name: Build site
         run: uv run site build
