@@ -2503,9 +2503,9 @@ body:has(.not-found-page) ::selection {
 
 .not-found-dumpling {
   position: absolute;
-  right: clamp(-18px, 1.8vw, 36px);
-  bottom: clamp(-30px, -2.1vw, -12px);
-  width: clamp(112px, 15vw, 206px);
+  right: clamp(-26px, 1vw, 26px);
+  bottom: clamp(-36px, -2.5vw, -16px);
+  width: clamp(132px, 17vw, 238px);
   height: auto;
   color: #111;
   overflow: visible;
@@ -2527,6 +2527,7 @@ body:has(.not-found-page) ::selection {
 }
 
 .dumpling-fold,
+.dumpling-belly,
 .dumpling-face {
   fill: none;
   stroke: currentColor;
@@ -2536,12 +2537,16 @@ body:has(.not-found-page) ::selection {
 
 .dumpling-fold {
   stroke: #d9cfbd;
-  stroke-width: 7;
+  stroke-width: 8;
   opacity: 0.95;
 }
 
+.dumpling-belly {
+  stroke: #e2dacd;
+  stroke-width: 7;
+}
+
 .dumpling-face {
-  stroke-width: 5;
   stroke-width: 7;
 }
 
@@ -2784,9 +2789,9 @@ body:has(.not-found-page) ::selection {
   }
 
   .not-found-dumpling {
-    right: -8px;
-    bottom: -18px;
-    width: clamp(96px, 30vw, 138px);
+    right: -18px;
+    bottom: -20px;
+    width: clamp(112px, 36vw, 160px);
   }
 
   .not-found-message {
