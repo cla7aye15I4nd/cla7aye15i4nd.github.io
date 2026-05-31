@@ -91,7 +91,7 @@ sections:
   services_journal_reviewer: "Journal Reviewer:"
 
 links:
-  - { label: "Email",          url: "mailto:zheng.yu@northwestern.edu" }
+  - { label: "Email",          url: "mailto:dataisland@outlook.com" }
   - { label: "CV",             url: "paper/resume.pdf" }
   - { label: "Github",         url: "https://github.com/cla7aye15I4nd" }
   - { label: "Scholar", url: "https://scholar.google.com/citations?user=Ih4TEO8AAAAJ" }
