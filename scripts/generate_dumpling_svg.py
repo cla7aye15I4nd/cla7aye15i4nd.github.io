@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = Path("/Users/moe/Downloads/IMG_1759.jpg")
 OUTPUT = ROOT / "templates" / "partials" / "dumpling_svg.html"
