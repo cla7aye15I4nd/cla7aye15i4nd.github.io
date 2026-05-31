@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros/icons.html" as icons %}
 {% set static_prefix = "../" %}
 {% set lang = post.lang %}
 {% set article = site.data.profile.blog_article %}
@@ -40,7 +41,7 @@
       <a class="article-brand" href="index.html">{{ article.brand }}</a>
       <span>
         {% for link in article.nav_links %}
-        <a href="{{ link.url }}">{{ link.label }}</a>
+        {{ icons.icon_link(link) }}
         {% endfor %}
       </span>
     </nav>

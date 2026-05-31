@@ -157,6 +157,77 @@ a:focus {
   outline: 2px solid hsl(220, 90%, 52%);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.icon-link {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  color: #5f5f5f;
+  text-decoration: none !important;
+}
+
+.icon-link svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.icon-link svg path[fill],
+.icon-link svg circle[fill] {
+  fill: currentColor;
+  stroke: none;
+}
+
+.icon-link[aria-label="Github"] svg,
+.icon-link[aria-label="GitHub"] svg,
+.icon-link[aria-label="Home"] svg,
+.icon-link[aria-label="Blog"] svg {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-link[aria-label="Email"] svg,
+.icon-link[aria-label="CV"] svg,
+.icon-link[aria-label="Gallery"] svg {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-link[aria-label="Scholar"] svg,
+.icon-link[aria-label="Linkedin"] svg,
+.icon-link[aria-label="LinkedIn"] svg,
+.icon-link[aria-label="ORCID"] svg,
+.icon-link[aria-label="DBLP"] svg {
+  width: 15px;
+  height: 15px;
+}
+
+.icon-link[aria-label="X"] svg {
+  width: 16.5px;
+  height: 16.5px;
+}
+
+.icon-link:hover {
+  color: #111;
+  opacity: 1;
+}
+
 /* Make images easier to work with */
 img {
   max-width: 100%;
@@ -980,7 +1051,7 @@ body:has(.blog-archive-page) ::selection {
   display: flex;
   max-width: 240px;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 8px 10px;
   margin-top: 32px;
   font-family: var(--nan-sans);
 }
@@ -1040,15 +1111,19 @@ body:has(.blog-archive-page) ::selection {
 }
 
 .sidebar-button {
-  width: fit-content;
-  padding: 6px 8px;
-  border-radius: 8px;
-  color: #fdfdfd !important;
-  background: #171717;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #bcbcbc;
+  border-radius: 0;
+  color: #666 !important;
+  background: transparent;
   text-decoration: none !important;
+}
+
+.sidebar-button:hover {
+  color: #111 !important;
+  background: var(--nan-hover);
 }
 
 .sidebar-foot {
@@ -1063,7 +1138,7 @@ body:has(.blog-archive-page) ::selection {
 
 .sidebar-foot > span:first-child {
   display: flex;
-  gap: 12px;
+  gap: 9px;
 }
 
 .index-feed {
@@ -1502,7 +1577,13 @@ body:has(.blog-article-page) ::selection {
 
 .article-topbar span {
   display: flex;
-  gap: 16px;
+  gap: 10px;
+}
+
+.article-topbar .icon-link {
+  width: 24px;
+  height: 24px;
+  color: #555;
 }
 
 .article-hero {
@@ -1893,7 +1974,7 @@ body:has(.home-page) ::selection {
   display: flex;
   max-width: 680px;
   flex-wrap: wrap;
-  gap: 7px 12px;
+  gap: 8px 12px;
   margin-top: 22px;
 }
 
@@ -1911,8 +1992,17 @@ body:has(.home-page) ::selection {
 }
 
 .home-contact a {
-  font-size: 13px;
-  line-height: 1.25;
+  flex: 0 0 auto;
+}
+
+.home-contact .icon-link {
+  width: 24px;
+  height: 24px;
+}
+
+.home-contact .icon-link svg {
+  width: 17px;
+  height: 17px;
 }
 
 .home-cell {

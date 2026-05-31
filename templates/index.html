@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros/icons.html" as icons %}
 {% set profile = site.data.profile %}
 {% block title %}{{ profile.name }}{% endblock %}
 {% set home = profile.home %}
@@ -17,7 +18,7 @@
     </p>
     <nav class="home-contact" aria-label="Primary links">
       {% for link in profile.links %}
-      <a href="{{ link.url }}"{% if not link.get('same_window') %} target="_blank"{% endif %}>{{ link.label }}</a>
+      {{ icons.icon_link(link) }}
       {% endfor %}
     </nav>
   </section>

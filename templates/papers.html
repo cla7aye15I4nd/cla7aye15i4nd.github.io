@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros/icons.html" as icons %}
 {% set static_prefix = "../" %}
 {% set profile = site.data.profile %}
 {% set archive = profile.paper_archive %}
@@ -34,17 +35,17 @@
       </p>
       <nav class="sidebar-links" aria-label="Paper links">
         {% for link in archive.links %}
-        <a class="sidebar-button" href="{{ link.url }}">{{ link.label }}</a>
+        {{ icons.icon_link(link, "icon-link sidebar-button") }}
         {% endfor %}
       </nav>
     </div>
     <div class="sidebar-foot">
       <span>
         {% for link in archive.footer_links %}
-        <a href="{{ link.url }}" target="_blank">{{ link.label }}</a>
+        {{ icons.icon_link(link) }}
         {% endfor %}
       </span>
-      <span>&copy; 1999 - <span data-current-year></span></span>
+      <span>&copy; 2015 - <span data-current-year></span></span>
     </div>
   </aside>
 
