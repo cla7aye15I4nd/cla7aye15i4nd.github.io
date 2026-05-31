@@ -92,6 +92,7 @@ sections:
 
 links:
   - { label: "Email",          url: "mailto:zheng.yu@northwestern.edu" }
+  - { label: "CV",             url: "paper/resume.pdf" }
   - { label: "Github",         url: "https://github.com/cla7aye15I4nd" }
   - { label: "Google Scholar", url: "https://scholar.google.com/citations?user=Ih4TEO8AAAAJ" }
   - { label: "DBLP",           url: "https://dblp.org/pid/28/4466-3.html" }
