@@ -19,9 +19,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   {% block description %}{% endblock %}
   {% block stylesheets %}
-  <link rel="stylesheet" href="{{ static_prefix | default('') }}static/style.css">
+  <link rel="stylesheet" href="{{ static_prefix | default('') }}static/style.css{% if site.asset_version %}?v={{ site.asset_version }}{% endif %}">
   {% endblock %}
-  <script defer src="{{ static_prefix | default('') }}static/spa.js"></script>
+  <script defer src="{{ static_prefix | default('') }}static/spa.js{% if site.asset_version %}?v={{ site.asset_version }}{% endif %}"></script>
   <title>{% block title %}{{ site.title }}{% endblock %}</title>
   {% block head_extra %}{% endblock %}
 </head>

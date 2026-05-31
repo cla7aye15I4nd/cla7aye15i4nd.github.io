@@ -2005,6 +2005,27 @@ body:has(.home-page) ::selection {
   height: 17px;
 }
 
+.home-contact .icon-link[aria-label="Email"] svg,
+.home-contact .icon-link[aria-label="CV"] svg,
+.home-contact .icon-link[aria-label="Gallery"] svg {
+  width: 16px;
+  height: 16px;
+}
+
+.home-contact .icon-link[aria-label="Scholar"] svg,
+.home-contact .icon-link[aria-label="Linkedin"] svg,
+.home-contact .icon-link[aria-label="LinkedIn"] svg,
+.home-contact .icon-link[aria-label="ORCID"] svg,
+.home-contact .icon-link[aria-label="DBLP"] svg {
+  width: 15px;
+  height: 15px;
+}
+
+.home-contact .icon-link[aria-label="X"] svg {
+  width: 16.5px;
+  height: 16.5px;
+}
+
 .home-cell {
   padding: 28px 32px;
   border-right: 1px solid var(--nan-line);
@@ -2370,6 +2391,254 @@ body:has(.home-page) ::selection {
   color: #737373;
 }
 
+body:has(.not-found-page) {
+  --nan-serif: "NanSerif", "Times New Roman", serif;
+  --nan-sans: "NanSans", Arial, Helvetica, sans-serif;
+  --nan-ink: #0a0a0a;
+  --nan-muted: #747474;
+  --nan-surface: #eeeeec;
+  --nan-hover: #f6f6f3;
+  --nan-line: #c8c8c6;
+  --nan-dash: #d8d8d5;
+
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  color: var(--nan-ink);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      #f8f8f8 0,
+      #f8f8f8 2px,
+      #ededed 2px,
+      #ededed 4px
+    );
+  font-family: var(--nan-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body:has(.not-found-page) ::selection {
+  color: #000;
+  background: #d8d8d3;
+}
+
+.not-found-page {
+  display: grid;
+  max-width: 1450px;
+  min-height: 100svh;
+  margin: 0 auto;
+  border-right: 1px solid var(--nan-line);
+  border-left: 1px solid var(--nan-line);
+  background: var(--nan-surface);
+  grid-template-columns: minmax(300px, 34%) minmax(0, 1fr);
+}
+
+.not-found-page a,
+.not-found-page a:visited {
+  color: inherit;
+}
+
+.not-found-rail {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 42px 44px;
+  border-right: 1px solid var(--nan-line);
+}
+
+.not-found-rail h1 {
+  margin: 34px 0 18px;
+  color: #000;
+  font-family: var(--nan-serif);
+  font-size: clamp(64px, 7.4vw, 116px);
+  font-weight: 400;
+  line-height: 0.9;
+}
+
+.not-found-rail p:not(.home-kicker) {
+  max-width: 430px;
+  margin: 0 0 26px;
+  font-size: 18px;
+  line-height: 1.45;
+  text-align: left;
+  hyphens: none;
+}
+
+.not-found-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 13px;
+}
+
+.not-found-links .icon-link {
+  width: 24px;
+  height: 24px;
+}
+
+.not-found-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: 56px clamp(34px, 6vw, 96px);
+}
+
+.not-found-figure {
+  position: relative;
+  width: min(100%, 760px);
+}
+
+.not-found-main h2 {
+  margin: 18px 0 22px;
+  color: #000;
+  font-family: var(--nan-serif);
+  font-size: clamp(112px, 22vw, 280px);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: 0;
+}
+
+.not-found-dumpling {
+  position: absolute;
+  right: clamp(-18px, 1.8vw, 36px);
+  bottom: clamp(-30px, -2.1vw, -12px);
+  width: clamp(112px, 15vw, 206px);
+  height: auto;
+  color: #111;
+  overflow: visible;
+  transform: rotate(-8deg);
+}
+
+.dumpling-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dumpling-rotate 5.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.dumpling-shell {
+  fill: #fffdf3;
+  stroke: currentColor;
+  stroke-width: 7.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dumpling-fold,
+.dumpling-face {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dumpling-fold {
+  stroke: #d9cfbd;
+  stroke-width: 7;
+  opacity: 0.95;
+}
+
+.dumpling-face {
+  stroke-width: 5;
+  stroke-width: 7;
+}
+
+.dumpling-left-hand,
+.dumpling-peace-hand {
+  fill: #fffdf3;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 7.5;
+}
+
+.dumpling-phone {
+  fill: #050505;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.dumpling-phone-dot {
+  fill: #fffdf3;
+}
+
+.dumpling-eye,
+.dumpling-spark {
+  fill: currentColor;
+}
+
+.dumpling-cheek {
+  fill: #f4df65;
+  opacity: 0.95;
+}
+
+.dumpling-shadow {
+  fill: #000;
+  opacity: 0.08;
+}
+
+@keyframes dumpling-rotate {
+  0% {
+    transform: rotate(-10deg) translateY(0) scale(1);
+  }
+
+  34% {
+    transform: rotate(10deg) translateY(-8px) scale(1.03);
+  }
+
+  62% {
+    transform: rotate(366deg) translateY(1px) scale(0.99);
+  }
+
+  100% {
+    transform: rotate(350deg) translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dumpling-spin {
+    animation: none;
+  }
+}
+
+.not-found-message {
+  width: min(100%, 680px);
+  margin: 0;
+  font-size: clamp(22px, 3vw, 42px);
+  line-height: 1.15;
+  text-align: left;
+  hyphens: none;
+}
+
+.not-found-sub {
+  width: min(100%, 520px);
+  margin: 18px 0 0;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: left;
+  hyphens: none;
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  margin-top: 38px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--nan-dash);
+}
+
+.not-found-actions a {
+  font-size: 15px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 1080px) {
   .home-page {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2412,6 +2681,21 @@ body:has(.home-page) ::selection {
 
   .paper-row {
     grid-template-columns: 3.5rem minmax(0, 1fr);
+  }
+
+  .not-found-page {
+    grid-template-columns: 1fr;
+  }
+
+  .not-found-rail {
+    min-height: 0;
+    padding: 32px 28px;
+    border-right: 0;
+    border-bottom: 1px dashed var(--nan-dash);
+  }
+
+  .not-found-rail h1 {
+    margin: 32px 0 18px;
   }
 }
 
@@ -2489,5 +2773,23 @@ body:has(.home-page) ::selection {
 
   .home-mini-list li {
     grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
+
+  .not-found-main {
+    padding: 42px 24px 56px;
+  }
+
+  .not-found-main h2 {
+    font-size: clamp(92px, 42vw, 170px);
+  }
+
+  .not-found-dumpling {
+    right: -8px;
+    bottom: -18px;
+    width: clamp(96px, 30vw, 138px);
+  }
+
+  .not-found-message {
+    font-size: 24px;
   }
 }

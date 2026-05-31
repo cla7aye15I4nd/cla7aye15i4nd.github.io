@@ -5,7 +5,7 @@ cv_url: "/paper/resume.pdf"
 quote: |
   Daily immersion in evil leads to withering;
   the diligent pursuit of goodness leads to flourishing.
-not_found_message: "这个页面迷路了，像一只找不到锅的饺子。"
+not_found_message: "This page fell out of the index."
 not_found:
   title: "404 - Page Not Found"
   sub: "The page you are looking for doesn't exist."

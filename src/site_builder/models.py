@@ -12,6 +12,7 @@ class SiteConfig:
     title: str
     author: str
     domain: str
+    asset_version: str
     analytics: dict[str, Any]
     default_lang: str
     content_dir: Path
@@ -27,6 +28,7 @@ class SiteConfig:
             title=str(raw.get("title", "")),
             author=str(raw.get("author", "")),
             domain=str(raw.get("domain", "")),
+            asset_version=str(raw.get("asset_version", "")),
             analytics=dict(raw.get("analytics") or {}),
             default_lang=str(raw.get("default_lang", "en")),
             content_dir=root / str(raw.get("content_dir", "content")),
@@ -142,6 +144,7 @@ class SiteContext:
                 "title": self.config.title,
                 "author": self.config.author,
                 "domain": self.config.domain,
+                "asset_version": self.config.asset_version,
                 "analytics": self.config.analytics,
                 "default_lang": self.config.default_lang,
                 "data": self.data,
