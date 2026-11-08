@@ -40,6 +40,8 @@ home:
   writing_label: "Writing"
   writing_all_label: "All notes →"
   writing_url: "blog/index.html"
+  writing_limit: 3
+  writing_exclude: [lean-1]
   research_label: "Selected Research"
   research_all_label: "All papers →"
   research_url: "papers/index.html"
