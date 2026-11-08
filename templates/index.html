@@ -100,7 +100,8 @@
       <a href="{{ home.writing_url }}">{{ home.writing_all_label }}</a>
     </div>
     <ul>
-      {% for post in posts if post.lang == site.default_lang %}
+      {% set writing_posts = posts | selectattr("lang", "equalto", site.default_lang) | rejectattr("slug", "in", home.writing_exclude | default([])) | list %}
+      {% for post in writing_posts[:home.writing_limit] %}
       <li>
         <a href="blog/{{ post.url }}">{{ post.title }}</a>
         <time datetime="{{ post.date }}">{{ post.date | pretty_date }}</time>
