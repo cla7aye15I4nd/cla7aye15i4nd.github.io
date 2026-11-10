@@ -1512,9 +1512,9 @@ body:has(.blog-article-page) ::selection {
 
 .blog-article-page {
   display: grid;
-  grid-template-columns: minmax(0, 820px) 168px;
+  grid-template-columns: minmax(0, 1fr) 180px;
   gap: 48px;
-  max-width: 1450px;
+  max-width: 1440px;
   min-height: 100vh;
   margin: 0 auto;
   padding: 40px;
@@ -1524,16 +1524,17 @@ body:has(.blog-article-page) ::selection {
 }
 
 .blog-article-page.is-toc-collapsed {
-  grid-template-columns: minmax(0, 1060px) 56px;
+  grid-template-columns: minmax(0, 1fr) 56px;
   gap: 36px;
 }
 
 .blog-article-page.is-toc-collapsed .article-body {
-  max-width: 980px;
+  max-width: 1000px;
+  overflow-wrap: anywhere;
 }
 
 .blog-article-page.is-toc-collapsed .article-hero h1 {
-  max-width: 980px;
+  max-width: 1000px;
 }
 
 .blog-article-page.is-toc-collapsed .article-hero p {
@@ -1593,7 +1594,7 @@ body:has(.blog-article-page) ::selection {
 }
 
 .article-hero h1 {
-  max-width: 760px;
+  max-width: 1000px;
   margin: 0;
   color: #000;
   font-family: var(--nan-serif);
@@ -1630,7 +1631,7 @@ body:has(.blog-article-page) ::selection {
 }
 
 .article-body {
-  max-width: 720px;
+  max-width: 1000px;
   padding: 48px 0 96px;
   font-family: var(--nan-sans);
   font-size: 18px;
@@ -1706,6 +1707,18 @@ body:has(.blog-article-page) ::selection {
 
 .article-body code {
   background: #f7f7f7;
+}
+
+.article-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.article-body mjx-container[display="true"] {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .article-body figure {
@@ -1811,8 +1824,9 @@ body:has(.blog-article-page) ::selection {
   writing-mode: vertical-rl;
 }
 
-@media (max-width: 1120px) {
-  .blog-article-page {
+@media (max-width: 1200px) {
+  .blog-article-page,
+  .blog-article-page.is-toc-collapsed {
     grid-template-columns: 1fr;
     gap: 0;
     padding: 24px;
