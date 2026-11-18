@@ -116,7 +116,12 @@
       document.head.appendChild(nextDescription.cloneNode(true));
     }
 
-    document.head.querySelectorAll("[data-spa-extra]").forEach((node) => node.remove());
+    document.head.querySelectorAll("[data-spa-extra]").forEach((node) => {
+      if (node.tagName.toLowerCase() === "script" && node.getAttribute("src")) {
+        return;
+      }
+      node.remove();
+    });
 
     for (const node of nextDocument.head.children) {
       if (isBaseHeadNode(node)) {
@@ -138,8 +143,19 @@
     if (window.hljs) {
       window.hljs.highlightAll();
     }
-    if (window.MathJax?.typesetPromise) {
-      window.MathJax.typesetPromise().catch(() => {});
+    if (window.MathJax) {
+      const typeset = () => {
+        const app = document.getElementById("app");
+        if (window.MathJax.typesetClear && app) {
+          window.MathJax.typesetClear([app]);
+        }
+        return window.MathJax.typesetPromise ? window.MathJax.typesetPromise(app ? [app] : undefined) : undefined;
+      };
+      if (window.MathJax.startup?.promise) {
+        window.MathJax.startup.promise.then(typeset).catch(() => {});
+      } else if (window.MathJax.typesetPromise) {
+        typeset()?.catch(() => {});
+      }
     }
   };
 
@@ -151,6 +167,12 @@
       return;
     }
     currentApp.replaceChildren(...[...nextApp.childNodes].map((node) => document.importNode(node, true)));
+    currentApp.querySelectorAll("script").forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      [...oldScript.attributes].forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+      newScript.textContent = oldScript.textContent;
+      oldScript.replaceWith(newScript);
+    });
     document.body.id = nextDocument.body.id || "";
     document.body.className = nextDocument.body.className || "";
   };
