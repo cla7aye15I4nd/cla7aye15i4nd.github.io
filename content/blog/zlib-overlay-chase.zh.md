@@ -20,7 +20,7 @@ description: "deflate.c 用 38 行注释论证共用缓冲区绝不会覆写未�
 
 在所有生产环境的发布版编译（`#ifndef ZLIB_DEBUG`）下，`Assert` 都会被预处理器直接抹成空白。无论是 `compress_block`、`send_bits` 还是 `put_byte`，在向 `s->pending_buf` 写入字节时，都**没有任何运行时边界检查**。
 
-当我们用 Lean 4 对上游 `zlib 1.4` 做完整的内存安全形式化证明（见前文 [zlib × Lean](/blog/zlib-lean.zh.html)，代码库 [`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f)）时，绝大多数模块的证明都属于经典的系统验证问题：`inflate_fast` 环形窗口的回绕、`longest_match` 在未初始化数组上的哈希链有界性、流式状态机的跨调用不变量。唯独 `trees.c` 的第 945 行是个例外：在 `deflate.c` 分配这块缓冲区的正上方，`zlib` 作者专门写了一段 38 行的数学证明来论证这条被删掉的 `Assert` 绝不会触发——**但那段证明在逻辑上是错的**。更奇妙的是，当我们放下证明器、顺着注释的漏洞试图构造 Exploit 去打穿它时，所有攻击样本却全都撞上了一堵无形的墙。
+当我们用 Lean 4 对上游 `zlib 1.4` 做完整的内存安全形式化证明（见前文 [zlib × Lean](/blog/zlib-lean.zh.html)，代码库 [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof)）时，绝大多数模块的证明都属于经典的系统验证问题：`inflate_fast` 环形窗口的回绕、`longest_match` 在未初始化数组上的哈希链有界性、流式状态机的跨调用不变量。唯独 `trees.c` 的第 945 行是个例外：在 `deflate.c` 分配这块缓冲区的正上方，`zlib` 作者专门写了一段 38 行的数学证明来论证这条被删掉的 `Assert` 绝不会触发——**但那段证明在逻辑上是错的**。更奇妙的是，当我们放下证明器、顺着注释的漏洞试图构造 Exploit 去打穿它时，所有攻击样本却全都撞上了一堵无形的墙。
 
 这篇文章不省篇幅、不跳步骤，从头把整场调查拆清楚：
 
@@ -172,11 +172,11 @@ if (dist == 0) {
 
 ## 3. 怎么把 C 语言算法和 Lean 4 证明一步步联系起来
 
-一边是充斥着指针自增、16 位移位寄存器 `bi_buf`、最小堆建树与码长截断的 C 代码；另一边是 Lean 4 里的纯数学定理。两者是怎么严丝合缝接上的？下面沿着 [`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f) 的真实证明结构，走完这座四步桥梁。
+一边是充斥着指针自增、16 位移位寄存器 `bi_buf`、最小堆建树与码长截断的 C 代码；另一边是 Lean 4 里的纯数学定理。两者是怎么严丝合缝接上的？下面沿着 [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof) 的真实证明结构，走完这座四步桥梁。
 
 ### 第一步：Lean 翻译模型里“安全”到底指什么？
 
-在 `zlib-f` 中，`zlib/trees.c`、`zlib/deflate.c` 等每个 C 文件都被逐语句翻译到带显式堆与故障状态的 Lean 4 单子（Monad）中。每一次数组下标访问（`_dist_code[...]`、`pending_buf[...]`）、指针偏移、有符号整数运算和位移都会做精确的 C 标准边界检查；一旦违规就触发 `Fault.ub`。证明 `deflate` 安全，就是证明从任何合法初始化流出发，任意公开 API 调用序列都永远不会到达 `Fault.ub`。
+在 `oss-proof`（`projects/zlib`）中，`zlib/trees.c`、`zlib/deflate.c` 等每个 C 文件都被逐语句翻译到带显式堆与故障状态的 Lean 4 单子（Monad）中。每一次数组下标访问（`_dist_code[...]`、`pending_buf[...]`）、指针偏移、有符号整数运算和位移都会做精确的 C 标准边界检查；一旦违规就触发 `Fault.ub`。证明 `deflate` 安全，就是证明从任何合法初始化流出发，任意公开 API 调用序列都永远不会到达 `Fault.ub`。
 
 ### 第二步：把 `pending` 和 `bi_buf` 合成为一个“比特里程表”
 
@@ -194,7 +194,7 @@ $$
 \mathrm{pending} = 2 \left\lfloor \frac{S - 1}{16} \right\rfloor \le \frac{S}{8}.
 $$
 
-在刷块入口处，`pending = 0`，`bi_valid` $= v_0 \le 7$。写完 3 bits 块标记、$H$ bits 动态树头以及前 $k$ 个符号 $s_0, \dots, s_{k-1}$ 后，$S_k = v_0 + 3 + H + \sum_{i=0}^{k-1} \mathrm{cost}(s_i)$。与此同时，在块末尾（$k = n$），`compress_block` 还要写出 $\le 15$ bits 的 `END_BLOCK` 并对齐字节，且不能越过 `4B` 缓冲区末端（`block_room`）。把块中不追尾（$S_k \le 8(B + 3k)$）和块尾不越界合并成一条统一充分条件（[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-dynamic.lean#L35-L41) 中的 `DynamicRoom`），只需对所有 $k \in \{0, \dots, n\}$ 证明：
+在刷块入口处，`pending = 0`，`bi_valid` $= v_0 \le 7$。写完 3 bits 块标记、$H$ bits 动态树头以及前 $k$ 个符号 $s_0, \dots, s_{k-1}$ 后，$S_k = v_0 + 3 + H + \sum_{i=0}^{k-1} \mathrm{cost}(s_i)$。与此同时，在块末尾（$k = n$），`compress_block` 还要写出 $\le 15$ bits 的 `END_BLOCK` 并对齐字节，且不能越过 `4B` 缓冲区末端（`block_room`）。把块中不追尾（$S_k \le 8(B + 3k)$）和块尾不越界合并成一条统一充分条件（[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-dynamic.lean#L35-L41) 中的 `DynamicRoom`），只需对所有 $k \in \{0, \dots, n\}$ 证明：
 
 $$
 \underbrace{(v_0 + 3 + 15)}_{\le\, 25} + H + \sum_{i=0}^{k-1} \big(\mathrm{cost}(s_i) - 24\big) \le 8B.
@@ -239,7 +239,7 @@ $$
 
 当 $B \ge 2{,}048$ 时，极端偏斜的块总权重 $W > 1{,}597$，可能长出深度超过 DEFLATE 15 位上限的树。在 C 代码里，`gen_bitlen`（[`trees.c:583–593`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L583-L593)）会把所有 $> 15$ 的深度强行截断为 $15$。截断破坏了前缀码的 Kraft 等式（使 $\sum 2^{-l_i} > 1$），于是 `gen_bitlen` 紧接着跑一个修复循环，把若干较浅叶子的码长加一（`bits -> bits + 1`）直到恢复 $\sum 2^{-l_i} = 1$。
 
-即便把 286 个字面量/长度桶与 30 个距离桶上的最坏降级损耗全部算进来（[`trees.c.heap.gbfibpush.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.heap.gbfibpush.lean)），Lean 依然证出 $E \le 6.257 \cdot (n + 3)$。由于每增加一个符号容量提供 8 bits 起步空间、最多消耗 6.257 bits 超额位，$2{,}283 + \lceil 6.257(B+2) \rceil + 25 \le 8B$ 对所有 $B \ge 1{,}332$ 恒成立（[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-dynamic.lean#L52-L67) 中的 `dynamic_room_large`）。
+即便把 286 个字面量/长度桶与 30 个距离桶上的最坏降级损耗全部算进来（[`trees.c.heap.gbfibpush.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.heap.gbfibpush.lean)），Lean 依然证出 $E \le 6.257 \cdot (n + 3)$。由于每增加一个符号容量提供 8 bits 起步空间、最多消耗 6.257 bits 超额位，$2{,}283 + \lceil 6.257(B+2) \rceil + 25 \le 8B$ 对所有 $B \ge 1{,}332$ 恒成立（[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-dynamic.lean#L52-L67) 中的 `dynamic_room_large`）。
 
 但在 `memLevel = 4`（$B = 1{,}024, 8B = 8{,}192$）处，$2{,}283 + 6.257 \times 1{,}026 + 25 = 8{,}728 > 8{,}192$——**超支了 536 bits**。
 
@@ -257,7 +257,7 @@ $$
 F_{16} + F_{15} = F_{17} = \mathbf{1{,}597}.
 $$
 
-因为 $1{,}026 < 1{,}597$，**在 `memLevel <= 4` 时，`trees.c:577` 对一切输入都 100% 走早退 `return` 分支！** 既然没有任何截断扭曲，每个符号都严格满足 $f \cdot F_{l+1} + F_l \le W$，使 $E$ 在 $B = 1{,}024$ 时骤降到 $3{,}678$ bits（$5{,}986 \le 8{,}192$），在 $B = 512$ 时降到 $1{,}777$ bits（$2{,}283 + 1{,}777 + 25 = \mathbf{4{,}085 \le 4{,}096}$——只剩 **11 bits** 证明余量，见 [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-overlay-mid.lean)）。
+因为 $1{,}026 < 1{,}597$，**在 `memLevel <= 4` 时，`trees.c:577` 对一切输入都 100% 走早退 `return` 分支！** 既然没有任何截断扭曲，每个符号都严格满足 $f \cdot F_{l+1} + F_l \le W$，使 $E$ 在 $B = 1{,}024$ 时骤降到 $3{,}678$ bits（$5{,}986 \le 8{,}192$），在 $B = 512$ 时降到 $1{,}777$ bits（$2{,}283 + 1{,}777 + 25 = \mathbf{4{,}085 \le 4{,}096}$——只剩 **11 bits** 证明余量，见 [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-overlay-mid.lean)）。
 
 在下方切换 `memLevel` 并拖动深度 $l$，直观查看 $B + 2 < 1{,}597$ 是如何锁死第 16 层、强制触发 `trees.c:577` 提前返回的：
 
@@ -267,8 +267,8 @@ $$
 
 来到 $B = 256$（$8B = 2{,}048$）和 $B = 128$（$8B = 1{,}024$），光一个 2,283 bits 的通用块头上限本身就已经比整个 $8B$ 预算还大了。为什么光写树头没有当场击穿 $B$？因为 **三个 C 函数的行为像齿轮一样咬合在了一起**：
 
-1. **在 `build_tree` 中（[`deflate.c.engine.overlay-lengths.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-lengths.lean)）：** 当 $B = 128$（$W \le 130 < 144 = F_{12}$）时，$F_{l+2} \le 130$ 迫使**所有数据码长 $l \le 9$**（在 $B = 256$ 时 $l \le 11$）；并且任何因有效符号不足 2 个而补入的 `f = 0` 占位叶子必然处在 2 叶树中，码长恒为 $l = 1$。
-2. **在 `scan_tree` 与 `build_bl_tree` 中（[`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)）：** 因为 $B = 128$ 时码长 `10..15` 绝不出现，`bl_tree` 至多只用到 19 个符号中的 13 个。用一组显式完全参考前缀码给 `bl_tree` 计费，可把两倍树头严格控制在 $286 + 30$ 个树槽位的逐项费用之和以内。
+1. **在 `build_tree` 中（[`deflate.c.engine.overlay-lengths.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/deflate.c.engine.overlay-lengths.lean)）：** 当 $B = 128$（$W \le 130 < 144 = F_{12}$）时，$F_{l+2} \le 130$ 迫使**所有数据码长 $l \le 9$**（在 $B = 256$ 时 $l \le 11$）；并且任何因有效符号不足 2 个而补入的 `f = 0` 占位叶子必然处在 2 叶树中，码长恒为 $l = 1$。
+2. **在 `scan_tree` 与 `build_bl_tree` 中（[`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)）：** 因为 $B = 128$ 时码长 `10..15` 绝不出现，`bl_tree` 至多只用到 19 个符号中的 13 个。用一组显式完全参考前缀码给 `bl_tree` 计费，可把两倍树头严格控制在 $286 + 30$ 个树槽位的逐项费用之和以内。
 3. **在 `_tr_flush_block` 中（[`trees.c:1035`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L1035-L1037)）：** 还记得 `deflate.c` 里那段坏掉的注释吗？虽然 `opt_lenb < static_lenb` 不能靠平均值直接保住前缀，但 `_tr_flush_block` 在发动态块前确实执行了 `if (static_lenb <= opt_lenb)`！消去两边完全相同的附加位总和后，它直接给出了动态码长（$l_c, l_d$）与固定码长（$l_c^{\mathrm{static}} \in \{7,8,9\}$ 及 $5$）之间的全局不等式。
 
 把这两条不等式并排放在一起，就能看到一步极其干净的代数对消：
@@ -281,7 +281,7 @@ $$
 H + \sum_{c=0}^{285} f_c\, l_c + \sum_{d=0}^{29} f_d\, l_d + 1 \le \sum_{c=0}^{285} f_c\, l_c^{\mathrm{static}} + 5 \sum_{d=0}^{29} f_d.
 $$
 
-只需将 **$a$ 倍的第一式** 与 **$b$ 倍的第二式** 直接相加（在 $B = 128$ 取 $a = 2, b = 4$；在 $B = 256$ 取 $a = 1, b = 1$），左边凑出 $(2a + b)(H + E) + b$，而**两边未知的动态码长加权和与静态码长直接精确抵消**！全部 256 个字面量、`END_BLOCK` 与低附加位匹配桶的频率斜率瞬间变为非正数；只剩寥寥几个高附加位匹配桶，结合 Kraft 不等式（$\sum 2^{15-l} \le 2^{15}$）与 $f \cdot F_{l+1} + F_l \le W$，无需任何暴力搜索，一个约 485 行的参数化模块（[`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Math/DeflateOverlayTiny.lean)）就直接合拢了全部极小块证明：
+只需将 **$a$ 倍的第一式** 与 **$b$ 倍的第二式** 直接相加（在 $B = 128$ 取 $a = 2, b = 4$；在 $B = 256$ 取 $a = 1, b = 1$），左边凑出 $(2a + b)(H + E) + b$，而**两边未知的动态码长加权和与静态码长直接精确抵消**！全部 256 个字面量、`END_BLOCK` 与低附加位匹配桶的频率斜率瞬间变为非正数；只剩寥寥几个高附加位匹配桶，结合 Kraft 不等式（$\sum 2^{15-l} \le 2^{15}$）与 $f \cdot F_{l+1} + F_l \le W$，无需任何暴力搜索，一个约 485 行的参数化模块（[`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Math/DeflateOverlayTiny.lean)）就直接合拢了全部极小块证明：
 
 - 当 $B = 256$（$8B = 2{,}048$）时：$H + E \le \mathbf{1{,}899} \implies 1{,}899 + 25 = \mathbf{1{,}924 \le 2{,}048}$（留出 **124 bits** 预算余量）。
 - 当 $B = 128$（$8B = 1{,}024$）时：$H + E \le \mathbf{983} \implies 983 + 25 = \mathbf{1{,}008 \le 1{,}024}$（留出 **16 bits** 预算余量）。
@@ -363,7 +363,7 @@ $$
 
 做安全验证经常会遇到这种冷幽默：你花了好几周死磕一段连注释都写错了的原地双指针追逐，发现它在固定块下靠 18 字节、在动态块下靠 37 字节涉险过关；结果转头去证十个文件之外看似平平无奇的常规代码时，却接连抓出真正的内存安全漏洞。
 
-在整个上游 `zlib` 的 Lean 4 安全性证明过程中，我们一共发现了 **9 个真实缺陷**：其中 `trees.c` 调试追踪中的 `isgraph(n)` 越界 UB（[PR #1359](https://github.com/madler/zlib/pull/1359)）已在 `zlib 1.4` 发布前合入上游主干（[`6fd01c55`](https://github.com/madler/zlib/commit/6fd01c55)）；其余 8 个存在于 `zlib 1.4`（[`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e)；[补丁目录](https://github.com/cla7aye15I4nd/zlib-f/tree/main/patches)），其中 `inflateCopy` 指针比较问题（[PR #1369](https://github.com/madler/zlib/pull/1369)）也已获作者 Mark Adler 回复确认 *"Applied"*。这 9 个问题里有 7 个是经 AddressSanitizer / UndefinedBehaviorSanitizer 实测复现的未定义行为或内存错误，另外 2 个是违背 API 承诺的 `deflateBound` 上界错误。
+在整个上游 `zlib` 的 Lean 4 安全性证明过程中，我们一共发现了 **9 个真实缺陷**：其中 `trees.c` 调试追踪中的 `isgraph(n)` 越界 UB（[PR #1359](https://github.com/madler/zlib/pull/1359)）已在 `zlib 1.4` 发布前合入上游主干（[`6fd01c55`](https://github.com/madler/zlib/commit/6fd01c55)）；其余 8 个存在于 `zlib 1.4`（[`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e)；[补丁目录](https://github.com/cla7aye15I4nd/oss-proof/tree/main/projects/zlib/patches)），其中 `inflateCopy` 指针比较问题（[PR #1369](https://github.com/madler/zlib/pull/1369)）也已获作者 Mark Adler 回复确认 *"Applied"*。这 9 个问题里有 7 个是经 AddressSanitizer / UndefinedBehaviorSanitizer 实测复现的未定义行为或内存错误，另外 2 个是违背 API 承诺的 `deflateBound` 上界错误。
 
 ### 1. `Z_FIXED` 下 `deflateBound` 算小了输出上界（[`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L932-L940)，[PR #1394](https://github.com/madler/zlib/pull/1394)）
 
@@ -408,8 +408,8 @@ case COPY:      /* -> COPY */
 
 ## 参考链接
 
-- **Lean 4 证明与文档**：[`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f) · [项目总览](https://www.dataisland.org/zlib-f/zh/overview.html) · [树与共用缓冲区证明详解](https://www.dataisland.org/zlib-f/zh/proof/trees.html) · [完整问题清单](https://www.dataisland.org/zlib-f/zh/findings.html)
-- **分区间核心证明源码**：[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-dynamic.lean)（`memLevel 5..9`）· [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-overlay-mid.lean)（`memLevel 3..4`）· [`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Math/DeflateOverlayTiny.lean) 与 [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)（`memLevel 1..2`）
+- **Lean 4 证明与文档**：[`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof) · [oss-proof 总览门户](https://www.dataisland.org/oss-proof/zh/) · [zlib 项目总览](https://www.dataisland.org/oss-proof/zlib/zh/overview.html) · [树与共用缓冲区证明详解](https://www.dataisland.org/oss-proof/zlib/zh/proof/trees.html) · [完整问题清单](https://www.dataisland.org/oss-proof/zlib/zh/findings.html)
+- **分区间核心证明源码**：[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-dynamic.lean)（`memLevel 5..9`）· [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-overlay-mid.lean)（`memLevel 3..4`）· [`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Math/DeflateOverlayTiny.lean) 与 [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)（`memLevel 1..2`）
 - **上游 C 源码与规范**：[`madler/zlib` @ `99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e) · [RFC 1951 (DEFLATE 规范)](https://datatracker.ietf.org/doc/html/rfc1951)
 
 <script src="/static/zlib-chase.js?v=20261118-zlib-chase-v6"></script>
