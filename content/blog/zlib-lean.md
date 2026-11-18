@@ -11,4 +11,4 @@ Follow zlib's actual execution: begin with one compression round trip, open defl
 
 The six chapters include code, optimizations and the accompanying proof diagrams. One left-hand contents panel locates chapters and sections; complete APIs and proof progress remain in the reference. Both English and Chinese are available.
 
-<a href="/zlib-f/index.html" data-no-spa>Read the book →</a>
+<a href="/oss-proof/zlib/en/index.html" data-no-spa>Read the book →</a>

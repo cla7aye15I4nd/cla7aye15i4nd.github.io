@@ -55,6 +55,7 @@ blog_archive:
   byline_prefix: "by"
   links:
     - { label: "Home", url: "../index.html" }
+    - { label: "Proofs", icon: "proofs", url: "https://www.dataisland.org/oss-proof/" }
   footer_links:
     - { label: "GitHub", url: "https://github.com/cla7aye15I4nd" }
     - { label: "CV", url: "../paper/resume.pdf" }
@@ -68,6 +69,7 @@ paper_archive:
   links:
     - { label: "Home", url: "../index.html" }
     - { label: "Blog", url: "../blog/index.html" }
+    - { label: "Proofs", icon: "proofs", url: "https://www.dataisland.org/oss-proof/" }
   footer_links:
     - { label: "GitHub", url: "https://github.com/cla7aye15I4nd" }
     - { label: "Scholar", url: "https://scholar.google.com/citations?user=Ih4TEO8AAAAJ" }
@@ -77,6 +79,7 @@ blog_article:
   nav_links:
     - { label: "Home", url: "../index.html" }
     - { label: "Blog", url: "index.html" }
+    - { label: "Proofs", icon: "proofs", url: "https://www.dataisland.org/oss-proof/" }
   contents_label: "Contents"
 
 sections:
@@ -97,6 +100,7 @@ links:
   - { label: "CV",             url: "paper/resume.pdf" }
   - { label: "Github",         url: "https://github.com/cla7aye15I4nd" }
   - { label: "Scholar", url: "https://scholar.google.com/citations?user=Ih4TEO8AAAAJ" }
+  - { label: "Proofs",         icon: "proofs", url: "https://www.dataisland.org/oss-proof/" }
   # - { label: "DBLP",           url: "https://dblp.org/pid/28/4466-3.html" }
   # - { label: "Blog",           url: "blog/index.html", same_window: true }
   # - { label: "ORCID",          url: "https://orcid.org/0009-0000-1134-8115" }

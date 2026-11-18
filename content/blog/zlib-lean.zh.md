@@ -11,4 +11,4 @@ description: "沿着数据读算法，沿着实现读证明。"
 
 六章正文各自包含代码、优化和对应的证明图。左侧目录统一定位章节与小节，完整 API 和证明进度放在参考区。全文提供中英文版本。
 
-<a href="/zlib-f/index.zh.html" data-no-spa>阅读正文 →</a>
+<a href="/oss-proof/zlib/zh/index.html" data-no-spa>阅读正文 →</a>
