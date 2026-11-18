@@ -27,7 +27,7 @@ This post walks through the whole investigation from the ground up:
 1. **What `deflate` actually does**: why `zlib` needs two passes per block, and why two cursors end up racing through the same `pending_buf` array.
 2. **Why `deflate.c`'s proof fails (and why an exploit still won't fit)**: why an *average* bit-length bound cannot prevent a mid-block collision—and why a collision would trigger an out-of-bounds `.rodata` read, not just corrupt output.
 3. **How the C code connects to our Lean 4 proof**: step by step, how pointer mutations and `bi_buf` bit-shifts reduce to pure Huffman-tree inequalities—culminating in an algebraic cancellation that closes `memLevel 1..2` without brute-force search.
-4. **Proof geometry vs. physical reality**: the exact byte-and-bit closest approaches we synthesized on unmodified `deflate()`, why slot-by-slot proofs hit a mathematical ceiling near `980` while physical C stops at `720`, how one could close that gap, and the eight places where `zlib 1.4` *did* break.
+4. **Proof geometry vs. physical reality**: the exact byte-and-bit closest approaches we synthesized on unmodified `deflate()`, why slot-by-slot proofs hit a mathematical ceiling near `980` while physical C stops at `720`, how one could close that gap, and the nine places where upstream `zlib` *did* break.
 
 ---
 
@@ -359,11 +359,11 @@ Why stop at `H + E <= 983` instead of formalizing joint multi-leaf spines and gl
 
 ---
 
-## 5. Plot Twist: The Eight Places Where `zlib` *Did* Break
+## 5. Plot Twist: The Nine Places Where `zlib` *Did* Break
 
 There is a recurring comedy in vulnerability research: you spend weeks trying to break a terrifying in-place pointer chase defended by a wrong comment, discover it stays safe by 18 bytes in Fixed mode and 37 bytes in Dynamic mode—and then find real memory-safety bugs in routine code ten files away.
 
-Closing the Lean 4 safety proofs for every documented function in `zlib.h` on `zlib 1.4` ([`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e)) uncovered **eight real defects** in upstream `zlib` ([patches](https://github.com/cla7aye15I4nd/zlib-f/tree/main/patches))—six undefined behaviors or memory errors confirmed under AddressSanitizer / UndefinedBehaviorSanitizer, and two broken upper-bound promises in `deflateBound`.
+Closing the Lean 4 safety proofs across upstream `zlib` uncovered **nine real defects** in total—one debug-trace `isgraph(n)` UB in `trees.c` ([PR #1359](https://github.com/madler/zlib/pull/1359)) that was merged right before `zlib 1.4` ([`6fd01c55`](https://github.com/madler/zlib/commit/6fd01c55)), plus eight defects in `zlib 1.4` ([`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e); [patches](https://github.com/cla7aye15I4nd/zlib-f/tree/main/patches)), one of which ([PR #1369](https://github.com/madler/zlib/pull/1369)) Mark Adler has already marked *"Applied"* for the next release. Seven of the nine are undefined behaviors or memory errors reproduced on real C under AddressSanitizer / UndefinedBehaviorSanitizer; two are broken upper-bound promises in `deflateBound`.
 
 ### 1. `deflateBound` Breaks Its Promise Under `Z_FIXED` ([`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L932-L940), [PR #1394](https://github.com/madler/zlib/pull/1394))
 
@@ -376,7 +376,7 @@ if (stored_len + 4 <= opt_lenb && buf != (char*)0) {
 
 `buf` is `NULL` whenever `fill_window` slid the 64 KiB window mid-block (`block_start < 0`), discarding the raw input bytes! Under `Z_FIXED` at levels 1–3, `deflate_fast` emits 3-byte matches at far distances costing **25 bits** (**8.33 bits per input byte**). Once a block crosses a window slide, `buf == NULL` disables the stored-block fallback: on $1{,}000{,}000$ input bytes, `deflateBound` promises `1,000,318` bytes while real C needs up to **`1,008,570` bytes**, failing with `Z_OK`.
 
-### 2. `gzread` Copies From a Stale `x.next` Pointer ([`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276), [PR #1363](https://github.com/madler/zlib/pull/1363))
+### 2. `gzread` Copies From a Stale `x.next` Pointer ([`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276), [PR #1405](https://github.com/madler/zlib/pull/1405))
 
 In transparent `COPY` mode, `gz_fetch` refills `state->out` via `gz_load`:
 
@@ -392,13 +392,14 @@ If `gz_load` reads some bytes (`state->x.have > 0`) and the next `read()` syscal
 
 ### 3. `inflateCopy` Pointer UB & `gz*` 64-Bit Offset Overflows
 
-In `inflateCopy` ([`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383-L1387), [PR #1369](https://github.com/madler/zlib/pull/1369)), `state->lencode >= state->codes && state->lencode <= state->codes + ENOUGH - 1` compares a pointer to `.rodata` (`lenfix`) against a heap array using `>=` / `<=` (C undefined behavior, caught by ASan `pointer-compare`). Replacing the range test with `state->lencode == state->codes` fixes it. Here are all eight upstream issues:
+In `inflateCopy` ([`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383-L1387), [PR #1369](https://github.com/madler/zlib/pull/1369)), `state->lencode >= state->codes && state->lencode <= state->codes + ENOUGH - 1` compares a pointer to `.rodata` (`lenfix`) against a heap array using `>=` / `<=` (C undefined behavior, caught by ASan `pointer-compare`). Replacing the range test with `state->lencode == state->codes` fixes it (acknowledged *"Applied"* upstream). Here are all nine upstream issues:
 
 | Issue | Location | Upstream |
 | --- | --- | --- |
-| `inflateCopy` compares unrelated pointers (UB) | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383) | [PR #1369](https://github.com/madler/zlib/pull/1369) |
+| `gen_codes` debug `isgraph(n)` out-of-range UB | [`trees.c:230`](https://github.com/madler/zlib/commit/6fd01c55) | [PR #1359](https://github.com/madler/zlib/pull/1359) ✓ Merged |
+| `inflateCopy` compares unrelated pointers (UB) | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383) | [PR #1369](https://github.com/madler/zlib/pull/1369) ✓ Applied |
 | `gzseek` signed overflow after initial `gzungetc` | [`gzlib.c:395`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L395-L403) | [PR #1361](https://github.com/madler/zlib/pull/1361) |
-| `gzread` heap over-read from stale `x.next` | [`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276) | [PR #1363](https://github.com/madler/zlib/pull/1363) |
+| `gzread` heap over-read from stale `x.next` | [`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
 | `gzread` / `gzgetc` signed `x.pos` overflow | [`gzread.c:413`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L413) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
 | `gzwrite` / `gzputc` signed `x.pos` overflow | [`gzwrite.c:230`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzwrite.c#L230) | [PR #1406](https://github.com/madler/zlib/pull/1406) |
 | `gzoffset64` overflow on negative `lseek` | [`gzlib.c:486`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L486-L489) | [PR #1404](https://github.com/madler/zlib/pull/1404) |

@@ -27,7 +27,7 @@ description: "deflate.c 用 38 行注释论证共用缓冲区绝不会覆写未�
 1. **`deflate` 原来的算法到底长什么样**：为什么压缩一个块非要分两遍（Two Passes），为什么两个指针会被迫挤进同一个 `pending_buf` 数组里你追我赶。
 2. **为什么官方注释证错了，而 Exploit 却塞不进去**：为什么“平均码长小于 31”防不住块中途追尾，以及一旦追尾为什么会直接触发 `.rodata` 越界读。
 3. **怎么把 C 代码和 Lean 4 证明一步步联系起来**：指针自增与位寄存器移位是如何化归为 Huffman 树不等式，最后靠一步干净的代数对消（无需任何暴力搜索）封死 `memLevel 1..2` 的。
-4. **证明的几何 vs. 物理的几何**：真实 `deflate()` 物理上最极限能贴到多少字节、为什么逐槽位独立求和的证明天花板卡在 `980` 而真实 C 停在 `720`、怎样才能继续逼近物理极限——以及最后反转：同一次证明在 `zlib 1.4` 其他地方真正抓出来的 **8 个真实 Bug**。
+4. **证明的几何 vs. 物理的几何**：真实 `deflate()` 物理上最极限能贴到多少字节、为什么逐槽位独立求和的证明天花板卡在 `980` 而真实 C 停在 `720`、怎样才能继续逼近物理极限——以及最后反转：同一次证明在上游 `zlib` 其他地方真正抓出来的 **9 个真实 Bug**。
 
 ---
 
@@ -359,11 +359,11 @@ $$
 
 ---
 
-## 5. 反转：`zlib 1.4` 真正出 Bug 的 8 个地方
+## 5. 反转：上游 `zlib` 真正出 Bug 的 9 个地方
 
 做安全验证经常会遇到这种冷幽默：你花了好几周死磕一段连注释都写错了的原地双指针追逐，发现它在固定块下靠 18 字节、在动态块下靠 37 字节涉险过关；结果转头去证十个文件之外看似平平无奇的常规代码时，却接连抓出真正的内存安全漏洞。
 
-在完成 `zlib.h` 全部公开函数对 `zlib 1.4`（[`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e)）的 Lean 4 安全性证明过程中，我们在上游 `zlib` 中共发现了 **8 个真实缺陷**（[补丁目录](https://github.com/cla7aye15I4nd/zlib-f/tree/main/patches)）——6 个通过 AddressSanitizer / UndefinedBehaviorSanitizer 实测复现的未定义行为或内存错误，以及 2 个违背 API 承诺的 `deflateBound` 上界错误。
+在整个上游 `zlib` 的 Lean 4 安全性证明过程中，我们一共发现了 **9 个真实缺陷**：其中 `trees.c` 调试追踪中的 `isgraph(n)` 越界 UB（[PR #1359](https://github.com/madler/zlib/pull/1359)）已在 `zlib 1.4` 发布前合入上游主干（[`6fd01c55`](https://github.com/madler/zlib/commit/6fd01c55)）；其余 8 个存在于 `zlib 1.4`（[`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e)；[补丁目录](https://github.com/cla7aye15I4nd/zlib-f/tree/main/patches)），其中 `inflateCopy` 指针比较问题（[PR #1369](https://github.com/madler/zlib/pull/1369)）也已获作者 Mark Adler 回复确认 *"Applied"*。这 9 个问题里有 7 个是经 AddressSanitizer / UndefinedBehaviorSanitizer 实测复现的未定义行为或内存错误，另外 2 个是违背 API 承诺的 `deflateBound` 上界错误。
 
 ### 1. `Z_FIXED` 下 `deflateBound` 算小了输出上界（[`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L932-L940)，[PR #1394](https://github.com/madler/zlib/pull/1394)）
 
@@ -376,7 +376,7 @@ if (stored_len + 4 <= opt_lenb && buf != (char*)0) {
 
 只要 `fill_window` 在块中途滑动过 64 KiB 窗口（`block_start < 0`），原始输入字节已被挤出窗口，`buf` 就会变成 `NULL`——**存储块退路当场关闭**！而在 `Z_FIXED` 配合级别 1–3 时，`deflate_fast` 发出的远距离 3 字节匹配占 **25 bits**（每输入字节 **8.33 bits**）。面对 $1{,}000{,}000$ 字节输入，`deflateBound` 只给 `1,000,318` 字节，真实 C 代码却需要 **`1,008,570` 字节**，导致单次压缩半途返回 `Z_OK`。
 
-### 2. `gzread` 在部分读取报错后从悬空的旧 `x.next` 拷贝（[`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276)，[PR #1363](https://github.com/madler/zlib/pull/1363)）
+### 2. `gzread` 在部分读取报错后从悬空的旧 `x.next` 拷贝（[`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276)，[PR #1405](https://github.com/madler/zlib/pull/1405)）
 
 在透明直通 `COPY` 模式下，`gz_fetch` 调用 `gz_load` 填充 `state->out`：
 
@@ -392,13 +392,14 @@ case COPY:      /* -> COPY */
 
 ### 3. `inflateCopy` 跨对象指针比较 UB 与 `gz*` 64 位偏移量溢出
 
-在 `inflateCopy`（[`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383-L1387)，[PR #1369](https://github.com/madler/zlib/pull/1369)）中，`state->lencode >= state->codes && state->lencode <= state->codes + ENOUGH - 1` 用 `>=` / `<=` 比较指向 `.rodata` 段静态表 `lenfix` 的指针与堆数组 `state->codes`（C 标准未定义行为，ASan `pointer-compare` 直接报错），改成 `state->lencode == state->codes` 即可修复。全部 8 个上游问题汇总如下：
+在 `inflateCopy`（[`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383-L1387)，[PR #1369](https://github.com/madler/zlib/pull/1369)）中，`state->lencode >= state->codes && state->lencode <= state->codes + ENOUGH - 1` 用 `>=` / `<=` 比较指向 `.rodata` 段静态表 `lenfix` 的指针与堆数组 `state->codes`（C 标准未定义行为，ASan `pointer-compare` 直接报错），改成 `state->lencode == state->codes` 即可修复（上游已确认 *"Applied"*）。全部 9 个上游问题汇总如下：
 
 | 问题 | 位置 | 上游 |
 | --- | --- | --- |
-| `inflateCopy` 跨对象比较指针（UB） | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383) | [PR #1369](https://github.com/madler/zlib/pull/1369) |
+| `gen_codes` 调试 `isgraph(n)` 参数越界 UB | [`trees.c:230`](https://github.com/madler/zlib/commit/6fd01c55) | [PR #1359](https://github.com/madler/zlib/pull/1359) ✓ 已合入 |
+| `inflateCopy` 跨对象比较指针（UB） | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383) | [PR #1369](https://github.com/madler/zlib/pull/1369) ✓ 已采纳 |
 | `gzungetc` 后 `gzseek` 有符号溢出 | [`gzlib.c:395`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L395-L403) | [PR #1361](https://github.com/madler/zlib/pull/1361) |
-| `gzread` 出错后读悬空 `x.next` | [`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276) | [PR #1363](https://github.com/madler/zlib/pull/1363) |
+| `gzread` 出错后读悬空 `x.next` | [`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
 | `gzread` / `gzgetc` 位置 `x.pos` 溢出 | [`gzread.c:413`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L413) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
 | `gzwrite` / `gzputc` 位置 `x.pos` 溢出 | [`gzwrite.c:230`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzwrite.c#L230) | [PR #1406](https://github.com/madler/zlib/pull/1406) |
 | `gzoffset64` 未拒绝负的 `lseek` 结果 | [`gzlib.c:486`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L486-L489) | [PR #1404](https://github.com/madler/zlib/pull/1404) |
