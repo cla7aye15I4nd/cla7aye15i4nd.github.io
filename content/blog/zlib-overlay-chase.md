@@ -2,7 +2,7 @@
 date: 2026-11-18
 tags: [compression, verification, security, lean]
 title: "Zero Bits to Spare: A Pointer Chase Inside zlib"
-description: "In deflate.c, a nearly forty-line comment argues why a write cursor can never overtake a read cursor inside the same buffer. The comment's proof is wrong—and the real proof comes down to zero bits of slack."
+description: "A comment in deflate.c argues that zlib's shared buffer can never be overwritten. The argument is wrong; the real proof leaves zero bits of slack."
 ---
 
 # Zero Bits to Spare: A Pointer Chase Inside zlib

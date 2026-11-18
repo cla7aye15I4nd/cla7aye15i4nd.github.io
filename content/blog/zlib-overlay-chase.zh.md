@@ -2,7 +2,7 @@
 date: 2026-11-18
 tags: [compression, verification, security, lean]
 title: "零比特余量：zlib 缓冲区里的双指针追逐战"
-description: "deflate.c 里有一段近四十行的注释，用来解释为什么同一个缓冲区里的写指针永远追不上读指针。这段注释的证明是错的——而真正的证明，在最小配置下只剩零比特余量。"
+description: "deflate.c 的一段注释论证 zlib 共用的缓冲区不会被覆盖，但这个论证是错的；真正的证明在最小配置下只剩零比特余量。"
 ---
 
 # 零比特余量：zlib 缓冲区里的双指针追逐战

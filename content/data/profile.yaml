@@ -41,7 +41,7 @@ home:
   writing_all_label: "All notes →"
   writing_url: "blog/index.html"
   writing_limit: 3
-  writing_exclude: [lean-1]
+  writing_exclude: [lean-1, zlib-lean]
   research_label: "Selected Research"
   research_all_label: "All papers →"
   research_url: "papers/index.html"
