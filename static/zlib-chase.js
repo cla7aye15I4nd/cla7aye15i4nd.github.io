@@ -1,11 +1,11 @@
 (() => {
-  if (window.__zlibChaseLoadedV5) {
-    window.__mountZlibChaseV5?.();
+  if (window.__zlibChaseLoadedV6) {
+    window.__mountZlibChaseV6?.();
     return;
   }
-  window.__zlibChaseLoadedV5 = true;
+  window.__zlibChaseLoadedV6 = true;
 
-  const STYLE_ID = "zc-interactive-styles-v5";
+  const STYLE_ID = "zc-interactive-styles-v6";
   const CSS = `
 .zc-widget {
   margin: 2.4rem 0;
@@ -1332,8 +1332,8 @@
    * WIDGET 4: THE memLevel 1..9 BUDGET RAZOR (3-Bar Comparison!)
    * ========================================================================== */
   const REGIME_DATA = [
-    { mem: 1, B: 128,   hdr: 0,    comb: 999,    proved: 1024,   realHE: 720,   realGapB: 37,    thm: "tinyOverlayAt_128",   regime: 3 },
-    { mem: 2, B: 256,   hdr: 0,    comb: 2023,   proved: 2048,   realHE: 1038,  realGapB: 126,   thm: "tinyOverlayAt_256",   regime: 3 },
+    { mem: 1, B: 128,   hdr: 0,    comb: 983,    proved: 1008,   realHE: 720,   realGapB: 37,    thm: "tinyOverlayAt_128",   regime: 3 },
+    { mem: 2, B: 256,   hdr: 0,    comb: 1899,   proved: 1924,   realHE: 1038,  realGapB: 126,   thm: "tinyOverlayAt_256",   regime: 3 },
     { mem: 3, B: 512,   hdr: 2283, excess: 1777, proved: 4085,   realHE: 1296,  realGapB: 349,   thm: "dynamic_overlay_mid", regime: 2 },
     { mem: 4, B: 1024,  hdr: 2283, excess: 3678, proved: 5986,   realHE: 1764,  realGapB: 803,   thm: "dynamic_overlay_mid", regime: 2 },
     { mem: 5, B: 2048,  hdr: 2283, excess: 12827, proved: 15135, realHE: 2529,  realGapB: 1731,  thm: "dynamic_overlay_large", regime: 1 },
@@ -1368,8 +1368,8 @@
         </div>
         <div class="zc-metric">
           <div class="zc-metric-label">${zh ? "Lean 4 证明上界" : "LEAN 4 PROVED BOUND"}</div>
-          <div class="zc-metric-val" data-r="proved">1,024 bits</div>
-          <div class="zc-metric-sub" data-r="proved-sub">proof slack: 0 bits</div>
+          <div class="zc-metric-val" data-r="proved">1,008 bits</div>
+          <div class="zc-metric-sub" data-r="proved-sub">proof slack: 16 bits</div>
         </div>
         <div class="zc-metric">
           <div class="zc-metric-label">${zh ? "真实动态块物理峰值" : "REAL DYNAMIC EXTREMUM"}</div>
@@ -1486,8 +1486,8 @@
 
       if (d.regime === 3) {
         q('[data-role="r-note"]').innerHTML = zh
-          ? `<span class="zc-badge zc-badge-warn">对比看清本质 (memLevel ${d.mem})</span> ① 粗放公式爆表到 <code>${naive.toLocaleString()}</code> bits；② 把 316 个树槽位解耦成逐项线性不等式后，连续线性规划极值已达 <code>979.1 + 25 ≈ 1004</code> bits，Lean 定理紧贴在 <code>${d.proved} / ${budget}</code>（0 bit 证明余量）；③ 而在真实 C 里，动态块受 <code>opt_lenb &lt; static_lenb</code> 制约，峰值停在 <code>${realBits}</code> bits（留 <strong>${d.realGapB} 字节 / +${realBitGap} bits</strong>），反倒是强制 <code>Z_FIXED</code> 固定块能逼近到 <strong>${fixedUnreadBytes} 字节 / +${fixedUnreadBits} bits</strong>！`
-          : `<span class="zc-badge zc-badge-warn">THREE RULERS AT memLevel ${d.mem}</span> (1) The naive bound explodes to <code>${naive.toLocaleString()}</code> bits; (2) decoupling the 316 tree slots into independent linear inequalities puts the LP ceiling at <code>979.1 + 25 ≈ 1,004</code> bits, and the Lean certificate closes right at <code>${d.proved} / ${budget}</code> (0 proof slack); (3) in real C, <code>opt_lenb &lt; static_lenb</code> caps Dynamic blocks at <code>${realBits}</code> bits (<strong>${d.realGapB} B / +${realBitGap}b</strong> margin), whereas <code>Z_FIXED</code> reaches <strong>${fixedUnreadBytes} B / +${fixedUnreadBits}b</strong>!`;
+          ? `<span class="zc-badge zc-badge-warn">代数消元 vs. 物理极限 (memLevel ${d.mem})</span> ① 粗放公式爆表到 <code>${naive.toLocaleString()}</code> bits；② 把 <code>a ×</code> 参考树头界与 <code>b ×</code> 块选择不等式相加消去动态码长后，逐槽位独立求和在 <code>B = 128</code> 的连续 LP 极限为 <code>979.1 ≈ 980</code>，我们的手写小整数证明给出 <code>H + E ≤ ${d.comb}</code>（总计 <code>${d.proved} / ${budget}</code>，留 <code>${slack}</code> bits 预算余量）；③ 真实 C 动态块峰值停在 <code>${realBits}</code> bits（留 <strong>${d.realGapB} 字节 / +${realBitGap} bits</strong>），而强制 <code>Z_FIXED</code> 固定块最近可达 <strong>${fixedUnreadBytes} 字节 / +${fixedUnreadBits} bits</strong>！`
+          : `<span class="zc-badge zc-badge-warn">ALGEBRAIC CANCELLATION VS. REAL C (memLevel ${d.mem})</span> (1) The naive bound explodes to <code>${naive.toLocaleString()}</code> bits; (2) adding <code>a ×</code> the reference header bound and <code>b ×</code> the mode-choice inequality cancels dynamic code lengths, proving <code>H + E ≤ ${d.comb}</code> (<code>${d.proved} / ${budget}</code>, <code>${slack}</code> bits of budget slack—within 4 bits of the <code>979.1 ≈ 980</code> per-slot LP limit at <code>B = 128</code>); (3) real C Dynamic blocks stop at <code>${realBits}</code> bits (<strong>${d.realGapB} B / +${realBitGap}b</strong>), while <code>Z_FIXED</code> reaches <strong>${fixedUnreadBytes} B / +${fixedUnreadBits}b</strong>!`;
       } else if (d.regime === 2) {
         q('[data-role="r-note"]').innerHTML = zh
           ? `<span class="zc-badge zc-badge-safe">F(17) = 1597 救场 (memLevel ${d.mem})</span> 粗放公式算得 <code>${naive.toLocaleString()} &gt; ${budget.toLocaleString()}</code>（红条越界！）。靠着 <code>trees.c:577</code> 零截断提前返回，Lean 证明上界压回 <code>${d.proved.toLocaleString()}</code> bits（剩 <code>${slack.toLocaleString()}</code> bits），而真实 C 动态块最多只用到 <code>${realBits.toLocaleString()}</code> bits。`
@@ -1513,8 +1513,8 @@
   const mountAll = () => {
     injectStyles();
     document.querySelectorAll("[data-zc]").forEach((el) => {
-      if (el.dataset.zcReady === "v5") return;
-      el.dataset.zcReady = "v5";
+      if (el.dataset.zcReady === "v6") return;
+      el.dataset.zcReady = "v6";
       const kind = el.dataset.zc;
       if (kind === "pipeline") mountPipeline(el);
       else if (kind === "race") mountRace(el);
@@ -1524,7 +1524,7 @@
     });
   };
 
-  window.__mountZlibChaseV5 = mountAll;
+  window.__mountZlibChaseV6 = mountAll;
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", mountAll);
   } else {

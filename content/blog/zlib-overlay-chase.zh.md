@@ -1,11 +1,11 @@
 ---
 date: 2026-11-18
 tags: [compression, verification, security, lean]
-title: "零比特余量：zlib 缓冲区里的双指针追逐战"
-description: "deflate.c 的一段注释论证 zlib 共用的缓冲区不会被覆盖，但这个论证是错的；真正的证明在最小配置下只剩零比特余量。"
+title: "写对的代码，写错的注释：zlib 里的双指针追逐战"
+description: "deflate.c 用 38 行注释论证共用缓冲区绝不会覆写未读符号——这段注释其实是错的。当我们顺着破绽试图构造 Exploit 时，却撞上了藏在 Huffman 树里的三道数学防线。"
 ---
 
-# 零比特余量：zlib 缓冲区里的双指针追逐战
+# 写对的代码，写错的注释：zlib 里的双指针追逐战
 
 打开 [`zlib/trees.c:945`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L941-L946)，在 `compress_block` 的主循环末尾，有一条孤零零的断言：
 
@@ -20,14 +20,14 @@ description: "deflate.c 的一段注释论证 zlib 共用的缓冲区不会被�
 
 在所有生产环境的发布版编译（`#ifndef ZLIB_DEBUG`）下，`Assert` 都会被预处理器直接抹成空白。无论是 `compress_block`、`send_bits` 还是 `put_byte`，在向 `s->pending_buf` 写入字节时，都**没有任何运行时边界检查**。
 
-当我们用 Lean 4 对上游 `zlib 1.4` 做完整的内存安全形式化证明（见前文 [zlib × Lean](/blog/zlib-lean.zh.html)，代码库 [`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f)）时，绝大多数模块的证明都属于经典的系统验证问题：`inflate_fast` 环形窗口的回绕、`longest_match` 在未初始化数组上的哈希链有界性、流式状态机的跨调用不变量。唯独 `trees.c` 的第 945 行是个例外。证明这条在发布版里被删掉的 `Assert` 永远不会触发，成了整个 `deflate` 证明里最硬的一块骨头——而在拆解它的过程中，我们发现 `deflate.c` 作者自己写下的那段 38 行“安全性证明”，在逻辑上其实是错的。
+当我们用 Lean 4 对上游 `zlib 1.4` 做完整的内存安全形式化证明（见前文 [zlib × Lean](/blog/zlib-lean.zh.html)，代码库 [`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f)）时，绝大多数模块的证明都属于经典的系统验证问题：`inflate_fast` 环形窗口的回绕、`longest_match` 在未初始化数组上的哈希链有界性、流式状态机的跨调用不变量。唯独 `trees.c` 的第 945 行是个例外：在 `deflate.c` 分配这块缓冲区的正上方，`zlib` 作者专门写了一段 38 行的数学证明来论证这条被删掉的 `Assert` 绝不会触发——**但那段证明在逻辑上是错的**。更奇妙的是，当我们放下证明器、顺着注释的漏洞试图构造 Exploit 去打穿它时，所有攻击样本却全都撞上了一堵无形的墙。
 
-这篇文章不打算省篇幅跳步骤，我们从头把整件事拆清楚：
+这篇文章不省篇幅、不跳步骤，从头把整场调查拆清楚：
 
 1. **`deflate` 原来的算法到底长什么样**：为什么压缩一个块非要分两遍（Two Passes），为什么两个指针会被迫挤进同一个 `pending_buf` 数组里你追我赶。
-2. **为什么追尾会破坏内存安全，以及 `deflate.c` 注释错在哪**：为什么“平均码长小于 31”防不住块中途追尾，以及一旦追尾为什么会直接触发 `.rodata` 越界读。
-3. **怎么把 C 代码和 Lean 4 证明一步步联系起来**：充满指针自增与位寄存器移位的 C 循环，是如何通过四步化归变成 Huffman 树上的纯数学不等式，并与 `trees.c` 的三处关键代码分支一一对应的。
-4. **真实的 `zlib` 物理上到底能逼近到多近**：在未修改的真实 `deflate()` 上，写指针离下一个未读符号最极限能贴到多少字节、多少比特——以及最后反转：同一次形式化证明在 `zlib 1.4` 其他地方真正抓出来的 **8 个真实 Bug**。
+2. **为什么官方注释证错了，而 Exploit 却塞不进去**：为什么“平均码长小于 31”防不住块中途追尾，以及一旦追尾为什么会直接触发 `.rodata` 越界读。
+3. **怎么把 C 代码和 Lean 4 证明一步步联系起来**：指针自增与位寄存器移位是如何化归为 Huffman 树不等式，最后靠一步干净的代数对消（无需任何暴力搜索）封死 `memLevel 1..2` 的。
+4. **证明的几何 vs. 物理的几何**：真实 `deflate()` 物理上最极限能贴到多少字节、为什么逐槽位独立求和的证明天花板卡在 `980` 而真实 C 停在 `720`、怎样才能继续逼近物理极限——以及最后反转：同一次证明在 `zlib 1.4` 其他地方真正抓出来的 **8 个真实 Bug**。
 
 ---
 
@@ -164,7 +164,7 @@ if (dist == 0) {
 2. **单步最高 48 bits（每步净追近 +24 bits）。** 动态码长可达 15 bits，而不是固定块的 8 和 5。
 3. **昂贵符号前置（Front-loading）。** 如果把罕见高代价匹配全排在 `sym_buf` 开头（$k = 0..28$），把廉价高频符号全排在末尾（$k = 29..126$），整块总长依然轻松赢过固定块（`opt_lenb < static_lenb`），但写游标会在前四分之一路程里向 `B + 3k` 猛扑！
 
-在下方交互面板里切换三种情形——其中 **02 · 真实动态块极限** 展示的就是我们在未修改 `deflate()` 中实测构造出的极限动态块：最危险的时刻根本不在块尾 $k = 127$，而在中途 **$k = 29$**（余量 `37 B / +294 bits`）！
+看到一段没有边界检查的写循环正上方摆着一份写错的证明，我们的第一反应立刻是从“证明者”切换成“攻击者”：把配置调到最小的 `memLevel = 1`（$B = 128$，起跑缓冲只有 $1{,}024$ bits，连理论最大树头 $2{,}283$ bits 的一半都不到！），在块首塞满罕见匹配，块尾垫满廉价锚点压低总体积，试图一举撞穿 `sym_buf`。然而我们构造的所有样本全都在半路刹住了车。在下方交互面板里切换三种轨迹——其中 **02 · 动态块真实极限** 就是我们在未修改 `deflate()` 中实测构造出的极限动态块，它在中途 **$k = 29$** 处逼近到 `37 B / +294 bits` 的谷底，随后被硬生生拉回安全区：
 
 <div class="zc-widget" data-zc="race" data-lang="zh"></div>
 
@@ -263,21 +263,28 @@ $$
 
 <div class="zc-widget" data-zc="fib" data-lang="zh"></div>
 
-#### 区间 3：`memLevel 1..2`（$B = 128, 256$）—— `_tr_flush_block` 的块模式竞争救场
+#### 区间 3：`memLevel 1..2`（$B = 128, 256$）—— `_tr_flush_block` 的块选择与代数对消
 
-来到 $B = 256$（$8B = 2{,}048$）和 $B = 128$（$8B = 1{,}024$），光一个 2,283 bits 的通用块头上限本身就已经比整个 $8B$ 预算还大了。为了合拢证明，Lean 必须把 **三个 C 函数的行为串成一条锁链**：
+来到 $B = 256$（$8B = 2{,}048$）和 $B = 128$（$8B = 1{,}024$），光一个 2,283 bits 的通用块头上限本身就已经比整个 $8B$ 预算还大了。为什么光写树头没有当场击穿 $B$？因为 **三个 C 函数的行为像齿轮一样咬合在了一起**：
 
-1. **在 `build_tree` 中（[`deflate.c.engine.overlay-lengths.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-lengths.lean#L80-L88) 的 `prepared_lengths_fib`）：** 当 $B = 128$（$W \le 130 < 144 = F_{12}$）时，$F_{l+2} \le 130$ 迫使**所有数据码长 $l \le 9$**（在 $B = 256$ 时 $l \le 11$）。
-2. **在 `scan_tree` 与 `build_bl_tree` 中（[`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)）：** 因为 $B = 128$ 时码长 `10..15` 根本不会出现，`bl_tree` 的 19 个符号里至多只用到 13 个。用一组显式的完全参考前缀码给 `bl_tree` 计费，就能把 $H$ 严格上界化为 286 + 30 个树槽位的逐项费用之和。
-3. **在 `_tr_flush_block` 中（[`trees.c:1035`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L1035-L1037)）：** 还记得 `deflate.c` 里那段坏掉的注释吗？虽然 `opt_lenb < static_lenb` 不能直接用平均值保住前缀，但 `_tr_flush_block` 在决定发动态块前，确实执行了 `if (static_lenb <= opt_lenb)`！这给出了一个严格的全局不等式：
+1. **在 `build_tree` 中（[`deflate.c.engine.overlay-lengths.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-lengths.lean)）：** 当 $B = 128$（$W \le 130 < 144 = F_{12}$）时，$F_{l+2} \le 130$ 迫使**所有数据码长 $l \le 9$**（在 $B = 256$ 时 $l \le 11$）；并且任何因有效符号不足 2 个而补入的 `f = 0` 占位叶子必然处在 2 叶树中，码长恒为 $l = 1$。
+2. **在 `scan_tree` 与 `build_bl_tree` 中（[`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)）：** 因为 $B = 128$ 时码长 `10..15` 绝不出现，`bl_tree` 至多只用到 19 个符号中的 13 个。用一组显式完全参考前缀码给 `bl_tree` 计费，可把两倍树头严格控制在 $286 + 30$ 个树槽位的逐项费用之和以内。
+3. **在 `_tr_flush_block` 中（[`trees.c:1035`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L1035-L1037)）：** 还记得 `deflate.c` 里那段坏掉的注释吗？虽然 `opt_lenb < static_lenb` 不能靠平均值直接保住前缀，但 `_tr_flush_block` 在发动态块前确实执行了 `if (static_lenb <= opt_lenb)`！消去两边完全相同的附加位总和后，它直接给出了动态码长（$l_c, l_d$）与固定码长（$l_c^{\mathrm{static}} \in \{7,8,9\}$ 及 $5$）之间的全局不等式。
+
+把这两条不等式并排放在一起，就能看到一步极其干净的代数对消：
 
 $$
-\left\lfloor \frac{H + P_{\mathrm{opt}} + 10}{8} \right\rfloor + 1 \le \left\lfloor \frac{P_{\mathrm{static}} + 10}{8} \right\rfloor \implies H + P_{\mathrm{opt}} \le P_{\mathrm{static}} + 6.
+2H \le H_{\mathrm{const}} + \sum_{c=0}^{285} \mathrm{charge}_L(l_c) + \sum_{d=0}^{29} \mathrm{charge}_D(l_d),
 $$
 
-这就形成了一个无处可逃的死结：想把树头 $H$ 撑大，就必须在 `dyn_ltree` 和 `dyn_dtree` 里点亮大量零散符号，阻止 `scan_tree` 用游程码 `17`、`18` 把连续零压扁；但点亮大量低频符号又会把动态载荷 $P_{\mathrm{opt}}$ 推向静态载荷 $P_{\mathrm{static}}$——一旦 `opt_lenb == static_lenb`，`_tr_flush_block` 当场弃用动态块，改发固定块！
+$$
+H + \sum_{c=0}^{285} f_c\, l_c + \sum_{d=0}^{29} f_d\, l_d + 1 \le \sum_{c=0}^{285} f_c\, l_c^{\mathrm{static}} + 5 \sum_{d=0}^{29} f_d.
+$$
 
-为了让 Lean 的 `omega` 策略无需枚举 $286 \times 30$ 种联合树形就能在线性时间内完成检验，证明通过一组对偶线性权重将 316 个树槽位解耦（[`deflate.c.engine.overlay-mem1w.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-mem1w.lean)），证出 $B = 256$ 时 $H + E \le 2{,}023$（$2{,}023 + 25 = \mathbf{2{,}048 \le 2{,}048}$），$B = 128$ 时 $H + E \le 999$（$999 + 25 = \mathbf{1{,}024 \le 1{,}024}$）——**零比特证明余量**！
+只需将 **$a$ 倍的第一式** 与 **$b$ 倍的第二式** 直接相加（在 $B = 128$ 取 $a = 2, b = 4$；在 $B = 256$ 取 $a = 1, b = 1$），左边凑出 $(2a + b)(H + E) + b$，而**两边未知的动态码长加权和与静态码长直接精确抵消**！全部 256 个字面量、`END_BLOCK` 与低附加位匹配桶的频率斜率瞬间变为非正数；只剩寥寥几个高附加位匹配桶，结合 Kraft 不等式（$\sum 2^{15-l} \le 2^{15}$）与 $f \cdot F_{l+1} + F_l \le W$，无需任何暴力搜索，一个约 485 行的参数化模块（[`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Math/DeflateOverlayTiny.lean)）就直接合拢了全部极小块证明：
+
+- 当 $B = 256$（$8B = 2{,}048$）时：$H + E \le \mathbf{1{,}899} \implies 1{,}899 + 25 = \mathbf{1{,}924 \le 2{,}048}$（留出 **124 bits** 预算余量）。
+- 当 $B = 128$（$8B = 1{,}024$）时：$H + E \le \mathbf{983} \implies 983 + 25 = \mathbf{1{,}008 \le 1{,}024}$（留出 **16 bits** 预算余量）。
 
 在下方切换全部 9 个 `memLevel`，对比朴素通用公式、Lean 4 定理上界与真实 C 代码物理极限：
 
@@ -285,11 +292,14 @@ $$
 
 ---
 
-## 4. 真实的 `zlib` 物理上到底能逼近到多近？
+## 4. 证明的几何 vs. 物理的几何：真实 `zlib` 到底能贴到多近？
 
-看到 $999 + 25 = 1{,}024 \le 1{,}024$，最让人好奇的问题自然是：**在未修改的真实 `zlib 1.4` 里，究竟能不能构造出一段真实的未压缩输入，把 `s->pending` 推到离下一个未读符号只差零比特？如果不能，真实的物理极限到底是多少？**
+我们的形式化证明在 `memLevel = 1` 下以 16 bits 余量过线（`1,008 <= 1,024`），在 `memLevel = 3` 下以 11 bits 余量过线（`4,085 <= 4,096`）。这自然引出两个核心追问：
 
-为了给出不留死角的答案，我们对全部三种块格式、`memLevel = 1..9` 以及每个块符号数 $n \in [1, B-1]$ 做了精确分析，并反向合成出完整的未压缩输入字节流，挂上 `put_byte` 探针，在原封不动的 `deflateInit2` + `deflate` + `inflate` 中做了端到端实测验证。
+1. **在原封不动的真实 `zlib 1.4` 里，合法的未压缩输入物理上最极限能把 `s->pending` 推到离下一个未读符号多近？**
+2. **为什么我们的证明停在 `983`（总计 `1,008`）附近？如果要把形式化证明的上界继续压向真实 C 的物理极限，究竟需要做什么？**
+
+为了不留死角地回答第一个问题，我们对全部三种块格式、`memLevel = 1..9` 以及每个块符号数 $n \in [1, B-1]$ 做了完整分析，反向合成出真实的未压缩输入字节流，并在未修改的 `deflateInit2` + `deflate` + `inflate` 中挂上 `put_byte` 探针完成了端到端实测验证。
 
 ### 1. 全局物理最接近记录：固定块（`18 字节 / 132 bits`）
 
@@ -328,19 +338,24 @@ $$
 - **$H = 623$ bits**，**$E = 97$ bits** $\implies$ **$H + E = \mathbf{720\text{ bits}}$**，
 - **最小物理未读间距（出现在块中途 $k = 29$，此时 `[215..509)` 仍有 98 个符号未读）：** `pending = 178`，`bi_valid = 2`，距离未读字节 `215` 仅剩 **`37 字节`（`294 bits`）**！
 
-### 3. 证明与现实之间这 `294 bits` 差距，每一比特都去哪了？
+### 3. 为什么“逐槽位独立求和”的天花板卡在 `980`——怎样才能逼近物理极限 `720`？
 
-为什么我们的 Lean 证明卡在 $H + E \le 999$（$999 + 25 = 1{,}024$，证明余量为 `0`），而真实 C 代码在 $H + E = 720$ 就撞上了天花板（未读物理余量 $1{,}024 - 10 - 720 = 294$ bits）？把 `memLevel = 1` 线性证明里的每一条不等式代回上面这个 $H + E = 720$ 的真实极值块，全部 `294.0` bits 被精确拆解到 `0.0` 残差：
+把 `memLevel = 1`（$8B = 1{,}024$）下的三个关键刻度放在一起对比：
 
-| 差距来源 | 比特数 | 证明为什么付出这笔开销 |
+- **真实 C 代码的动态块物理极值：** $H + E = \mathbf{720}$ bits（未读符号物理余量 $1{,}024 - 10 - 720 = 294$ bits）。
+- **任意“逐槽位独立求和”线性证明的数学极限：** $H + E = \mathbf{979.12 \approx 980}$ bits。
+- **我们手写的小整数代数对消证明（`2 × 头部界 + 4 × 选择不等式`）：** $H + E \le \mathbf{983}$ bits（加上 `+25` 后为 `1,008 / 1,024`）。
+
+中间那个数字（`979.12`）道破了天机：哪怕动用连续实数线性规划求解器取任意最优权重，**只要证明结构把 $286 + 30 = 316$ 个树槽位拆成独立项分别定界再相加，数学上就不可能证出比 `980` 更紧的上界**——我们仅靠两位数整数手写消元证出的 `983`，其实已经贴到了这个解耦架构理论极限的 **4 bits** 以内！把每一层松弛代回 $H + E = 720$ 的真实极值块，不仅能把差距逐比特算平，也能看清**如果真想在 Lean 里把证明从 `980` 一路压向 `720`，必须打破哪三层独立性**：
+
+| 松弛来源 | 比特数 | 要在 Lean 中收紧它需要做什么 |
 | --- | ---: | --- |
-| 316 个树槽位逐项解耦 | `169.5` | 对每个槽位独立使用 $f \cdot F_{l+1} + F_l \le 130$，忽略了同一棵树里的多片叶子不可能同时取满单脊柱斐波那契界，并在约 230 个未出现的空槽位（$f = 0$）上留下了正的线性松弛余量 |
-| 静态参考码 + 局部游程计费 | `87.7` | 用一组固定参考码长（加截断余量）和逐槽位局部零费用去界定 `bl_tree`，替代了自适应码长树与 `scan_tree` 的全局跨槽位零游程压缩 |
-| 线性规划证书余量（`979.1` $\to$ `999`） | `19.9` | **最大的意外：** 一旦为了交给 Lean `omega` 快速检验而将 316 个槽位逐项线性解耦，该解耦模型的**精确连续线性规划真最优值其实高达 `979.12` bits**——距离 `999` 真的只差 **19.9 bits**！ |
-| 统一并入块尾 `END_BLOCK` 裕量（`25` 中的 `+15`） | `15.0` | 前缀读取只需 $S_k \le 8(B+3k)$（入口与块标记共 `+10` bits），而 `DynamicRoom` 把块尾相对 `4B` 所需的 15-bit `END_BLOCK` 余量合并进了同一条公式 |
-| 匹配拆分与字节取整 | `1.9` | 将匹配超额位拆到两棵树（`1.0`b）+ `opt_len = 2211` 相对上限 `2213` 的差值（`0.9`b） |
+| 316 个树槽位逐项独立解耦 | `169.5` | **单树多叶联合脊柱约束：** 证明同一棵树里的多片深层叶子共享同一个总权重预算 $W \le 130$（而非每个槽位各自假装独占一条斐波那契脊柱），并对约 230 个未出现的空槽位（$f = 0$）做联合计数 |
+| 固定参考码 + 局部零费用计费 | `87.7` | **`scan_tree` 全局跨槽位零游程自动机：** 对相邻空槽位的连续零游程（`REPZ_3_10 = 17`、`REPZ_11_138 = 18`）与自适应 `bl_tree` 码长做全局归纳，替代逐槽位固定参考码 |
+| 统一并入块尾 `END_BLOCK` 裕量（`+25` 对比 `+10`） | `15.0` | **拆分块中追逐与块尾收尾定理：** `END_BLOCK`（$\le 15$ bits）在全部 $n$ 个符号读完之后才写出，面对的是缓冲区末端 `4B = 4,096` bits 而非 `8B = 1,024` bits |
+| 小整数权重（`983` 对比 LP `979.1`）与取整 | `5.8` | 缩放因子 `8` 的整数近似（`3.9`b）+ 匹配超额位拆树（`1.0`b）+ 字节取整（`0.9`b） |
 
-注意看第三行（`979.12` 对比 `999`）：尽管物理执行还留有 37 字节（`294` bits）缓冲，**任何把 316 个树项拆成逐项线性不等式来过内核检验的证明架构，在数学上真的只剩最后 19.9 bits 的呼吸空间**——再松一点点，`memLevel = 1` 的定理就会翻过 `1,024` 而证不出来！
+为什么我们在 `H + E <= 983` 就停手，而不继续形式化多叶联合脊柱与全局游程自动机去逼近 `720`？因为对于**内存安全定理**而言，证出 `1,008 <= 1,024` 和证出 `730 <= 1,024` 得到的 `Fault.ub`-free 结论**一模一样**——停在逐槽位解耦这一层，恰好能用 485 行完全透明、零暴力搜索的代数证明跨过 `1,024` 生死线，而不必让证明体积膨胀十倍。
 
 ---
 
@@ -393,7 +408,7 @@ case COPY:      /* -> COPY */
 ## 参考链接
 
 - **Lean 4 证明与文档**：[`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f) · [项目总览](https://www.dataisland.org/zlib-f/zh/overview.html) · [树与共用缓冲区证明详解](https://www.dataisland.org/zlib-f/zh/proof/trees.html) · [完整问题清单](https://www.dataisland.org/zlib-f/zh/findings.html)
-- **分区间核心证明源码**：[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-dynamic.lean)（`memLevel 5..9`）· [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-overlay-mid.lean)（`memLevel 3..4`）· [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)（`memLevel 1..2`）
+- **分区间核心证明源码**：[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-dynamic.lean)（`memLevel 5..9`）· [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-overlay-mid.lean)（`memLevel 3..4`）· [`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Math/DeflateOverlayTiny.lean) 与 [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)（`memLevel 1..2`）
 - **上游 C 源码与规范**：[`madler/zlib` @ `99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e) · [RFC 1951 (DEFLATE 规范)](https://datatracker.ietf.org/doc/html/rfc1951)
 
-<script src="/static/zlib-chase.js?v=20261118-zlib-chase-v5"></script>
+<script src="/static/zlib-chase.js?v=20261118-zlib-chase-v6"></script>

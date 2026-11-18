@@ -1,11 +1,11 @@
 ---
 date: 2026-11-18
 tags: [compression, verification, security, lean]
-title: "Zero Bits to Spare: A Pointer Chase Inside zlib"
-description: "A comment in deflate.c argues that zlib's shared buffer can never be overwritten. The argument is wrong; the real proof leaves zero bits of slack."
+title: "Right Code, Wrong Comment: The Pointer Chase Inside zlib"
+description: "A 38-line comment in deflate.c argues that zlib's shared buffer can never overwrite unread symbols. That comment is wrong—yet when we tried to build an exploit, three hidden Huffman invariants stood in the way."
 ---
 
-# Zero Bits to Spare: A Pointer Chase Inside zlib
+# Right Code, Wrong Comment: The Pointer Chase Inside zlib
 
 At [`zlib/trees.c:945`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L941-L946), inside the inner loop of `compress_block`, sits a single assertion:
 
@@ -20,14 +20,14 @@ At [`zlib/trees.c:945`](https://github.com/madler/zlib/blob/99623ef7097352da7993
 
 In every release build of `zlib` (`#ifndef ZLIB_DEBUG`), `Assert` preprocesses to whitespace. Neither `compress_block`, nor `send_bits`, nor `put_byte` checks whether `s->pending` has room before writing to `s->pending_buf`.
 
-When we set out to build a machine-checked Lean 4 safety proof of upstream `zlib 1.4` ([zlib × Lean](/blog/zlib-lean.html); repository [`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f)), most of the library came down to familiar systems invariants: ring-buffer wraparound in `inflate_fast`, hash-chain bounds over uninitialized slots in `longest_match`, and state-machine discipline across streaming calls. Line 945 of `trees.c` was different. Proving that this stripped assertion never fires turned into the hardest single lemma of the entire `deflate` verification—and along the way, it exposed a textbook fallacy in `deflate.c`'s own 38-line safety proof.
+When we set out to build a machine-checked Lean 4 safety proof of upstream `zlib 1.4` ([zlib × Lean](/blog/zlib-lean.html); repository [`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f)), most of the library came down to familiar systems invariants: ring-buffer wraparound in `inflate_fast`, hash-chain bounds over uninitialized slots in `longest_match`, and state-machine discipline across streaming calls. Line 945 of `trees.c` was different. Right above the buffer allocation in `deflate.c`, `zlib`'s authors wrote a 38-line mathematical proof that this stripped assertion can never fire—and **that proof is wrong**. Yet when we put down the theorem prover and tried to construct an exploit input that actually crashes `compress_block`, every single attempt hit an invisible wall.
 
-This post walks through the whole story from the ground up:
+This post walks through the whole investigation from the ground up:
 
 1. **What `deflate` actually does**: why `zlib` needs two passes per block, and why two cursors end up racing through the same `pending_buf` array.
-2. **Why `deflate.c`'s comment proof fails**: why an *average* bit-length bound cannot prevent a mid-block collision—and why a collision would trigger an out-of-bounds memory read, not just corrupt output.
-3. **How the C code connects to our Lean 4 proof**: step by step, how imperative pointer mutations and `bi_buf` bit-shifts reduce to pure inequalities on Huffman trees across three `memLevel` regimes.
-4. **How close real `zlib` can physically get**: the exact byte-and-bit minimum margins we constructed and verified on unmodified `deflate()`—plus the eight real bugs our proof uncovered elsewhere in `zlib 1.4`.
+2. **Why `deflate.c`'s proof fails (and why an exploit still won't fit)**: why an *average* bit-length bound cannot prevent a mid-block collision—and why a collision would trigger an out-of-bounds `.rodata` read, not just corrupt output.
+3. **How the C code connects to our Lean 4 proof**: step by step, how pointer mutations and `bi_buf` bit-shifts reduce to pure Huffman-tree inequalities—culminating in an algebraic cancellation that closes `memLevel 1..2` without brute-force search.
+4. **Proof geometry vs. physical reality**: the exact byte-and-bit closest approaches we synthesized on unmodified `deflate()`, why slot-by-slot proofs hit a mathematical ceiling near `980` while physical C stops at `720`, how one could close that gap, and the eight places where `zlib 1.4` *did* break.
 
 ---
 
@@ -164,7 +164,7 @@ Then comes [`deflate.c:496–502`](https://github.com/madler/zlib/blob/99623ef70
 2. **Up to 48 bits per match (+24 bits/step catch-up).** Dynamic codes reach 15 bits, not 8 and 5.
 3. **Front-loading.** If a block puts its rare, expensive matches at the *front* of `sym_buf` ($k = 0..28$) and cheap 1-to-8-bit frequent symbols at the *back* ($k = 29..126$), the total block easily beats Fixed codes (`opt_lenb < static_lenb`), yet the Chaser surges toward `B + 3k` in the first quarter of the block!
 
-Test all three regimes interactively below—including our actual real-`deflate()` Dynamic extremum (**Tab 02**), where the narrowest gap (`37 B / +294 bits`) happens mid-block at `k = 29`, nowhere near `k = 127`:
+Seeing a broken safety argument guarding an unchecked write, our immediate reaction was to switch from proving to attacking: dial down to `memLevel = 1` ($B = 128$, only $1{,}024$ bits of head start against a $2{,}283$-bit max header), front-load rare matches, pad the tail with cheap anchors so Dynamic beats Fixed, and watch `pending` smash into `sym_buf`. Yet every candidate input stalled short of collision. Play with all three trajectories below—including our closest real-`deflate()` Dynamic block (**Tab 02**), which pinches right at mid-block `k = 29` (`37 B / +294 bits`) before pulling away:
 
 <div class="zc-widget" data-zc="race" data-lang="en"></div>
 
@@ -263,33 +263,43 @@ Test how $B + 2 < 1{,}597$ locks out depth 16 and forces the early return at `tr
 
 <div class="zc-widget" data-zc="fib" data-lang="en"></div>
 
-#### Regime 3: `memLevel 1..2` ($B = 128, 256$) — Where `_tr_flush_block`'s Mode Test Saves the Proof
+#### Regime 3: `memLevel 1..2` ($B = 128, 256$) — Algebraic Cancellation via `_tr_flush_block`
 
-At $B = 256$ ($8B = 2{,}048$) and $B = 128$ ($8B = 1{,}024$), the 2,283-bit general header bound *alone* exceeds $8B$. To close the proof, Lean must link **three C functions together**:
+At $B = 256$ ($8B = 2{,}048$) and $B = 128$ ($8B = 1{,}024$), the 2,283-bit general header bound *alone* exceeds $8B$. Why doesn't the tree header by itself smash past $B$ before symbol 0 is even read? Because **three C functions lock together**:
 
-1. **In `build_tree` (`prepared_lengths_fib`, [`deflate.c.engine.overlay-lengths.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-lengths.lean#L80-L88)):** At $B = 128$ ($W \le 130 < 144 = F_{12}$), $F_{l+2} \le 130$ forces **every code length $l \le 9$** (and $l \le 11$ at $B = 256$).
-2. **In `scan_tree` & `build_bl_tree` ([`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)):** Because lengths `10..15` never occur at $B = 128$, `bl_tree` uses at most 13 of its 19 symbols. Bounding `bl_tree` against an explicit complete reference code bounds $H$ as a sum of per-slot charges across the 286 + 30 tree entries.
-3. **In `_tr_flush_block` ([`trees.c:1035`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L1035-L1037)):** Remember `deflate.c`'s broken comment? While `opt_lenb < static_lenb` cannot bound prefixes directly, `_tr_flush_block` *does* check `if (static_lenb <= opt_lenb)` before emitting a dynamic block! That enforces:
+1. **In `build_tree` (`prepared_lengths_fib`, [`deflate.c.engine.overlay-lengths.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-lengths.lean)):** At $B = 128$ ($W \le 130 < 144 = F_{12}$), $F_{l+2} \le 130$ forces **every code length $l \le 9$** (and $l \le 11$ at $B = 256$). Moreover, any zero-frequency dummy leaf added when a tree has $< 2$ real symbols sits in a 2-leaf tree and therefore has $l = 1$.
+2. **In `scan_tree` & `build_bl_tree` ([`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)):** Because lengths `10..15` never occur at $B = 128$, `bl_tree` uses at most 13 of its 19 symbols. Bounding `bl_tree` against a fixed complete reference code bounds twice the header by per-slot region charges across the $286 + 30$ tree entries.
+3. **In `_tr_flush_block` ([`trees.c:1035`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L1035-L1037)):** Remember `deflate.c`'s broken comment? While `opt_lenb < static_lenb` cannot bound prefixes via an average, `_tr_flush_block` *does* check `if (static_lenb <= opt_lenb)` before emitting a dynamic block! Canceling the identical extra-bit sums on both sides bounds the dynamic code lengths ($l_c, l_d$) against the fixed RFC 1951 code lengths ($l_c^{\mathrm{static}} \in \{7,8,9\}$ and $5$).
+
+Putting those two inequalities side by side reveals the clean algebraic cancellation:
 
 $$
-\left\lfloor \frac{H + P_{\mathrm{opt}} + 10}{8} \right\rfloor + 1 \le \left\lfloor \frac{P_{\mathrm{static}} + 10}{8} \right\rfloor \implies H + P_{\mathrm{opt}} \le P_{\mathrm{static}} + 6.
+2H \le H_{\mathrm{const}} + \sum_{c=0}^{285} \mathrm{charge}_L(l_c) + \sum_{d=0}^{29} \mathrm{charge}_D(l_d),
 $$
 
-This creates an inescapable trade-off: inflating $H$ requires lighting up dozens of distinct symbols across `dyn_ltree` and `dyn_dtree` so `scan_tree` cannot collapse runs of zeros into repeat codes `17` and `18`; yet lighting up dozens of rare symbols drives $P_{\mathrm{opt}}$ up toward $P_{\mathrm{static}}$—and the instant `opt_lenb == static_lenb`, `_tr_flush_block` abandons the Dynamic block and emits Fixed codes instead!
+$$
+H + \sum_{c=0}^{285} f_c\, l_c + \sum_{d=0}^{29} f_d\, l_d + 1 \le \sum_{c=0}^{285} f_c\, l_c^{\mathrm{static}} + 5 \sum_{d=0}^{29} f_d.
+$$
 
-To let Lean's `omega` tactic verify this without enumerating $286 \times 30$ joint tree shapes, the proof decouples the 316 tree slots via dual linear weights ([`deflate.c.engine.overlay-mem1w.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-mem1w.lean)), proving $H + E \le 2{,}023$ at $B = 256$ ($2{,}023 + 25 = \mathbf{2{,}048 \le 2{,}048}$) and $H + E \le 999$ at $B = 128$ ($999 + 25 = \mathbf{1{,}024 \le 1{,}024}$)—**zero bits of proof slack**!
+Adding **$a$ copies of the first** and **$b$ copies of the second** ($a = 2, b = 4$ at $B = 128$; $a = 1, b = 1$ at $B = 256$) puts $(2a + b)(H + E) + b$ on the left while **canceling the dynamic code-length sums against the static ones**! All 256 literals, `END_BLOCK`, and low-extra-bit match buckets immediately have nonpositive frequency slope; bounding the remaining high-extra-bit buckets via Kraft ($\sum 2^{15-l} \le 2^{15}$) and $f \cdot F_{l+1} + F_l \le W$ closes the entire `memLevel 1..2` proof in one ~485-line parametric module with **zero brute-force search** ([`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Math/DeflateOverlayTiny.lean)):
 
-Compare the naive formula, the Lean 4 theorem bound, and the actual real-C physical peak across all nine `memLevel`s:
+- At $B = 256$ ($8B = 2{,}048$): $H + E \le \mathbf{1{,}899} \implies 1{,}899 + 25 = \mathbf{1{,}924 \le 2{,}048}$ (**124 bits** of budget slack).
+- At $B = 128$ ($8B = 1{,}024$): $H + E \le \mathbf{983} \implies 983 + 25 = \mathbf{1{,}008 \le 1{,}024}$ (**16 bits** of budget slack).
+
+Compare the naive general formula, the Lean 4 theorem bound, and the actual real-C physical peak across all nine `memLevel`s:
 
 <div class="zc-widget" data-zc="regimes" data-lang="en"></div>
 
 ---
 
-## 4. How Close Can Real `zlib` *Actually* Get?
+## 4. Proof Geometry vs. Physical Reality: How Close Can `zlib` *Actually* Get?
 
-Seeing $999 + 25 = 1{,}024 \le 1{,}024$ raises the obvious question: **how close can a real uncompressed input in `zlib 1.4` physically push `s->pending` to the next unread symbol?**
+Our formal bound at `memLevel = 1` clears `1,024` with just 16 bits to spare (`1,008 <= 1,024`), and `memLevel = 3` clears `4,096` with 11 bits to spare (`4,085 <= 4,096`). That begs two questions:
 
-To answer this without hand-waving, we analyzed all three block types across every `memLevel = 1..9` and every block count $n \in [1, B-1]$, then synthesized concrete uncompressed byte streams and verified them in unmodified `deflateInit2` + `deflate` + `inflate` with an instrumentation hook on every `put_byte`.
+1. **In real, unmodified `zlib 1.4`, how close can a valid uncompressed input physically push `s->pending` to the next unread symbol?**
+2. **Why does our proof land near `983` (`1,008` total), and what would it take to push a formal proof all the way down to the physical C limit?**
+
+To answer the first question with certainty, we analyzed all three block types across every `memLevel = 1..9` and every symbol count $n \in [1, B-1]$, synthesized concrete uncompressed byte streams, and ran them end-to-end through unmodified `deflateInit2` + `deflate` + `inflate` with an instrumentation hook on every `put_byte`.
 
 ### 1. The Global Closest Approach in `zlib`: Fixed Blocks (`18 Bytes / 132 Bits`)
 
@@ -328,19 +338,24 @@ We synthesized a **50,184-byte uncompressed buffer** whose exact LZ77 parse in u
 - **$H = 623$ bits**, **$E = 97$ bits** $\implies$ **$H + E = \mathbf{720\text{ bits}}$**,
 - **Minimum physical gap (at $k = 29$, with 98 symbols still unread at `[215..509)`):** `pending = 178`, `bi_valid = 2` vs. unread byte `215` $\implies$ **`37 bytes` (`294 bits`)**!
 
-### 3. Where Every Bit of the `294`-Bit Proof-vs-Reality Gap Went
+### 3. Why Slot-by-Slot Proofs Bottom Out at `980`—and How You Would Reach `720`
 
-Why did our Lean proof land on $H + E \le 999$ (`0` proof slack at `999 + 25 = 1,024`) when physical C stops at $H + E = 720$ (`294` bits of unread margin: $1{,}024 - 10 - 720 = 294$)? Evaluating every inequality of our `memLevel = 1` linear bound on the $H + E = 720$ extremal block accounts for all `294.0` bits down to `0.0` residual:
+Compare the three milestones at `memLevel = 1` ($8B = 1{,}024$):
 
-| Source of Slack | Bits | Why the Proof Pays It |
+- **Physical Dynamic extremum in C:** $H + E = \mathbf{720}$ bits (`294` bits of unread margin: $1{,}024 - 10 - 720 = 294$).
+- **Mathematical ceiling of *any* per-slot decoupled linear proof:** $H + E = \mathbf{979.12 \approx 980}$ bits.
+- **Our small-integer cancellation proof (`2 × header + 4 × choice`):** $H + E \le \mathbf{983}$ bits (`1,008 / 1,024` with `+25`).
+
+That middle number (`979.12`) is the punchline. Even if you use an exact continuous LP solver with arbitrary real weights, **decomposing the $286 + 30 = 316$ tree slots into independent per-entry bounds cannot prove anything tighter than `980`**—our hand-written 2-digit integer proof (`983`) is already within **4 bits** of that theoretical floor! Evaluating each relaxation on our $H + E = 720$ extremal block shows exactly where the gap between `980` and `720` lives, and what a proof would have to model to close it:
+
+| Relaxation Layer | Bits | What It Would Take to Close in Lean |
 | --- | ---: | --- |
-| Per-slot decoupling (`316` independent entries) | `169.5` | Bounding each slot independently via $f \cdot F_{l+1} + F_l \le 130$ ignores that multiple leaves in *one* tree cannot simultaneously saturate the single-spine Fibonacci bound, and leaves positive linear slack on the ~230 unused ($f = 0$) entries |
-| Static reference code + local RLE charges | `87.7` | Bounding the 7-bit `bl_tree` against one fixed reference code (+ clamping allowance) and local per-slot zero charges instead of `scan_tree`'s global zero-runs |
-| LP certificate headroom (`979.1` $\to$ `999`) | `19.9` | **Key surprise:** once decoupled per slot so Lean's `omega` checks in linear time, the exact continuous LP optimum is **`979.12` bits**—within **19.9 bits** of `999`! |
-| Unified `END_BLOCK` margin (`+15` in `25`) | `15.0` | Prefix reads need $S_k \le 8(B+3k)$ (`+10` entry/tag bits), while `DynamicRoom` folds in the 15-bit `END_BLOCK` slack needed against `4B` at block end |
-| Pairing & byte-rounding | `1.9` | Splitting match excess across trees (`1.0`b) + `opt_len = 2211` vs `2213` (`0.9`b) |
+| Per-slot tree decoupling (`316` independent entries) | `169.5` | **Joint single-tree spine coupling:** prove that multiple rare leaves in *one* tree share a single weight budget $W \le 130$ instead of each leaf independently claiming its own Fibonacci spine, and bound the ~230 empty ($f = 0$) slots jointly |
+| Fixed reference code + local RLE charges | `87.7` | **Global `scan_tree` automaton & adaptive `bl_tree`:** reason across *adjacent* zero slots (`REPZ_3_10 = 17`, `REPZ_11_138 = 18`) and dynamic `bl_tree` code lengths rather than charging one fixed reference code per slot |
+| Unified `END_BLOCK` margin (`+25` vs `+10`) | `15.0` | **Separate mid-block vs. block-end theorems:** `END_BLOCK` ($\le 15$ bits) is emitted *after* all $n$ symbols are read, where the ceiling is `4B = 4,096` bits rather than `8B = 1,024` bits |
+| Integer weights (`983` vs LP `979.1`) & rounding | `5.8` | Scale `8` small integers vs. continuous reals (`3.9`b) + split match excess (`1.0`b) + byte rounding (`0.9`b) |
 
-Look at row 3 (`979.12` vs `999`): even though real C retains 37 bytes (`294` bits) of physical room, **any proof architecture that decomposes the 316 tree entries into independent linear checks only had 19.9 bits of mathematical air left** before `memLevel = 1` would have crossed `1,024` and failed!
+Why stop at `H + E <= 983` instead of formalizing joint multi-leaf spines and global zero-run automata to push the theorem down toward `720`? Because for **memory safety**, proving `1,008 <= 1,024` and proving `730 <= 1,024` yield the **exact same `Fault.ub`-freedom theorem**—whereas stopping right at the per-slot decoupling boundary keeps the proof 485 lines long, transparent, and completely free of brute-force search.
 
 ---
 
@@ -393,7 +408,7 @@ In `inflateCopy` ([`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef
 ## References
 
 - **Lean 4 proof & documentation**: [`cla7aye15I4nd/zlib-f`](https://github.com/cla7aye15I4nd/zlib-f) · [Overview](https://www.dataisland.org/zlib-f/en/overview.html) · [Trees & Overlay Proof](https://www.dataisland.org/zlib-f/en/proof/trees.html) · [All Findings](https://www.dataisland.org/zlib-f/en/findings.html)
-- **Overlay theorems by regime**: [`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-dynamic.lean) (`memLevel 5..9`) · [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-overlay-mid.lean) (`memLevel 3..4`) · [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean) (`memLevel 1..2`)
+- **Overlay theorems by regime**: [`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-dynamic.lean) (`memLevel 5..9`) · [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/trees.c.universal-overlay-mid.lean) (`memLevel 3..4`) · [`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Math/DeflateOverlayTiny.lean) & [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/zlib-f/blob/main/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean) (`memLevel 1..2`)
 - **Upstream C & spec**: [`madler/zlib` @ `99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e) · [RFC 1951 (DEFLATE)](https://datatracker.ietf.org/doc/html/rfc1951)
 
-<script src="/static/zlib-chase.js?v=20261118-zlib-chase-v5"></script>
+<script src="/static/zlib-chase.js?v=20261118-zlib-chase-v6"></script>
