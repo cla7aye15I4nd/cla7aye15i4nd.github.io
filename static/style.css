@@ -1711,6 +1711,7 @@ body:has(.blog-article-page) ::selection {
 
 .article-body table {
   display: block;
+  width: fit-content;
   max-width: 100%;
   overflow-x: auto;
 }
