@@ -282,16 +282,16 @@ case COPY:      /* -> COPY */
 
 其余几个 Bug 则集中在 `gz*` 文件接口的有符号 64 位偏移量 `z_off64_t` 算术溢出与 32 位头部长度回绕上：
 
-| 问题 | 代码位置与根因 | 补丁与上游状态 |
+| 问题 | 位置 | 上游 |
 | --- | --- | --- |
-| `inflateCopy` 跨对象指针比较 | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383)：对静态表 `lenfix` 与堆数组 `state->codes` 执行 `>=` / `<=`（UB） | [Patch 0001](https://github.com/cla7aye15I4nd/zlib-f/blob/main/patches/0001-inflate-copy-pointer-equality.patch) · [PR #1369](https://github.com/madler/zlib/pull/1369) |
-| 初始 `gzungetc` 后调用 `gzseek` | [`gzlib.c:395, 403`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L395-L403)：`gzopen` 后立刻 `gzungetc` 使 `x.pos = -1`，随后 `GZ_OFF_MAX - pos` 与 `pos - state->x.pos` 触发 64 位有符号溢出 | [Patch 0002](https://github.com/cla7aye15I4nd/zlib-f/blob/main/patches/0002-gzseek-negative-position-overflow.patch) · [PR #1361](https://github.com/madler/zlib/pull/1361) |
-| `gzread` 读取出错时悬空 `x.next` | [`gzread.c:271, 369`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276)：部分 `read()` 成功后报错留下 `x.have > 0` 与旧 `x.next`，导致堆越界读 | [Patch 0003](https://github.com/cla7aye15I4nd/zlib-f/blob/main/patches/0003-gzread-partial-copy-read-error.patch) · [PR #1363](https://github.com/madler/zlib/pull/1363) |
-| `gzread` / `gzgetc` 位置溢出 | [`gzread.c`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c)：在 `/dev/zero` 等设备上 `gzseek` 到接近 $2^{63}$ 后继续读取，`x.pos` 无界自增溢出 | [Patch 0004](https://github.com/cla7aye15I4nd/zlib-f/blob/main/patches/0004-gzread-position-overflow.patch) · [PR #1405](https://github.com/madler/zlib/pull/1405) |
-| `gzwrite` / `gzputc` 位置溢出 | [`gzwrite.c:230, 352`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzwrite.c#L230)：透明模式向 `/dev/null` `gzseek` 到接近 $2^{63}$ 后写入，`x.pos` 有符号溢出 | [Patch 0005](https://github.com/cla7aye15I4nd/zlib-f/blob/main/patches/0005-gzwrite-position-overflow.patch) · [PR #1406](https://github.com/madler/zlib/pull/1406) |
-| `gzoffset64` 负 `lseek` 返回值 | [`gzlib.c:486–489`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L486-L489)：只检查 `offset == -1` 而未拦 `< 0`；在 `/proc/<pid>/mem` 上 `offset - avail_in` 有符号溢出 | [Patch 0006](https://github.com/cla7aye15I4nd/zlib-f/blob/main/patches/0006-gzoffset-negative-lseek.patch) · [PR #1404](https://github.com/madler/zlib/pull/1404) |
-| `Z_FIXED` 下 `deflateBound` 过小 | [`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L936)：窗口滑动关闭存储块兜底后，1 MB 输入实需 `1,008,570` 字节，超出承诺的 `1,000,318` 字节 | [Patch 0007](https://github.com/cla7aye15I4nd/zlib-f/blob/main/patches/0007-deflatebound-fixed-conservative.patch) · [PR #1394](https://github.com/madler/zlib/pull/1394) |
-| `deflateBound` gzip `extra_len` 回绕 | [`deflate.c:901`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L901)：`extra_len` 取 $2^{32}-2$ 或 $2^{32}-1$ 时 `2 + extra_len` 32 位回绕（偏小约 64 KiB） | [PR #1360](https://github.com/madler/zlib/pull/1360) |
+| `inflateCopy` 跨对象比较指针（UB） | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383) | [PR #1369](https://github.com/madler/zlib/pull/1369) |
+| `gzungetc` 后 `gzseek` 有符号溢出 | [`gzlib.c:395`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L395-L403) | [PR #1361](https://github.com/madler/zlib/pull/1361) |
+| `gzread` 出错后读悬空 `x.next` | [`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276) | [PR #1363](https://github.com/madler/zlib/pull/1363) |
+| `gzread` / `gzgetc` 位置 `x.pos` 溢出 | [`gzread.c:413`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L413) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
+| `gzwrite` / `gzputc` 位置 `x.pos` 溢出 | [`gzwrite.c:230`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzwrite.c#L230) | [PR #1406](https://github.com/madler/zlib/pull/1406) |
+| `gzoffset64` 未拒绝负的 `lseek` 结果 | [`gzlib.c:486`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L486-L489) | [PR #1404](https://github.com/madler/zlib/pull/1404) |
+| `Z_FIXED` 下 `deflateBound` 偏小 | [`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L936) | [PR #1394](https://github.com/madler/zlib/pull/1394) |
+| gzip `extra_len` 使 `deflateBound` 回绕 | [`deflate.c:901`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L901) | [PR #1360](https://github.com/madler/zlib/pull/1360) |
 
 ## 小结与参考链接
 
