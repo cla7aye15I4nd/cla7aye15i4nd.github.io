@@ -97,7 +97,7 @@ sections:
 
 links:
   - { label: "Email",          url: "mailto:dataisland@outlook.com" }
-  - { label: "CV",             url: "paper/resume.pdf" }
+  - { label: "CV",             url: "/paper/resume.pdf" }
   - { label: "Github",         url: "https://github.com/cla7aye15I4nd" }
   - { label: "Scholar", url: "https://scholar.google.com/citations?user=Ih4TEO8AAAAJ" }
   - { label: "Proofs",         icon: "proofs", url: "https://www.dataisland.org/oss-proof/" }

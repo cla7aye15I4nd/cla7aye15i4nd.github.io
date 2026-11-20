@@ -1,8 +1,22 @@
 {% extends "base.html" %}
 {% import "macros/icons.html" as icons %}
+{% set static_prefix = "/" %}
 {% set profile = site.data.profile %}
 {% set not_found = profile.not_found %}
 {% block title %}{{ not_found.title }}{% endblock %}
+
+{% block head_extra %}
+<script>
+  (function () {
+    var p = window.location.pathname;
+    if (p === "/zlib-f" || p === "/zlib-f/") {
+      window.location.replace("/oss-proof/zlib/" + window.location.search + window.location.hash);
+    } else if (p.indexOf("/zlib-f/") === 0) {
+      window.location.replace("/oss-proof/zlib/" + p.slice("/zlib-f/".length) + window.location.search + window.location.hash);
+    }
+  })();
+</script>
+{% endblock %}
 
 {% block body %}
 <main class="not-found-page">
@@ -27,7 +41,7 @@
     <p class="not-found-sub">{{ not_found.sub }}</p>
     <div class="not-found-actions">
       <a href="{{ not_found.home_url }}">{{ not_found.home_label }}</a>
-      <a href="blog/index.html">Read notes →</a>
+      <a href="/blog/index.html">Read notes →</a>
     </div>
   </section>
 </main>

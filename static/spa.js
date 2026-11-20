@@ -6,7 +6,19 @@
   const samePath = (a, b) =>
     a.origin === b.origin && a.pathname === b.pathname && a.search === b.search;
 
+  const isMainSitePath = (pathname) =>
+    pathname === "/" ||
+    pathname === "/index.html" ||
+    pathname === "/404.html" ||
+    pathname === "/blog" ||
+    pathname.startsWith("/blog/") ||
+    pathname === "/papers" ||
+    pathname.startsWith("/papers/");
+
   const isHtmlNavigation = (url) => {
+    if (!isMainSitePath(url.pathname)) {
+      return false;
+    }
     const ext = url.pathname.split("/").pop().split(".").pop();
     return !url.pathname.includes("/static/") && (!ext || ext === url.pathname.split("/").pop() || ext === "html");
   };
@@ -80,11 +92,11 @@
     return false;
   };
 
-  const appendScript = (script) =>
+  const appendScript = (script, baseUrl) =>
     new Promise((resolve) => {
       const src = script.getAttribute("src");
-      if (src) {
-        const absoluteSrc = new URL(src, document.baseURI).href;
+      const absoluteSrc = src ? new URL(src, baseUrl).href : "";
+      if (absoluteSrc) {
         const existing = [...document.scripts].find((node) => node.src === absoluteSrc);
         if (existing) {
           resolve();
@@ -94,6 +106,9 @@
 
       const clone = document.createElement("script");
       [...script.attributes].forEach((attr) => clone.setAttribute(attr.name, attr.value));
+      if (absoluteSrc) {
+        clone.setAttribute("src", absoluteSrc);
+      }
       clone.dataset.spaExtra = "true";
       if (!src) {
         clone.textContent = script.textContent;
@@ -106,7 +121,7 @@
       document.head.appendChild(clone);
     });
 
-  const syncHead = async (nextDocument) => {
+  const syncHead = async (nextDocument, baseUrl) => {
     document.title = nextDocument.title;
     document.documentElement.lang = nextDocument.documentElement.lang || document.documentElement.lang;
 
@@ -128,9 +143,13 @@
         continue;
       }
       if (node.tagName.toLowerCase() === "script") {
-        await appendScript(node);
+        await appendScript(node, baseUrl);
       } else {
         const clone = node.cloneNode(true);
+        const href = clone.getAttribute("href");
+        if (href) {
+          clone.setAttribute("href", new URL(href, baseUrl).href);
+        }
         clone.dataset.spaExtra = "true";
         document.head.appendChild(clone);
       }
@@ -215,9 +234,17 @@
     document.documentElement.dataset.spaLoading = "true";
     try {
       const target = new URL(url, window.location.href);
+      if (!isMainSitePath(target.pathname)) {
+        window.location.href = target.href;
+        return;
+      }
       const html = await fetchPage(target.href);
       const nextDocument = parser.parseFromString(html, "text/html");
-      await syncHead(nextDocument);
+      if (!document.getElementById("app") || !nextDocument.getElementById("app")) {
+        window.location.href = target.href;
+        return;
+      }
+      await syncHead(nextDocument, target.href);
       const updatePage = () => {
         swapApp(nextDocument);
         runPageEnhancements();
