@@ -20,14 +20,14 @@ At [`zlib/trees.c:945`](https://github.com/madler/zlib/blob/99623ef7097352da7993
 
 In every release build of `zlib` (`#ifndef ZLIB_DEBUG`), `Assert` preprocesses to whitespace. Neither `compress_block`, nor `send_bits`, nor `put_byte` checks whether `s->pending` has room before writing to `s->pending_buf`.
 
-When we set out to build a machine-checked Lean 4 safety proof of upstream `zlib 1.4` ([zlib × Lean](/blog/zlib-lean.html); repository [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof)), most of the library came down to familiar systems invariants: ring-buffer wraparound in `inflate_fast`, hash-chain bounds over uninitialized slots in `longest_match`, and state-machine discipline across streaming calls. Line 945 of `trees.c` was different. Right above the buffer allocation in `deflate.c`, `zlib`'s authors wrote a 38-line mathematical proof that this stripped assertion can never fire—and **that proof is wrong**. Yet when we put down the theorem prover and tried to construct an exploit input that actually crashes `compress_block`, every single attempt hit an invisible wall.
+When we set out to build machine-checked Lean 4 safety proofs for **both `zlib` and `zlib-ng`** ([zlib × Lean](/blog/zlib-lean.html); repository [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof)), most of both codebases came down to familiar systems invariants: ring-buffer wraparound in `inflate_fast`, hash-chain bounds over uninitialized slots in `longest_match`, and state-machine discipline across streaming calls. Line 945 of `zlib`'s `trees.c` was different. Right above the buffer allocation in `deflate.c`, `zlib`'s authors wrote a 38-line mathematical proof that this stripped assertion can never fire—and **that proof is wrong**. Yet when we put down the theorem prover and tried to construct an exploit input that actually crashes `compress_block`, every single attempt hit an invisible wall.
 
 This post walks through the whole investigation from the ground up:
 
 1. **What `deflate` actually does**: why `zlib` needs two passes per block, and why two cursors end up racing through the same `pending_buf` array.
 2. **Why `deflate.c`'s proof fails (and why an exploit still won't fit)**: why an *average* bit-length bound cannot prevent a mid-block collision—and why a collision would trigger an out-of-bounds `.rodata` read, not just corrupt output.
 3. **How the C code connects to our Lean 4 proof**: step by step, how pointer mutations and `bi_buf` bit-shifts reduce to pure Huffman-tree inequalities—culminating in an algebraic cancellation that closes `memLevel 1..2` without brute-force search.
-4. **Proof geometry vs. physical reality**: the exact byte-and-bit closest approaches we synthesized on unmodified `deflate()`, why slot-by-slot proofs hit a mathematical ceiling near `980` while physical C stops at `720`, how one could close that gap, and the nine places where upstream `zlib` *did* break.
+4. **Proof geometry vs. physical reality**: the exact byte-and-bit closest approaches we synthesized on unmodified `deflate()`, why slot-by-slot proofs hit a mathematical ceiling near `980` while physical C stops at `720`, and how one could close that gap.
 
 ---
 
@@ -359,56 +359,15 @@ Why stop at `H + E <= 983` instead of formalizing joint multi-leaf spines and gl
 
 ---
 
-## 5. Plot Twist: The Nine Places Where `zlib` *Did* Break
+## 5. Epilogue: Where the Real Bugs Hid
 
-There is a recurring comedy in vulnerability research: you spend weeks trying to break a terrifying in-place pointer chase defended by a wrong comment, discover it stays safe by 18 bytes in Fixed mode and 37 bytes in Dynamic mode—and then find real memory-safety bugs in routine code ten files away.
+There is a recurring irony in security and verification work: human intuition always stares at the scariest-looking loop in the codebase. Everyone who reads `trees.c` flinches at two pointers racing across one buffer without bounds checks, writes (or believes) a plausible 38-line argument about average code lengths, and moves on. When we forced Lean's kernel to check that loop, the comment fell apart—yet Fibonacci tree weights, the $F_{17} = 1{,}597$ early return, and `_tr_flush_block`'s mode-selection inequality quietly held the line, leaving 18 bytes in Fixed mode and 37 bytes in Dynamic mode.
 
-Closing the Lean 4 safety proofs across upstream `zlib` uncovered **nine real defects** in total—one debug-trace `isgraph(n)` UB in `trees.c` ([PR #1359](https://github.com/madler/zlib/pull/1359)) that was merged right before `zlib 1.4` ([`6fd01c55`](https://github.com/madler/zlib/commit/6fd01c55)), plus eight defects in `zlib 1.4` ([`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e); [patches](https://github.com/cla7aye15I4nd/oss-proof/tree/main/projects/zlib/patches)), one of which ([PR #1369](https://github.com/madler/zlib/pull/1369)) Mark Adler has already marked *"Applied"* for the next release. Seven of the nine are undefined behaviors or memory errors reproduced on real C under AddressSanitizer / UndefinedBehaviorSanitizer; two are broken upper-bound promises in `deflateBound`.
-
-### 1. `deflateBound` Breaks Its Promise Under `Z_FIXED` ([`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L932-L940), [PR #1394](https://github.com/madler/zlib/pull/1394))
-
-The sharpest bug connects right back to `_tr_flush_block`. `zlib.h` promises that allocating `deflateBound(strm, sourceLen)` output bytes guarantees a single `deflate(strm, Z_FINISH)` call will finish the stream (`Z_STREAM_END`). For `windowBits = 15, memLevel = 8`, `deflateBound_z` returns a tight ~0.03% expansion bound, assuming any expanding block can fall back to an uncompressed **stored block**. Look at [`trees.c:1047–1056`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L1047-L1056):
-
-```c
-if (stored_len + 4 <= opt_lenb && buf != (char*)0) {
-    _tr_stored_block(s, buf, stored_len, last);
-```
-
-`buf` is `NULL` whenever `fill_window` slid the 64 KiB window mid-block (`block_start < 0`), discarding the raw input bytes! Under `Z_FIXED` at levels 1–3, `deflate_fast` emits 3-byte matches at far distances costing **25 bits** (**8.33 bits per input byte**). Once a block crosses a window slide, `buf == NULL` disables the stored-block fallback: on $1{,}000{,}000$ input bytes, `deflateBound` promises `1,000,318` bytes while real C needs up to **`1,008,570` bytes**, failing with `Z_OK`.
-
-### 2. `gzread` Copies From a Stale `x.next` Pointer ([`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276), [PR #1405](https://github.com/madler/zlib/pull/1405))
-
-In transparent `COPY` mode, `gz_fetch` refills `state->out` via `gz_load`:
-
-```c
-case COPY:      /* -> COPY */
-    if (gz_load(state, state->out, state->size << 1, &(state->x.have)) == -1)
-        return -1;
-    state->x.next = state->out;
-    return 0;
-```
-
-If `gz_load` reads some bytes (`state->x.have > 0`) and the next `read()` syscall fails with `-1`, `gz_fetch` returns `-1` **before** updating `state->x.next = state->out`! Outer `gz_read` sees `x.have > 0` and `memcpy`s from the **stale** `state->x.next` pointer—a heap buffer over-read outside `state->out` (caught by ASan at [`gzread.c:369`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L369)).
-
-### 3. `inflateCopy` Pointer UB & `gz*` 64-Bit Offset Overflows
-
-In `inflateCopy` ([`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383-L1387), [PR #1369](https://github.com/madler/zlib/pull/1369)), `state->lencode >= state->codes && state->lencode <= state->codes + ENOUGH - 1` compares a pointer to `.rodata` (`lenfix`) against a heap array using `>=` / `<=` (C undefined behavior, caught by ASan `pointer-compare`). Replacing the range test with `state->lencode == state->codes` fixes it (acknowledged *"Applied"* upstream). Here are all nine upstream issues:
-
-| Issue | Location | Upstream |
-| --- | --- | --- |
-| `gen_codes` debug `isgraph(n)` out-of-range UB | [`trees.c:230`](https://github.com/madler/zlib/commit/6fd01c55) | [PR #1359](https://github.com/madler/zlib/pull/1359) ✓ Merged |
-| `inflateCopy` compares unrelated pointers (UB) | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383) | [PR #1369](https://github.com/madler/zlib/pull/1369) ✓ Applied |
-| `gzseek` signed overflow after initial `gzungetc` | [`gzlib.c:395`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L395-L403) | [PR #1361](https://github.com/madler/zlib/pull/1361) |
-| `gzread` heap over-read from stale `x.next` | [`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
-| `gzread` / `gzgetc` signed `x.pos` overflow | [`gzread.c:413`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L413) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
-| `gzwrite` / `gzputc` signed `x.pos` overflow | [`gzwrite.c:230`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzwrite.c#L230) | [PR #1406](https://github.com/madler/zlib/pull/1406) |
-| `gzoffset64` overflow on negative `lseek` | [`gzlib.c:486`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L486-L489) | [PR #1404](https://github.com/madler/zlib/pull/1404) |
-| `deflateBound` too small under `Z_FIXED` | [`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L936) | [PR #1394](https://github.com/madler/zlib/pull/1394) |
-| `deflateBound` 32-bit wrap on gzip `extra_len` | [`deflate.c:901`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L901) | [PR #1360](https://github.com/madler/zlib/pull/1360) |
+The theorem prover, however, does not play favorites: it demands the exact same rigor on routine bookkeeping and error-handling paths ten files away. Across our verification of `zlib` and `zlib-ng`, we found a number of real bugs in much less dramatic places elsewhere in the codebases. Once most of those fixes have been accepted upstream, we will share the full story in a separate post.
 
 ## References
 
-- **Lean 4 proof & documentation**: [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof) · [oss-proof Portal](https://www.dataisland.org/oss-proof/en/) · [zlib Overview](https://www.dataisland.org/oss-proof/zlib/en/overview.html) · [Trees & Overlay Proof](https://www.dataisland.org/oss-proof/zlib/en/proof/trees.html) · [All Findings](https://www.dataisland.org/oss-proof/zlib/en/findings.html)
+- **Lean 4 proofs & documentation**: [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof) · [oss-proof Portal](https://www.dataisland.org/oss-proof/en/) · [zlib Overview](https://www.dataisland.org/oss-proof/zlib/en/overview.html) · [zlib-ng Overview](https://www.dataisland.org/oss-proof/zlib-ng/en/overview.html) · [Trees & Overlay Proof](https://www.dataisland.org/oss-proof/zlib/en/proof/trees.html)
 - **Overlay theorems by regime**: [`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-dynamic.lean) (`memLevel 5..9`) · [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-overlay-mid.lean) (`memLevel 3..4`) · [`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Math/DeflateOverlayTiny.lean) & [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean) (`memLevel 1..2`)
 - **Upstream C & spec**: [`madler/zlib` @ `99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e) · [RFC 1951 (DEFLATE)](https://datatracker.ietf.org/doc/html/rfc1951)
 

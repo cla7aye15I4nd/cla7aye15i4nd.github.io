@@ -1,11 +1,11 @@
 ---
 date: 2026-11-18
 tags: [compression, verification, security, lean]
-title: "写对的代码，写错的注释：zlib 里的双指针追逐战"
+title: "正确的代码，错误的注释：zlib 里的双指针追逐战"
 description: "deflate.c 用 38 行注释论证共用缓冲区绝不会覆写未读符号——这段注释其实是错的。当我们顺着破绽试图构造 Exploit 时，却撞上了藏在 Huffman 树里的三道数学防线。"
 ---
 
-# 写对的代码，写错的注释：zlib 里的双指针追逐战
+# 正确的代码，错误的注释：zlib 里的双指针追逐战
 
 打开 [`zlib/trees.c:945`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L941-L946)，在 `compress_block` 的主循环末尾，有一条孤零零的断言：
 
@@ -20,14 +20,14 @@ description: "deflate.c 用 38 行注释论证共用缓冲区绝不会覆写未�
 
 在所有生产环境的发布版编译（`#ifndef ZLIB_DEBUG`）下，`Assert` 都会被预处理器直接抹成空白。无论是 `compress_block`、`send_bits` 还是 `put_byte`，在向 `s->pending_buf` 写入字节时，都**没有任何运行时边界检查**。
 
-当我们用 Lean 4 对上游 `zlib 1.4` 做完整的内存安全形式化证明（见前文 [zlib × Lean](/blog/zlib-lean.zh.html)，代码库 [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof)）时，绝大多数模块的证明都属于经典的系统验证问题：`inflate_fast` 环形窗口的回绕、`longest_match` 在未初始化数组上的哈希链有界性、流式状态机的跨调用不变量。唯独 `trees.c` 的第 945 行是个例外：在 `deflate.c` 分配这块缓冲区的正上方，`zlib` 作者专门写了一段 38 行的数学证明来论证这条被删掉的 `Assert` 绝不会触发——**但那段证明在逻辑上是错的**。更奇妙的是，当我们放下证明器、顺着注释的漏洞试图构造 Exploit 去打穿它时，所有攻击样本却全都撞上了一堵无形的墙。
+我们目前的工作是用 Lean 4 **同时对 `zlib` 和 `zlib-ng` 做完整的内存安全形式化证明**（见前文 [zlib × Lean](/blog/zlib-lean.zh.html)，代码库 [`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof)）。两个代码库里绝大多数模块的证明都属于经典的系统验证问题：`inflate_fast` 环形窗口的回绕、`longest_match` 在未初始化数组上的哈希链有界性、流式状态机的跨调用不变量。唯独 `zlib` 中 `trees.c` 的第 945 行是个例外：在 `deflate.c` 分配这块缓冲区的正上方，作者专门写了一段 38 行的数学证明来论证这条被删掉的 `Assert` 绝不会触发——**但那段注释里的证明其实是错的**。更奇妙的是，当我们放下证明器、顺着注释的漏洞试图构造 Exploit 去打穿它时，所有攻击样本却全都撞上了一堵无形的墙。
 
 这篇文章不省篇幅、不跳步骤，从头把整场调查拆清楚：
 
 1. **`deflate` 原来的算法到底长什么样**：为什么压缩一个块非要分两遍（Two Passes），为什么两个指针会被迫挤进同一个 `pending_buf` 数组里你追我赶。
 2. **为什么官方注释证错了，而 Exploit 却塞不进去**：为什么“平均码长小于 31”防不住块中途追尾，以及一旦追尾为什么会直接触发 `.rodata` 越界读。
 3. **怎么把 C 代码和 Lean 4 证明一步步联系起来**：指针自增与位寄存器移位是如何化归为 Huffman 树不等式，最后靠一步干净的代数对消（无需任何暴力搜索）封死 `memLevel 1..2` 的。
-4. **证明的几何 vs. 物理的几何**：真实 `deflate()` 物理上最极限能贴到多少字节、为什么逐槽位独立求和的证明天花板卡在 `980` 而真实 C 停在 `720`、怎样才能继续逼近物理极限——以及最后反转：同一次证明在上游 `zlib` 其他地方真正抓出来的 **9 个真实 Bug**。
+4. **证明的几何 vs. 物理的几何**：真实 `deflate()` 物理上最极限能贴到多少字节、为什么逐槽位独立求和的证明天花板卡在 `980` 而真实 C 停在 `720`，以及怎样才能继续逼近物理极限。
 
 ---
 
@@ -359,56 +359,15 @@ $$
 
 ---
 
-## 5. 反转：上游 `zlib` 真正出 Bug 的 9 个地方
+## 5. 尾声：真正藏着 Bug 的地方
 
-做安全验证经常会遇到这种冷幽默：你花了好几周死磕一段连注释都写错了的原地双指针追逐，发现它在固定块下靠 18 字节、在动态块下靠 37 字节涉险过关；结果转头去证十个文件之外看似平平无奇的常规代码时，却接连抓出真正的内存安全漏洞。
+做安全验证经常会遇到一种反差：人类的注意力总是被最惊险的代码吸引过去。每个读过 `trees.c` 的人都会为这段没有边界检查的原地双指针追逐捏一把汗，再写一段看似合理的“平均值小于 31”来宽慰自己；等到真正用 Lean 内核去死磕它时，注释里的推理确实碎了一地——可斐波那契树权重、$F_{17} = 1{,}597$ 的早退阈值和 `_tr_flush_block` 的块选择不等式却在暗中联手兜住了底，让它在固定块下保住 18 字节、在动态块下保住 37 字节的安全距离。
 
-在整个上游 `zlib` 的 Lean 4 安全性证明过程中，我们一共发现了 **9 个真实缺陷**：其中 `trees.c` 调试追踪中的 `isgraph(n)` 越界 UB（[PR #1359](https://github.com/madler/zlib/pull/1359)）已在 `zlib 1.4` 发布前合入上游主干（[`6fd01c55`](https://github.com/madler/zlib/commit/6fd01c55)）；其余 8 个存在于 `zlib 1.4`（[`99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e)；[补丁目录](https://github.com/cla7aye15I4nd/oss-proof/tree/main/projects/zlib/patches)），其中 `inflateCopy` 指针比较问题（[PR #1369](https://github.com/madler/zlib/pull/1369)）也已获作者 Mark Adler 回复确认 *"Applied"*。这 9 个问题里有 7 个是经 AddressSanitizer / UndefinedBehaviorSanitizer 实测复现的未定义行为或内存错误，另外 2 个是违背 API 承诺的 `deflateBound` 上界错误。
-
-### 1. `Z_FIXED` 下 `deflateBound` 算小了输出上界（[`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L932-L940)，[PR #1394](https://github.com/madler/zlib/pull/1394)）
-
-最戏剧性的一个 Bug 恰好又回到了 `_tr_flush_block`。`zlib.h` 承诺：只要按 `deflateBound(strm, sourceLen)` 分配输出空间，单次调用 `deflate(strm, Z_FINISH)` 就保证返回 `Z_STREAM_END`。在默认 `windowBits = 15, memLevel = 8` 下，`deflateBound_z` 给出了仅膨胀约 0.03% 的极紧上界，理由是“万一压缩变大了，总能退回不压缩的存储块（Stored Block）”。但看一眼 [`trees.c:1047–1056`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/trees.c#L1047-L1056)：
-
-```c
-if (stored_len + 4 <= opt_lenb && buf != (char*)0) {
-    _tr_stored_block(s, buf, stored_len, last);
-```
-
-只要 `fill_window` 在块中途滑动过 64 KiB 窗口（`block_start < 0`），原始输入字节已被挤出窗口，`buf` 就会变成 `NULL`——**存储块退路当场关闭**！而在 `Z_FIXED` 配合级别 1–3 时，`deflate_fast` 发出的远距离 3 字节匹配占 **25 bits**（每输入字节 **8.33 bits**）。面对 $1{,}000{,}000$ 字节输入，`deflateBound` 只给 `1,000,318` 字节，真实 C 代码却需要 **`1,008,570` 字节**，导致单次压缩半途返回 `Z_OK`。
-
-### 2. `gzread` 在部分读取报错后从悬空的旧 `x.next` 拷贝（[`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276)，[PR #1405](https://github.com/madler/zlib/pull/1405)）
-
-在透明直通 `COPY` 模式下，`gz_fetch` 调用 `gz_load` 填充 `state->out`：
-
-```c
-case COPY:      /* -> COPY */
-    if (gz_load(state, state->out, state->size << 1, &(state->x.have)) == -1)
-        return -1;
-    state->x.next = state->out;
-    return 0;
-```
-
-如果 `gz_load` 第一次 `read()` 读出了一部分字节（`state->x.have > 0`），下一次 `read()` 返回 `-1` 失败，`gz_fetch` 会在更新 `state->x.next = state->out` **之前**直接 `return -1`！外层 `gz_read` 看到 `x.have > 0`，照常从**过期的旧指针 `state->x.next`** 处 `memcpy` 数据——当场触发堆缓冲区越界读（ASan 于 [`gzread.c:369`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L369) 捕获）。
-
-### 3. `inflateCopy` 跨对象指针比较 UB 与 `gz*` 64 位偏移量溢出
-
-在 `inflateCopy`（[`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383-L1387)，[PR #1369](https://github.com/madler/zlib/pull/1369)）中，`state->lencode >= state->codes && state->lencode <= state->codes + ENOUGH - 1` 用 `>=` / `<=` 比较指向 `.rodata` 段静态表 `lenfix` 的指针与堆数组 `state->codes`（C 标准未定义行为，ASan `pointer-compare` 直接报错），改成 `state->lencode == state->codes` 即可修复（上游已确认 *"Applied"*）。全部 9 个上游问题汇总如下：
-
-| 问题 | 位置 | 上游 |
-| --- | --- | --- |
-| `gen_codes` 调试 `isgraph(n)` 参数越界 UB | [`trees.c:230`](https://github.com/madler/zlib/commit/6fd01c55) | [PR #1359](https://github.com/madler/zlib/pull/1359) ✓ 已合入 |
-| `inflateCopy` 跨对象比较指针（UB） | [`inflate.c:1383`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/inflate.c#L1383) | [PR #1369](https://github.com/madler/zlib/pull/1369) ✓ 已采纳 |
-| `gzungetc` 后 `gzseek` 有符号溢出 | [`gzlib.c:395`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L395-L403) | [PR #1361](https://github.com/madler/zlib/pull/1361) |
-| `gzread` 出错后读悬空 `x.next` | [`gzread.c:271`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L271-L276) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
-| `gzread` / `gzgetc` 位置 `x.pos` 溢出 | [`gzread.c:413`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzread.c#L413) | [PR #1405](https://github.com/madler/zlib/pull/1405) |
-| `gzwrite` / `gzputc` 位置 `x.pos` 溢出 | [`gzwrite.c:230`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzwrite.c#L230) | [PR #1406](https://github.com/madler/zlib/pull/1406) |
-| `gzoffset64` 未拒绝负的 `lseek` 结果 | [`gzlib.c:486`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/gzlib.c#L486-L489) | [PR #1404](https://github.com/madler/zlib/pull/1404) |
-| `Z_FIXED` 下 `deflateBound` 偏小 | [`deflate.c:936`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L936) | [PR #1394](https://github.com/madler/zlib/pull/1394) |
-| gzip `extra_len` 使 `deflateBound` 回绕 | [`deflate.c:901`](https://github.com/madler/zlib/blob/99623ef7097352da7993ba614161fd6a311e046e/deflate.c#L901) | [PR #1360](https://github.com/madler/zlib/pull/1360) |
+但定理证明器不会偏心，它对十个文件之外最平淡无奇的状态维护与错误处理路径同样寸步不让。在对 `zlib` 和 `zlib-ng` 做形式化证明的过程中，我们在其他看似不起眼的地方找到了不少真实的 Bug。等这些修复大部分被上游接受之后，我们会在另一篇文章里详细介绍它们。
 
 ## 参考链接
 
-- **Lean 4 证明与文档**：[`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof) · [oss-proof 总览门户](https://www.dataisland.org/oss-proof/zh/) · [zlib 项目总览](https://www.dataisland.org/oss-proof/zlib/zh/overview.html) · [树与共用缓冲区证明详解](https://www.dataisland.org/oss-proof/zlib/zh/proof/trees.html) · [完整问题清单](https://www.dataisland.org/oss-proof/zlib/zh/findings.html)
+- **Lean 4 证明与文档**：[`cla7aye15I4nd/oss-proof`](https://github.com/cla7aye15I4nd/oss-proof) · [oss-proof 总览门户](https://www.dataisland.org/oss-proof/zh/) · [zlib 项目总览](https://www.dataisland.org/oss-proof/zlib/zh/overview.html) · [zlib-ng 项目总览](https://www.dataisland.org/oss-proof/zlib-ng/zh/overview.html) · [树与共用缓冲区证明详解](https://www.dataisland.org/oss-proof/zlib/zh/proof/trees.html)
 - **分区间核心证明源码**：[`trees.c.universal-dynamic.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-dynamic.lean)（`memLevel 5..9`）· [`trees.c.universal-overlay-mid.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/trees.c.universal-overlay-mid.lean)（`memLevel 3..4`）· [`DeflateOverlayTiny.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Math/DeflateOverlayTiny.lean) 与 [`deflate.c.engine.overlay-header-ref.lean`](https://github.com/cla7aye15I4nd/oss-proof/blob/main/projects/zlib/ZlibF/Proof/deflate.c.engine.overlay-header-ref.lean)（`memLevel 1..2`）
 - **上游 C 源码与规范**：[`madler/zlib` @ `99623ef7`](https://github.com/madler/zlib/tree/99623ef7097352da7993ba614161fd6a311e046e) · [RFC 1951 (DEFLATE 规范)](https://datatracker.ietf.org/doc/html/rfc1951)
 
